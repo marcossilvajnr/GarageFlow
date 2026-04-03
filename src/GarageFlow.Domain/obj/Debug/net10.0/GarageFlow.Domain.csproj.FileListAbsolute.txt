@@ -1,0 +1,11 @@
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/bin/Debug/net10.0/GarageFlow.Domain.deps.json
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/bin/Debug/net10.0/GarageFlow.Domain.dll
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/bin/Debug/net10.0/GarageFlow.Domain.pdb
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/obj/Debug/net10.0/GarageFlow.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/obj/Debug/net10.0/GarageFlow.Domain.AssemblyInfoInputs.cache
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/obj/Debug/net10.0/GarageFlow.Domain.AssemblyInfo.cs
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/obj/Debug/net10.0/GarageFlow.Domain.csproj.CoreCompileInputs.cache
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/obj/Debug/net10.0/GarageFlow.Domain.dll
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/obj/Debug/net10.0/refint/GarageFlow.Domain.dll
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/obj/Debug/net10.0/GarageFlow.Domain.pdb
+/Users/marcosdasilvajunior/Projects/GarageFlow/src/GarageFlow.Domain/obj/Debug/net10.0/ref/GarageFlow.Domain.dll
