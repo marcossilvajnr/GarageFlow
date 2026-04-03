@@ -1,0 +1,58 @@
+## Build
+**/bin/
+**/obj/
+out/
+logs/
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+artifacts/
+
+## IDE
+.vs/
+.idea/
+
+## VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+## Rider / ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+## Test / Coverage
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.cobertura.xml
+CoverageReport/
+
+## Publish
+publish/
+
+## Secrets / env
+secrets.json
+appsettings.Local.json
+.env
+.env.*
+
+## Database
+*.db
+*.sqlite
+
+## OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+## Temp
+*.tmp
+*.bak
+*.swp
+*~
