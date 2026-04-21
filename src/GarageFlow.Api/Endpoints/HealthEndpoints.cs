@@ -9,7 +9,11 @@ public static class HealthEndpoints
             status = "ok",
             service = "GarageFlow.Api"
         }))
-        .WithName("HealthCheck");
+        .WithName("HealthCheck")
+        .WithSummary("Verifica se a API esta ativa.")
+        .WithDescription("Endpoint tecnico para validacao rapida de disponibilidade da API.")
+        .WithTags("Health")
+        .Produces(StatusCodes.Status200OK);
 
         return endpoints;
     }
