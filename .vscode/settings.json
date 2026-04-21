@@ -1,0 +1,6 @@
+{
+  "dotnet.defaultSolution": "GarageFlow.slnx",
+  "files.associations": {
+    "*.http": "http"
+  }
+}
