@@ -2,7 +2,7 @@ using GarageFlow.Domain.Employees;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace GarageFlow.Infrastructure.Persistence.Configurations;
+namespace GarageFlow.Infrastructure.Persistence.Configurations.Employees;
 
 internal sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
 {

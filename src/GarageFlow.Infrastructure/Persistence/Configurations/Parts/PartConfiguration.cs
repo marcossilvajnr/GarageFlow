@@ -2,7 +2,7 @@ using GarageFlow.Domain.Parts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace GarageFlow.Infrastructure.Persistence.Configurations;
+namespace GarageFlow.Infrastructure.Persistence.Configurations.Parts;
 
 internal sealed class PartConfiguration : IEntityTypeConfiguration<Part>
 {

@@ -2,7 +2,7 @@ using GarageFlow.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace GarageFlow.Infrastructure.Persistence.Configurations;
+namespace GarageFlow.Infrastructure.Persistence.Configurations.Services;
 
 internal sealed class ServiceConfiguration : IEntityTypeConfiguration<Service>
 {
