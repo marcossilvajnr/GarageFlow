@@ -1,5 +1,6 @@
 using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Employees;
+using GarageFlow.Domain.Parts;
 using GarageFlow.Domain.Services;
 using GarageFlow.Domain.Suppliers;
 using GarageFlow.Domain.Vehicles;
@@ -19,6 +20,7 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<Service> Services => Set<Service>();
+    public DbSet<Part> Parts => Set<Part>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,5 +29,6 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
         modelBuilder.ApplyConfiguration(new SupplierConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
         modelBuilder.ApplyConfiguration(new ServiceConfiguration());
+        modelBuilder.ApplyConfiguration(new PartConfiguration());
     }
 }

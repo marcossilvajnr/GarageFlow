@@ -1,4 +1,5 @@
 using GarageFlow.Api.Endpoints;
+using GarageFlow.Api.Endpoints.Parts;
 using GarageFlow.Api.Endpoints.Services;
 using GarageFlow.Application;
 using GarageFlow.Infrastructure;
@@ -42,6 +43,7 @@ app.MapVehicleEndpoints();
 app.MapSupplierEndpoints();
 app.MapEmployeeEndpoints();
 app.MapServiceEndpoints();
+app.MapPartEndpoints();
 
 app.Run();
 

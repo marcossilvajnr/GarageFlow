@@ -94,4 +94,19 @@ public static class DomainErrorMessages
 
     // Service not found (handlers - context-specific)
     public static string ServiceNotFound(Guid id) => $"Serviço '{id}' não encontrado";
+
+    // Part aggregate (context-specific)
+    public const string InvalidPartName = "Nome da peça inválido";
+    public const string InvalidPartCode = "Código da peça inválido";
+    public const string InvalidPartSku = "SKU da peça inválido";
+    public const string InvalidPartUnitOfMeasure = "Unidade de medida da peça inválida";
+    public const string InvalidPartUnitPrice = "Preço não pode ser negativo";
+    public const string PartAlreadyInactive = "Peça já está inativa";
+
+    // Part uniqueness (repository - context-specific)
+    public const string DuplicatePartCode = "Código da peça já cadastrado";
+    public const string DuplicatePartSku = "SKU da peça já cadastrado";
+
+    // Part not found (handlers - context-specific)
+    public static string PartNotFound(Guid id) => $"Peça '{id}' não encontrada";
 }
