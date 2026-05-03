@@ -109,4 +109,17 @@ public static class DomainErrorMessages
 
     // Part not found (handlers - context-specific)
     public static string PartNotFound(Guid id) => $"Peça '{id}' não encontrada";
+
+    // Supply aggregate (context-specific)
+    public const string InvalidSupplyName = "Nome do insumo inválido";
+    public const string InvalidSupplyCode = "Código do insumo inválido";
+    public const string InvalidSupplyUnitOfMeasure = "Unidade de medida do insumo inválida";
+    public const string InvalidSupplyBaseCost = "Custo base do insumo não pode ser negativo";
+    public const string SupplyAlreadyInactive = "Insumo já está inativo";
+
+    // Supply uniqueness (repository - context-specific)
+    public const string DuplicateSupplyCode = "Código do insumo já cadastrado";
+
+    // Supply not found (handlers - context-specific)
+    public static string SupplyNotFound(Guid id) => $"Insumo '{id}' não encontrado";
 }

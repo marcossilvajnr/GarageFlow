@@ -3,7 +3,9 @@ using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Parts;
 using GarageFlow.Domain.Services;
 using GarageFlow.Domain.Suppliers;
+using GarageFlow.Domain.Supplies;
 using GarageFlow.Domain.Vehicles;
+using GarageFlow.Infrastructure.Persistence.Configurations;
 using GarageFlow.Infrastructure.Persistence.Configurations.Customers;
 using GarageFlow.Infrastructure.Persistence.Configurations.Employees;
 using GarageFlow.Infrastructure.Persistence.Configurations.Parts;
@@ -23,6 +25,7 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<Service> Services => Set<Service>();
     public DbSet<Part> Parts => Set<Part>();
+    public DbSet<Supply> Supplies => Set<Supply>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,5 +35,6 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
         modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
         modelBuilder.ApplyConfiguration(new ServiceConfiguration());
         modelBuilder.ApplyConfiguration(new PartConfiguration());
+        modelBuilder.ApplyConfiguration(new SupplyConfiguration());
     }
 }
