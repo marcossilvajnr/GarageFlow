@@ -53,4 +53,14 @@ public static class DomainErrorMessages
 
     // Vehicle not found (handlers - context-specific)
     public static string VehicleNotFound(Guid id) => $"Veículo '{id}' não encontrado";
+
+    // Supplier aggregate (context-specific)
+    public const string InvalidSupplierName = "Nome do fornecedor inválido";
+    public const string SupplierAlreadyInactive = "Fornecedor já está inativo";
+
+    // Supplier uniqueness (repository - context-specific)
+    public const string DuplicateCnpjSupplier = "CNPJ já cadastrado para fornecedor";
+
+    // Supplier not found (handlers - context-specific)
+    public static string SupplierNotFound(Guid id) => $"Fornecedor '{id}' não encontrado";
 }

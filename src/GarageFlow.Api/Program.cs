@@ -9,6 +9,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen(options =>
 {
+    // Prevent schema id collisions for DTOs with the same type name in different namespaces.
+    options.CustomSchemaIds(type => type.FullName!.Replace("+", "."));
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "GarageFlow API",
@@ -36,6 +38,7 @@ app.UseHttpsRedirection();
 app.MapHealthEndpoints();
 app.MapCustomerEndpoints();
 app.MapVehicleEndpoints();
+app.MapSupplierEndpoints();
 
 app.Run();
 

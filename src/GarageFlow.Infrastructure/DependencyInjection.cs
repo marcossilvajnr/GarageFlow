@@ -1,4 +1,5 @@
 using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Suppliers;
 using GarageFlow.Domain.Vehicles;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Infrastructure.Persistence.Repositories;
@@ -27,6 +28,7 @@ public static class DependencyInjection
 
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IVehicleRepository, VehicleRepository>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
 
         return services;
     }
