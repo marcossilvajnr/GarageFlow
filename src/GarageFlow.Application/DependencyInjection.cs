@@ -1,5 +1,6 @@
 using GarageFlow.Application.Customers.Handlers;
 using GarageFlow.Application.Employees.Handlers;
+using GarageFlow.Application.Services.Handlers;
 using GarageFlow.Application.Suppliers.Handlers;
 using GarageFlow.Application.Vehicles.Handlers;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,12 @@ public static class DependencyInjection
         services.AddScoped<DeactivateEmployeeHandler>();
         services.AddScoped<GetEmployeeByIdHandler>();
         services.AddScoped<ListEmployeesHandler>();
+
+        services.AddScoped<CreateServiceHandler>();
+        services.AddScoped<UpdateServiceHandler>();
+        services.AddScoped<DeactivateServiceHandler>();
+        services.AddScoped<GetServiceByIdHandler>();
+        services.AddScoped<ListServicesHandler>();
 
         return services;
     }

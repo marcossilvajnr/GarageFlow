@@ -6,6 +6,9 @@ namespace GarageFlow.Domain.Shared;
 /// </summary>
 public static class DomainErrorMessages
 {
+    // Pagination (transversal)
+    public const string InvalidPaginationParameters = "Página e tamanho da página devem ser maiores que zero.";
+
     // Document VOs (transversal)
     public const string InvalidCpf = "CPF inválido";
     public const string InvalidCnpj = "CNPJ inválido";
@@ -76,4 +79,19 @@ public static class DomainErrorMessages
 
     // Employee not found (handlers - context-specific)
     public static string EmployeeNotFound(Guid id) => $"Funcionário '{id}' não encontrado";
+
+    // Service aggregate (context-specific)
+    public const string InvalidServiceCode = "Código do serviço inválido";
+    public const string InvalidServiceName = "Nome do serviço inválido";
+    public const string InvalidServiceDescription = "Descrição do serviço inválida";
+    public const string InvalidServiceBasePrice = "Preço base do serviço deve ser maior que zero";
+    public const string InvalidServiceEstimatedDuration = "Duração estimada do serviço deve ser maior que zero";
+    public const string ServiceAlreadyInactive = "Serviço já está inativo";
+
+    // Service uniqueness (repository - context-specific)
+    public const string DuplicateServiceCode = "Código do serviço já cadastrado";
+    public const string DuplicateServiceName = "Nome do serviço já cadastrado";
+
+    // Service not found (handlers - context-specific)
+    public static string ServiceNotFound(Guid id) => $"Serviço '{id}' não encontrado";
 }
