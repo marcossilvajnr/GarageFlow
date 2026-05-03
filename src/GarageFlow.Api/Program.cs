@@ -1,6 +1,10 @@
 using GarageFlow.Api.Endpoints;
+using GarageFlow.Api.Endpoints.Customers;
+using GarageFlow.Api.Endpoints.Employees;
 using GarageFlow.Api.Endpoints.Parts;
 using GarageFlow.Api.Endpoints.Services;
+using GarageFlow.Api.Endpoints.Suppliers;
+using GarageFlow.Api.Endpoints.Vehicles;
 using GarageFlow.Application;
 using GarageFlow.Infrastructure;
 using Microsoft.OpenApi;

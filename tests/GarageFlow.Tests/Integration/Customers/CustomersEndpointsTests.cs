@@ -4,8 +4,9 @@ using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Customers;
 using GarageFlow.Domain.Customers;
+using GarageFlow.Tests.Integration;
 
-namespace GarageFlow.Tests.Integration;
+namespace GarageFlow.Tests.Integration.Customers;
 
 public sealed class CustomersEndpointsTests(GarageFlowWebApplicationFactory factory)
     : IClassFixture<GarageFlowWebApplicationFactory>

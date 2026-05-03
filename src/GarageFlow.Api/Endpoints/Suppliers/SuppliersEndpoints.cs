@@ -5,7 +5,7 @@ using GarageFlow.Application.Suppliers.Queries;
 using GarageFlow.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GarageFlow.Api.Endpoints;
+namespace GarageFlow.Api.Endpoints.Suppliers;
 
 public static class SuppliersEndpoints
 {

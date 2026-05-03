@@ -1,69 +1,71 @@
-using GarageFlow.Api.DTOs.Customers;
-using GarageFlow.Application.Customers.Commands;
-using GarageFlow.Application.Customers.Handlers;
-using GarageFlow.Application.Customers.Queries;
+using GarageFlow.Api.DTOs.Employees;
+using GarageFlow.Application.Employees.Commands;
+using GarageFlow.Application.Employees.Handlers;
+using GarageFlow.Application.Employees.Queries;
 using GarageFlow.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GarageFlow.Api.Endpoints;
+namespace GarageFlow.Api.Endpoints.Employees;
 
-public static class CustomersEndpoints
+public static class EmployeesEndpoints
 {
-    public static IEndpointRouteBuilder MapCustomerEndpoints(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapEmployeeEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/customers").WithTags("Customers");
+        var group = endpoints.MapGroup("/employees").WithTags("Employees");
 
-        group.MapPost("/", CreateCustomer)
-            .WithName("CreateCustomer")
-            .WithSummary("Cria um novo cliente.")
-            .Produces<CustomerResponse>(StatusCodes.Status201Created)
+        group.MapPost("/", CreateEmployee)
+            .WithName("CreateEmployee")
+            .WithSummary("Cria um novo funcionário.")
+            .Produces<EmployeeResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
-        group.MapGet("/{id:guid}", GetCustomerById)
-            .WithName("GetCustomerById")
-            .WithSummary("Consulta cliente por Id.")
-            .Produces<CustomerResponse>(StatusCodes.Status200OK)
+        group.MapGet("/{id:guid}", GetEmployeeById)
+            .WithName("GetEmployeeById")
+            .WithSummary("Consulta funcionário por Id.")
+            .Produces<EmployeeResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/", ListCustomers)
-            .WithName("ListCustomers")
-            .WithSummary("Lista clientes com paginação.")
-            .Produces<PagedCustomerResponse>(StatusCodes.Status200OK);
+        group.MapGet("/", ListEmployees)
+            .WithName("ListEmployees")
+            .WithSummary("Lista funcionários com paginação.")
+            .Produces<PagedEmployeeResponse>(StatusCodes.Status200OK);
 
-        group.MapPut("/{id:guid}", UpdateCustomer)
-            .WithName("UpdateCustomer")
-            .WithSummary("Atualiza dados do cliente.")
-            .Produces<CustomerResponse>(StatusCodes.Status200OK)
+        group.MapPut("/{id:guid}", UpdateEmployee)
+            .WithName("UpdateEmployee")
+            .WithSummary("Atualiza dados do funcionário.")
+            .Produces<EmployeeResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapDelete("/{id:guid}", DeactivateCustomer)
-            .WithName("DeactivateCustomer")
-            .WithSummary("Desativa cliente (soft delete).")
+        group.MapDelete("/{id:guid}", DeactivateEmployee)
+            .WithName("DeactivateEmployee")
+            .WithSummary("Desativa funcionário (soft delete).")
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         return endpoints;
     }
 
-    private static async Task<IResult> CreateCustomer(
-        CreateCustomerRequest request,
-        CreateCustomerHandler handler,
+    private static async Task<IResult> CreateEmployee(
+        CreateEmployeeRequest request,
+        CreateEmployeeHandler handler,
         CancellationToken cancellationToken)
     {
         try
         {
-            var command = new CreateCustomerCommand(
+            var command = new CreateEmployeeCommand(
                 request.Name, request.DocumentType, request.Document,
                 request.Email, request.PhoneNumber,
                 request.Street, request.Number, request.Complement,
-                request.Neighborhood, request.City, request.State, request.ZipCode);
+                request.Neighborhood, request.City, request.State, request.ZipCode,
+                request.Role);
 
             var dto = await handler.HandleAsync(command, cancellationToken);
 
             var response = MapToResponse(dto);
-            return Results.Created($"/customers/{dto.Id}", response);
+            return Results.Created($"/employees/{dto.Id}", response);
         }
         catch (DuplicateDocumentException ex)
         {
@@ -75,17 +77,17 @@ public static class CustomersEndpoints
         }
     }
 
-    private static async Task<IResult> GetCustomerById(
+    private static async Task<IResult> GetEmployeeById(
         Guid id,
-        GetCustomerByIdHandler handler,
+        GetEmployeeByIdHandler handler,
         CancellationToken cancellationToken)
     {
-        var dto = await handler.HandleAsync(new GetCustomerByIdQuery(id), cancellationToken);
+        var dto = await handler.HandleAsync(new GetEmployeeByIdQuery(id), cancellationToken);
         return dto is null ? Results.NotFound() : Results.Ok(MapToResponse(dto));
     }
 
-    private static async Task<IResult> ListCustomers(
-        ListCustomersHandler handler,
+    private static async Task<IResult> ListEmployees(
+        ListEmployeesHandler handler,
         CancellationToken cancellationToken,
         int page = 1,
         int pageSize = 20)
@@ -100,8 +102,8 @@ public static class CustomersEndpoints
             });
         }
 
-        var result = await handler.HandleAsync(new ListCustomersQuery(page, pageSize), cancellationToken);
-        var response = new PagedCustomerResponse(
+        var result = await handler.HandleAsync(new ListEmployeesQuery(page, pageSize), cancellationToken);
+        var response = new PagedEmployeeResponse(
             result.Items.Select(MapToResponse).ToList(),
             result.Page,
             result.PageSize,
@@ -110,18 +112,19 @@ public static class CustomersEndpoints
         return Results.Ok(response);
     }
 
-    private static async Task<IResult> UpdateCustomer(
+    private static async Task<IResult> UpdateEmployee(
         Guid id,
-        UpdateCustomerRequest request,
-        UpdateCustomerHandler handler,
+        UpdateEmployeeRequest request,
+        UpdateEmployeeHandler handler,
         CancellationToken cancellationToken)
     {
         try
         {
-            var command = new UpdateCustomerCommand(
+            var command = new UpdateEmployeeCommand(
                 id, request.Name, request.Email, request.PhoneNumber,
                 request.Street, request.Number, request.Complement,
-                request.Neighborhood, request.City, request.State, request.ZipCode);
+                request.Neighborhood, request.City, request.State, request.ZipCode,
+                request.Role);
 
             var dto = await handler.HandleAsync(command, cancellationToken);
             return Results.Ok(MapToResponse(dto));
@@ -136,14 +139,14 @@ public static class CustomersEndpoints
         }
     }
 
-    private static async Task<IResult> DeactivateCustomer(
+    private static async Task<IResult> DeactivateEmployee(
         Guid id,
-        DeactivateCustomerHandler handler,
+        DeactivateEmployeeHandler handler,
         CancellationToken cancellationToken)
     {
         try
         {
-            await handler.HandleAsync(new DeactivateCustomerCommand(id), cancellationToken);
+            await handler.HandleAsync(new DeactivateEmployeeCommand(id), cancellationToken);
             return Results.NoContent();
         }
         catch (EntityNotFoundException)
@@ -156,12 +159,10 @@ public static class CustomersEndpoints
         }
     }
 
-    private static CustomerResponse MapToResponse(Application.Customers.DTOs.CustomerDto dto) => new(
+    private static EmployeeResponse MapToResponse(Application.Employees.DTOs.EmployeeDto dto) => new(
         dto.Id, dto.Name, dto.DocumentType, dto.Document, dto.Email, dto.PhoneNumber,
         new AddressResponse(
             dto.Address.Street, dto.Address.Number, dto.Address.Complement,
             dto.Address.Neighborhood, dto.Address.City, dto.Address.State, dto.Address.ZipCode),
-        dto.IsActive, dto.CreatedAt, dto.UpdatedAt);
-
-
+        dto.Role, dto.IsActive, dto.CreatedAt, dto.UpdatedAt);
 }

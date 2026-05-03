@@ -3,8 +3,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Suppliers;
+using GarageFlow.Tests.Integration;
 
-namespace GarageFlow.Tests.Integration;
+namespace GarageFlow.Tests.Integration.Suppliers;
 
 public sealed class SuppliersEndpointsTests(GarageFlowWebApplicationFactory factory)
     : IClassFixture<GarageFlowWebApplicationFactory>

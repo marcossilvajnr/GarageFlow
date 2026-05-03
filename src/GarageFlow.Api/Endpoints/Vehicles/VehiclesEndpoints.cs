@@ -5,7 +5,7 @@ using GarageFlow.Application.Vehicles.Queries;
 using GarageFlow.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GarageFlow.Api.Endpoints;
+namespace GarageFlow.Api.Endpoints.Vehicles;
 
 public static class VehiclesEndpoints
 {
