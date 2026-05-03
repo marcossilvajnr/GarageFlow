@@ -35,6 +35,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapHealthEndpoints();
 app.MapCustomerEndpoints();
+app.MapVehicleEndpoints();
 
 app.Run();
 

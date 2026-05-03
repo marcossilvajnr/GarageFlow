@@ -38,4 +38,19 @@ public static class DomainErrorMessages
 
     // Customer not found (handlers - context-specific)
     public static string CustomerNotFound(Guid id) => $"Cliente '{id}' não encontrado";
+
+    // Vehicle aggregate (context-specific)
+    public const string InvalidCustomerId = "Id do cliente inválido";
+    public const string InvalidVehicleMake = "Marca do veículo inválida";
+    public const string InvalidVehicleModel = "Modelo do veículo inválido";
+    public const string InvalidVehicleYear = "Ano do veículo inválido";
+    public const string InvalidVehicleColor = "Cor do veículo inválida";
+    public const string VehicleAlreadyInactive = "Veículo já está inativo";
+
+    // Vehicle uniqueness (repository - context-specific)
+    public const string DuplicateLicensePlate = "Placa já cadastrada";
+    public const string DuplicateRenavam = "RENAVAM já cadastrado";
+
+    // Vehicle not found (handlers - context-specific)
+    public static string VehicleNotFound(Guid id) => $"Veículo '{id}' não encontrado";
 }

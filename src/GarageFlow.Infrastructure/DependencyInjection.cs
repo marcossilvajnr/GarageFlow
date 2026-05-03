@@ -1,4 +1,5 @@
 using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Vehicles;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
 
         services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IVehicleRepository, VehicleRepository>();
 
         return services;
     }
