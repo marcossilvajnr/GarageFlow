@@ -1,5 +1,6 @@
 using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Exceptions;
+using GarageFlow.Domain.Shared;
 
 namespace GarageFlow.Tests.Application.Customers;
 
@@ -28,8 +29,8 @@ internal sealed class FakeCustomerRepository : ICustomerRepository
         if (isDuplicate)
         {
             var message = customer.DocumentType == CustomerDocumentType.Cpf
-                ? CustomersErrorMessages.DuplicateCpf
-                : CustomersErrorMessages.DuplicateCnpj;
+                ? DomainErrorMessages.DuplicateCpf
+                : DomainErrorMessages.DuplicateCnpj;
             throw new DuplicateDocumentException(message);
         }
 

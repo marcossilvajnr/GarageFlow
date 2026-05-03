@@ -1,4 +1,5 @@
 using GarageFlow.Domain.Exceptions;
+using GarageFlow.Domain.Shared;
 using GarageFlow.Domain.ValueObjects;
 
 namespace GarageFlow.Domain.Customers;
@@ -29,7 +30,7 @@ public sealed class Customer
     {
         var trimmedName = name?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(trimmedName))
-            throw new DomainException(CustomersErrorMessages.InvalidName);
+            throw new DomainException(DomainErrorMessages.InvalidName);
 
         var customer = new Customer
         {
@@ -52,7 +53,7 @@ public sealed class Customer
                 customer.Cnpj = ValueObjects.Cnpj.Create(document);
                 break;
             default:
-                throw new DomainException(CustomersErrorMessages.InvalidDocumentType);
+                throw new DomainException(DomainErrorMessages.InvalidDocumentType);
         }
 
         return customer;
@@ -62,7 +63,7 @@ public sealed class Customer
     {
         var trimmedName = name?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(trimmedName))
-            throw new DomainException(CustomersErrorMessages.InvalidName);
+            throw new DomainException(DomainErrorMessages.InvalidName);
 
         Name = trimmedName;
         Email = Email.Create(email);
@@ -74,7 +75,7 @@ public sealed class Customer
     public void Deactivate()
     {
         if (!IsActive)
-            throw new DomainException(CustomersErrorMessages.CustomerAlreadyInactive);
+            throw new DomainException(DomainErrorMessages.CustomerAlreadyInactive);
 
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;

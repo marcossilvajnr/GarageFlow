@@ -1,5 +1,5 @@
-using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Exceptions;
+using GarageFlow.Domain.Shared;
 
 namespace GarageFlow.Domain.ValueObjects;
 
@@ -12,18 +12,18 @@ public sealed record Cpf
     public static Cpf Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainException(CustomersErrorMessages.InvalidCpf);
+            throw new DomainException(DomainErrorMessages.InvalidCpf);
 
         var digits = new string(value.Where(char.IsDigit).ToArray());
 
         if (digits.Length != 11)
-            throw new DomainException(CustomersErrorMessages.InvalidCpf);
+            throw new DomainException(DomainErrorMessages.InvalidCpf);
 
         if (digits.Distinct().Count() == 1)
-            throw new DomainException(CustomersErrorMessages.InvalidCpf);
+            throw new DomainException(DomainErrorMessages.InvalidCpf);
 
         if (!ValidateDigit(digits, 10) || !ValidateDigit(digits, 11))
-            throw new DomainException(CustomersErrorMessages.InvalidCpf);
+            throw new DomainException(DomainErrorMessages.InvalidCpf);
 
         return new Cpf(digits);
     }

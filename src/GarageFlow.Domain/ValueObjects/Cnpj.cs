@@ -1,5 +1,5 @@
-using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Exceptions;
+using GarageFlow.Domain.Shared;
 
 namespace GarageFlow.Domain.ValueObjects;
 
@@ -12,19 +12,19 @@ public sealed record Cnpj
     public static Cnpj Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainException(CustomersErrorMessages.InvalidCnpj);
+            throw new DomainException(DomainErrorMessages.InvalidCnpj);
 
         var digits = new string(value.Where(char.IsDigit).ToArray());
 
         if (digits.Length != 14)
-            throw new DomainException(CustomersErrorMessages.InvalidCnpj);
+            throw new DomainException(DomainErrorMessages.InvalidCnpj);
 
         if (digits.Distinct().Count() == 1)
-            throw new DomainException(CustomersErrorMessages.InvalidCnpj);
+            throw new DomainException(DomainErrorMessages.InvalidCnpj);
 
         if (!ValidateDigit(digits, [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2], 12) ||
             !ValidateDigit(digits, [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2], 13))
-            throw new DomainException(CustomersErrorMessages.InvalidCnpj);
+            throw new DomainException(DomainErrorMessages.InvalidCnpj);
 
         return new Cnpj(digits);
     }

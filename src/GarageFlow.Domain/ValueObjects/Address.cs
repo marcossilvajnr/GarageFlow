@@ -1,5 +1,5 @@
-using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Exceptions;
+using GarageFlow.Domain.Shared;
 
 namespace GarageFlow.Domain.ValueObjects;
 
@@ -35,27 +35,27 @@ public sealed record Address
         string neighborhood, string city, string state, string zipCode)
     {
         if (string.IsNullOrWhiteSpace(street) || street.Trim().Length > 200)
-            throw new DomainException(CustomersErrorMessages.InvalidStreet);
+            throw new DomainException(DomainErrorMessages.InvalidStreet);
 
         if (string.IsNullOrWhiteSpace(number) || number.Trim().Length > 10)
-            throw new DomainException(CustomersErrorMessages.InvalidNumber);
+            throw new DomainException(DomainErrorMessages.InvalidNumber);
 
         if (complement is not null && complement.Trim().Length > 100)
-            throw new DomainException(CustomersErrorMessages.InvalidComplement);
+            throw new DomainException(DomainErrorMessages.InvalidComplement);
 
         if (string.IsNullOrWhiteSpace(neighborhood) || neighborhood.Trim().Length > 100)
-            throw new DomainException(CustomersErrorMessages.InvalidNeighborhood);
+            throw new DomainException(DomainErrorMessages.InvalidNeighborhood);
 
         if (string.IsNullOrWhiteSpace(city) || city.Trim().Length > 100)
-            throw new DomainException(CustomersErrorMessages.InvalidCity);
+            throw new DomainException(DomainErrorMessages.InvalidCity);
 
         var normalizedState = string.IsNullOrWhiteSpace(state) ? "" : state.Trim().ToUpperInvariant();
         if (!ValidStates.Contains(normalizedState))
-            throw new DomainException(CustomersErrorMessages.InvalidState);
+            throw new DomainException(DomainErrorMessages.InvalidState);
 
         var zip = new string((zipCode ?? "").Where(char.IsDigit).ToArray());
         if (zip.Length != 8)
-            throw new DomainException(CustomersErrorMessages.InvalidZipCode);
+            throw new DomainException(DomainErrorMessages.InvalidZipCode);
 
         return new Address(
             street.Trim(), number.Trim(),

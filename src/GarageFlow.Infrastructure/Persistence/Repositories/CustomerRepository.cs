@@ -1,5 +1,6 @@
 using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Exceptions;
+using GarageFlow.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -33,8 +34,8 @@ internal sealed class CustomerRepository(GarageFlowDbContext dbContext) : ICusto
         if (isDuplicate)
         {
             var message = customer.DocumentType == CustomerDocumentType.Cpf
-                ? CustomersErrorMessages.DuplicateCpf
-                : CustomersErrorMessages.DuplicateCnpj;
+                ? DomainErrorMessages.DuplicateCpf
+                : DomainErrorMessages.DuplicateCnpj;
             throw new DuplicateDocumentException(message);
         }
 
@@ -54,8 +55,8 @@ internal sealed class CustomerRepository(GarageFlowDbContext dbContext) : ICusto
             when (ex.InnerException is PostgresException { SqlState: "23505" } pgEx)
         {
             var message = pgEx.ConstraintName?.Contains("cpf") == true
-                ? CustomersErrorMessages.DuplicateCpf
-                : CustomersErrorMessages.DuplicateCnpj;
+                ? DomainErrorMessages.DuplicateCpf
+                : DomainErrorMessages.DuplicateCnpj;
 
             throw new DuplicateDocumentException(message);
         }
