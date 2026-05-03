@@ -39,6 +39,7 @@ app.MapHealthEndpoints();
 app.MapCustomerEndpoints();
 app.MapVehicleEndpoints();
 app.MapSupplierEndpoints();
+app.MapEmployeeEndpoints();
 
 app.Run();
 

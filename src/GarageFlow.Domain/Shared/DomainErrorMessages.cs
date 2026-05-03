@@ -63,4 +63,17 @@ public static class DomainErrorMessages
 
     // Supplier not found (handlers - context-specific)
     public static string SupplierNotFound(Guid id) => $"Fornecedor '{id}' não encontrado";
+
+    // Employee aggregate (context-specific)
+    public const string InvalidEmployeeName = "Nome do funcionário inválido";
+    public const string InvalidEmployeeDocumentType = "Tipo de documento do funcionário inválido";
+    public const string InvalidEmployeeRole = "Cargo do funcionário inválido";
+    public const string EmployeeAlreadyInactive = "Funcionário já está inativo";
+
+    // Employee uniqueness (repository - context-specific)
+    public const string DuplicateEmployeeCpf = "CPF já cadastrado para funcionário";
+    public const string DuplicateEmployeeCnpj = "CNPJ já cadastrado para funcionário";
+
+    // Employee not found (handlers - context-specific)
+    public static string EmployeeNotFound(Guid id) => $"Funcionário '{id}' não encontrado";
 }
