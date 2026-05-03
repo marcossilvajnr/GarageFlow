@@ -113,6 +113,46 @@ public sealed class CustomersEndpointsTests(GarageFlowWebApplicationFactory fact
     }
 
     [Fact]
+    public async Task GetCustomers_InvalidPage_Returns400()
+    {
+        var response = await _client.GetAsync("/customers?page=0&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>(JsonOptions);
+        body!.Status.Should().Be(400);
+    }
+
+    [Fact]
+    public async Task GetCustomers_InvalidPageSize_Returns400()
+    {
+        var response = await _client.GetAsync("/customers?page=1&pageSize=-1");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>(JsonOptions);
+        body!.Status.Should().Be(400);
+    }
+
+    [Fact]
+    public async Task UpdateCustomer_NotFound_Returns404()
+    {
+        var updateRequest = new UpdateCustomerRequest(
+            "João Santos", "joao.santos@email.com", "11912345678",
+            "Av. Paulista", "1000", "Ap 1", "Bela Vista", "São Paulo", "SP", "01310100");
+
+        var response = await _client.PutAsJsonAsync($"/customers/{Guid.NewGuid()}", updateRequest);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteCustomer_NotFound_Returns404()
+    {
+        var response = await _client.DeleteAsync($"/customers/{Guid.NewGuid()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task PostCustomer_DuplicateDocument_Returns409()
     {
         var document = "333.444.555-08";

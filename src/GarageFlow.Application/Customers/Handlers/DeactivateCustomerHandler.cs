@@ -1,5 +1,6 @@
 using GarageFlow.Application.Customers.Commands;
 using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Shared;
 
 namespace GarageFlow.Application.Customers.Handlers;
@@ -9,7 +10,7 @@ public sealed class DeactivateCustomerHandler(ICustomerRepository repository)
     public async Task HandleAsync(DeactivateCustomerCommand command, CancellationToken cancellationToken = default)
     {
         var customer = await repository.GetByIdAsync(command.Id, cancellationToken)
-            ?? throw new KeyNotFoundException(DomainErrorMessages.CustomerNotFound(command.Id));
+            ?? throw new EntityNotFoundException(DomainErrorMessages.CustomerNotFound(command.Id));
 
         customer.Deactivate();
 

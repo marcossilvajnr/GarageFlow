@@ -90,6 +90,16 @@ public static class CustomersEndpoints
         int page = 1,
         int pageSize = 20)
     {
+        if (page < 1 || pageSize < 1)
+        {
+            return Results.BadRequest(new ProblemDetails
+            {
+                Title = "Erro de validação",
+                Detail = "Página e tamanho da página devem ser maiores que zero.",
+                Status = 400
+            });
+        }
+
         var result = await handler.HandleAsync(new ListCustomersQuery(page, pageSize), cancellationToken);
         var response = new PagedCustomerResponse(
             result.Items.Select(MapToResponse).ToList(),
@@ -116,7 +126,7 @@ public static class CustomersEndpoints
             var dto = await handler.HandleAsync(command, cancellationToken);
             return Results.Ok(MapToResponse(dto));
         }
-        catch (KeyNotFoundException)
+        catch (EntityNotFoundException)
         {
             return Results.NotFound();
         }
@@ -136,7 +146,7 @@ public static class CustomersEndpoints
             await handler.HandleAsync(new DeactivateCustomerCommand(id), cancellationToken);
             return Results.NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (EntityNotFoundException)
         {
             return Results.NotFound();
         }

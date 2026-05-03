@@ -1,6 +1,7 @@
 using GarageFlow.Application.Customers.Commands;
 using GarageFlow.Application.Customers.DTOs;
 using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Shared;
 using GarageFlow.Domain.ValueObjects;
 
@@ -11,7 +12,7 @@ public sealed class UpdateCustomerHandler(ICustomerRepository repository)
     public async Task<CustomerDto> HandleAsync(UpdateCustomerCommand command, CancellationToken cancellationToken = default)
     {
         var customer = await repository.GetByIdAsync(command.Id, cancellationToken)
-            ?? throw new KeyNotFoundException(DomainErrorMessages.CustomerNotFound(command.Id));
+            ?? throw new EntityNotFoundException(DomainErrorMessages.CustomerNotFound(command.Id));
 
         var address = Address.Create(
             command.Street, command.Number, command.Complement,

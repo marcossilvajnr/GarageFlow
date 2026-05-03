@@ -8,15 +8,12 @@ public sealed class ListCustomersHandler(ICustomerRepository repository)
 {
     public async Task<PagedResult<CustomerDto>> HandleAsync(ListCustomersQuery query, CancellationToken cancellationToken = default)
     {
-        var page = query.Page < 1 ? CustomersPaginationDefaults.DefaultPage : query.Page;
-        var pageSize = query.PageSize < 1 ? CustomersPaginationDefaults.DefaultPageSize : query.PageSize;
-
-        var (items, totalCount) = await repository.ListAsync(page, pageSize, cancellationToken);
+        var (items, totalCount) = await repository.ListAsync(query.Page, query.PageSize, cancellationToken);
 
         return new PagedResult<CustomerDto>(
             items.Select(CustomerMapper.ToDto).ToList(),
-            page,
-            pageSize,
+            query.Page,
+            query.PageSize,
             totalCount);
     }
 }
