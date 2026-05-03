@@ -1,4 +1,6 @@
+using GarageFlow.Domain.Customers;
 using GarageFlow.Infrastructure.Persistence;
+using GarageFlow.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +23,8 @@ public static class DependencyInjection
 
         services.AddDbContext<GarageFlowDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
 
         return services;
     }

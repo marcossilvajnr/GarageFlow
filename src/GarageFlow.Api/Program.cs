@@ -34,5 +34,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapHealthEndpoints();
+app.MapCustomerEndpoints();
 
 app.Run();
+
+public partial class Program { }
