@@ -1,18 +1,17 @@
 using GarageFlow.Infrastructure.Persistence;
+using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace GarageFlow.Tests.Integration;
 
 public sealed class GarageFlowWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly IServiceProvider _inMemoryServiceProvider = new ServiceCollection()
-        .AddEntityFrameworkInMemoryDatabase()
-        .BuildServiceProvider();
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureAppConfiguration((_, config) =>
@@ -25,17 +24,21 @@ public sealed class GarageFlowWebApplicationFactory : WebApplicationFactory<Prog
 
         builder.ConfigureServices(services =>
         {
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<GarageFlowDbContext>));
+            services.RemoveAll(typeof(DbContextOptions<GarageFlowDbContext>));
+            services.RemoveAll(typeof(DbContextOptions));
+            services.RemoveAll(typeof(GarageFlowDbContext));
+            services.RemoveAll(typeof(IDbContextOptionsConfiguration<GarageFlowDbContext>));
 
-            if (descriptor is not null)
-                services.Remove(descriptor);
+            var connection = new SqliteConnection("Data Source=:memory:");
+            connection.Open();
 
-            var dbName = $"GarageFlowTest_{Guid.NewGuid()}";
+            services.AddSingleton(connection);
             services.AddDbContext<GarageFlowDbContext>(options =>
-                options
-                    .UseInternalServiceProvider(_inMemoryServiceProvider)
-                    .UseInMemoryDatabase(dbName));
+                options.UseSqlite(connection));
+
+            using var scope = services.BuildServiceProvider().CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
+            dbContext.Database.EnsureCreated();
         });
 
         builder.UseEnvironment("Development");
