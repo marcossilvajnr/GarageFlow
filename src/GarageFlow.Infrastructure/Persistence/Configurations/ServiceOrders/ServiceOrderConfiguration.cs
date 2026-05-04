@@ -103,5 +103,41 @@ internal sealed class ServiceOrderConfiguration : IEntityTypeConfiguration<Servi
         });
 
         builder.Navigation(so => so.ServiceHistory).HasField("_serviceHistory");
+
+        builder.OwnsOne(so => so.Quote, quoteBuilder =>
+        {
+            quoteBuilder.ToTable("service_order_quotes");
+            quoteBuilder.WithOwner().HasForeignKey(q => q.ServiceOrderId);
+
+            quoteBuilder.HasKey(q => q.ServiceOrderId);
+            quoteBuilder.Property(q => q.Id).HasColumnName("id").IsRequired();
+            quoteBuilder.HasIndex(q => q.Id).IsUnique().HasDatabaseName("ix_service_order_quotes_id");
+            quoteBuilder.Property(q => q.ServiceOrderId).HasColumnName("service_order_id").IsRequired();
+            quoteBuilder.Property(q => q.TotalAmount).HasColumnName("total_amount").HasColumnType("numeric(18,2)").IsRequired();
+            quoteBuilder.Property(q => q.Status).HasColumnName("status").HasConversion<int>().IsRequired();
+            quoteBuilder.Property(q => q.GeneratedAt).HasColumnName("generated_at").IsRequired();
+            quoteBuilder.Property(q => q.AcceptedAt).HasColumnName("accepted_at");
+            quoteBuilder.Property(q => q.RejectedAt).HasColumnName("rejected_at");
+            quoteBuilder.Property(q => q.RejectionReason).HasColumnName("rejection_reason").HasMaxLength(1000);
+
+            quoteBuilder.OwnsMany(q => q.Items, itemBuilder =>
+            {
+                itemBuilder.ToTable("service_order_quote_items");
+                itemBuilder.WithOwner().HasForeignKey("service_order_id");
+
+                itemBuilder.Property(i => i.Id).HasColumnName("id").ValueGeneratedNever();
+                itemBuilder.HasKey("service_order_id", nameof(QuoteItem.Id));
+                itemBuilder.Property(i => i.ServiceId).HasColumnName("service_id").IsRequired();
+                itemBuilder.Property(i => i.ServiceName).HasColumnName("service_name").HasMaxLength(200).IsRequired();
+                itemBuilder.Property(i => i.LaborPrice).HasColumnName("labor_price").HasColumnType("numeric(18,2)").IsRequired();
+                itemBuilder.Property(i => i.PartsTotal).HasColumnName("parts_total").HasColumnType("numeric(18,2)").IsRequired();
+                itemBuilder.Property(i => i.SuppliesTotal).HasColumnName("supplies_total").HasColumnType("numeric(18,2)").IsRequired();
+                itemBuilder.Property(i => i.Subtotal).HasColumnName("subtotal").HasColumnType("numeric(18,2)").IsRequired();
+            });
+
+            quoteBuilder.Navigation(q => q.Items).HasField("_items");
+        });
+
+        builder.Navigation(so => so.Quote).AutoInclude();
     }
 }

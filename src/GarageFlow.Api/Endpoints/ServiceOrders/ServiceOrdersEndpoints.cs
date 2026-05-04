@@ -87,6 +87,34 @@ public static class ServiceOrdersEndpoints
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
+        group.MapPost("/{id:guid}/quote/generate", GenerateQuote)
+            .WithName("GenerateQuote")
+            .WithSummary("Gera o orçamento da Ordem de Serviço a partir dos serviços consolidados.")
+            .Produces<QuoteResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        group.MapGet("/{id:guid}/quote", GetQuote)
+            .WithName("GetQuote")
+            .WithSummary("Consulta o orçamento da Ordem de Serviço.")
+            .Produces<QuoteResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{id:guid}/quote/accept", AcceptQuote)
+            .WithName("AcceptQuote")
+            .WithSummary("Aceita o orçamento da Ordem de Serviço.")
+            .Produces<QuoteResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        group.MapPost("/{id:guid}/quote/reject", RejectQuote)
+            .WithName("RejectQuote")
+            .WithSummary("Rejeita o orçamento da Ordem de Serviço.")
+            .Produces<QuoteResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
         return endpoints;
     }
 
@@ -340,6 +368,110 @@ public static class ServiceOrdersEndpoints
         }
     }
 
+    private static async Task<IResult> GenerateQuote(
+        Guid id,
+        GenerateQuoteHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new GenerateQuoteCommand(id);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToQuoteResponse(dto));
+        }
+        catch (QuoteAlreadyExistsException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (NoConsolidatedServicesException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (ServiceNotAvailableForQuoteException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+    }
+
+    private static async Task<IResult> GetQuote(
+        Guid id,
+        GetServiceOrderQuoteHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var dto = await handler.HandleAsync(new GetServiceOrderQuoteQuery(id), cancellationToken);
+            return Results.Ok(MapToQuoteResponse(dto));
+        }
+        catch (QuoteNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+    }
+
+    private static async Task<IResult> AcceptQuote(
+        Guid id,
+        AcceptQuoteHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new AcceptQuoteCommand(id);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToQuoteResponse(dto));
+        }
+        catch (QuoteAlreadyDecidedException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (QuoteNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+    }
+
+    private static async Task<IResult> RejectQuote(
+        Guid id,
+        RejectQuoteRequest request,
+        RejectQuoteHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new RejectQuoteCommand(id, request.Reason);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToQuoteResponse(dto));
+        }
+        catch (QuoteAlreadyDecidedException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (QuoteNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
     private static ServiceOrderResponse MapToResponse(ServiceOrderDto dto) =>
         new(
             dto.Id,
@@ -347,10 +479,30 @@ public static class ServiceOrdersEndpoints
             dto.VehicleId,
             dto.Status,
             dto.Diagnostic is not null ? MapToDiagnosticResponse(dto.Diagnostic) : null,
+            dto.Quote is not null ? MapToQuoteResponse(dto.Quote) : null,
             dto.CreatedAt,
             dto.UpdatedAt,
             dto.Services.Select(MapToServiceResponse).ToList(),
             dto.ServiceHistory.Select(MapToServiceHistoryResponse).ToList());
+
+    private static QuoteResponse MapToQuoteResponse(QuoteDto dto) =>
+        new(
+            dto.Id,
+            dto.ServiceOrderId,
+            dto.Items.Select(i => new QuoteItemResponse(
+                i.Id,
+                i.ServiceId,
+                i.ServiceName,
+                i.LaborPrice,
+                i.PartsTotal,
+                i.SuppliesTotal,
+                i.Subtotal)).ToList(),
+            dto.TotalAmount,
+            dto.Status,
+            dto.GeneratedAt,
+            dto.AcceptedAt,
+            dto.RejectedAt,
+            dto.RejectionReason);
 
     private static DiagnosticResponse MapToDiagnosticResponse(DiagnosticDto dto) =>
         new(

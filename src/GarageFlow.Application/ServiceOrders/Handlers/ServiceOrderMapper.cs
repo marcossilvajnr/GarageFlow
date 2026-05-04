@@ -12,10 +12,33 @@ internal static class ServiceOrderMapper
             serviceOrder.VehicleId,
             serviceOrder.Status,
             serviceOrder.Diagnostic is not null ? ToDiagnosticDto(serviceOrder.Diagnostic) : null,
+            serviceOrder.Quote is not null ? ToQuoteDto(serviceOrder.Quote) : null,
             serviceOrder.CreatedAt,
             serviceOrder.UpdatedAt,
             serviceOrder.Services.Select(ToServiceItemDto).ToList(),
             serviceOrder.ServiceHistory.Select(ToServiceHistoryDto).ToList());
+
+    internal static QuoteDto ToQuoteDto(Quote quote) =>
+        new(
+            quote.Id,
+            quote.ServiceOrderId,
+            quote.Items.Select(ToQuoteItemDto).ToList(),
+            quote.TotalAmount,
+            quote.Status,
+            quote.GeneratedAt,
+            quote.AcceptedAt,
+            quote.RejectedAt,
+            quote.RejectionReason);
+
+    private static QuoteItemDto ToQuoteItemDto(QuoteItem item) =>
+        new(
+            item.Id,
+            item.ServiceId,
+            item.ServiceName,
+            item.LaborPrice,
+            item.PartsTotal,
+            item.SuppliesTotal,
+            item.Subtotal);
 
     private static DiagnosticDto ToDiagnosticDto(Diagnostic diagnostic) =>
         new(

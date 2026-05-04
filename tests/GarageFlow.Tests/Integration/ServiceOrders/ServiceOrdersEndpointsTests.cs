@@ -921,4 +921,237 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         found.Should().NotBeNull();
         found!.Services.Should().ContainSingle(s => s.ServiceId == service.Id && s.IsActive);
     }
+
+    // Task-017: Quote integration tests
+
+    private static int _serviceSeedForQuote;
+
+    private async Task<ServiceOrderResponse> ConsolidateDiagnosticServices(Guid serviceOrderId)
+    {
+        var response = await _client.PostAsync(
+            $"/service-orders/{serviceOrderId}/diagnostic/consolidate-services", null);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions))!;
+    }
+
+    private async Task<ServiceOrderResponse> SetupOrderWithConsolidatedServices()
+    {
+        var seed = Interlocked.Increment(ref _serviceSeedForQuote);
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var so = await CreateServiceOrder(customer.Id, vehicle.Id);
+        var service = await CreateService($"SVC-017-{seed:D4}", $"Serviço Quote {seed:D4}");
+        await StartDiagnostic(so.Id, Guid.NewGuid());
+        await _client.PostAsJsonAsync($"/service-orders/{so.Id}/diagnostic/services",
+            new AddDiagnosticServiceRequest(service.Id));
+        await CompleteDiagnostic(so.Id, "Diagnóstico concluído para orçamento.");
+        await ConsolidateDiagnosticServices(so.Id);
+        return so;
+    }
+
+    [Fact]
+    public async Task PostQuoteGenerate_WithConsolidatedServices_Returns200WithPendingQuote()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+
+        var response = await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
+        quote!.Status.Should().Be(QuoteStatus.Pending);
+        quote.Items.Should().HaveCount(1);
+        quote.TotalAmount.Should().Be(quote.Items.Sum(i => i.Subtotal));
+        quote.ServiceOrderId.Should().Be(so.Id);
+        quote.GeneratedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
+    }
+
+    [Fact]
+    public async Task PostQuoteGenerate_WithNonExistentServiceOrder_Returns404()
+    {
+        var response = await _client.PostAsync($"/service-orders/{Guid.NewGuid()}/quote/generate", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PostQuoteGenerate_WithNoConsolidatedServices_Returns409()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var so = await CreateServiceOrder(customer.Id, vehicle.Id);
+
+        var response = await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task PostQuoteGenerate_WhenQuoteAlreadyExists_Returns409()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        var response = await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task GetQuote_AfterGenerate_Returns200WithQuote()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/quote");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
+        quote!.Status.Should().Be(QuoteStatus.Pending);
+        quote.ServiceOrderId.Should().Be(so.Id);
+    }
+
+    [Fact]
+    public async Task GetQuote_WithNonExistentServiceOrder_Returns404()
+    {
+        var response = await _client.GetAsync($"/service-orders/{Guid.NewGuid()}/quote");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetQuote_WithNoQuote_Returns404()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var so = await CreateServiceOrder(customer.Id, vehicle.Id);
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/quote");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PostQuoteAccept_WhenPending_Returns200WithAcceptedStatus()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        var response = await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
+        quote!.Status.Should().Be(QuoteStatus.Accepted);
+        quote.AcceptedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task PostQuoteAccept_WithNonExistentServiceOrder_Returns404()
+    {
+        var response = await _client.PostAsync($"/service-orders/{Guid.NewGuid()}/quote/accept", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PostQuoteAccept_WithNoQuote_Returns404()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var so = await CreateServiceOrder(customer.Id, vehicle.Id);
+
+        var response = await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PostQuoteAccept_WhenAlreadyDecided_Returns409()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
+
+        var response = await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task PostQuoteReject_WhenPendingWithReason_Returns200WithRejectedStatus()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        var response = await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
+            new RejectQuoteRequest("Valor acima do orçamento esperado"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
+        quote!.Status.Should().Be(QuoteStatus.Rejected);
+        quote.RejectedAt.Should().NotBeNull();
+        quote.RejectionReason.Should().Be("Valor acima do orçamento esperado");
+    }
+
+    [Fact]
+    public async Task PostQuoteReject_WithNonExistentServiceOrder_Returns404()
+    {
+        var response = await _client.PostAsJsonAsync(
+            $"/service-orders/{Guid.NewGuid()}/quote/reject",
+            new RejectQuoteRequest("Motivo"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PostQuoteReject_WithNoQuote_Returns404()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var so = await CreateServiceOrder(customer.Id, vehicle.Id);
+
+        var response = await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
+            new RejectQuoteRequest("Motivo"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PostQuoteReject_WithEmptyReason_Returns400()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        var response = await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
+            new RejectQuoteRequest(string.Empty));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task PostQuoteReject_WhenAlreadyDecided_Returns409()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+        await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
+            new RejectQuoteRequest("Primeira rejeição"));
+
+        var response = await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
+            new RejectQuoteRequest("Segunda rejeição"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task GetServiceOrderById_AfterQuoteGenerate_IncludesQuoteInResponse()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        body!.Quote.Should().NotBeNull();
+        body.Quote!.Status.Should().Be(QuoteStatus.Pending);
+    }
 }

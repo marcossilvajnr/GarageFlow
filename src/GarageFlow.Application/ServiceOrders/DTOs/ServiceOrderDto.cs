@@ -8,6 +8,7 @@ public sealed record ServiceOrderDto(
     Guid VehicleId,
     ServiceOrderStatus Status,
     DiagnosticDto? Diagnostic,
+    QuoteDto? Quote,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     IReadOnlyList<ServiceOrderServiceItemDto> Services,

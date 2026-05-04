@@ -70,6 +70,10 @@ public static class DependencyInjection
         services.AddScoped<RemoveDiagnosticServiceHandler>();
         services.AddScoped<CompleteDiagnosticHandler>();
         services.AddScoped<ConsolidateDiagnosticServicesHandler>();
+        services.AddScoped<GenerateQuoteHandler>();
+        services.AddScoped<AcceptQuoteHandler>();
+        services.AddScoped<RejectQuoteHandler>();
+        services.AddScoped<GetServiceOrderQuoteHandler>();
 
         return services;
     }

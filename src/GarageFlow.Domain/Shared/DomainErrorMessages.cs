@@ -170,4 +170,18 @@ public static class DomainErrorMessages
     // Diagnostic consolidation (context-specific)
     public const string DiagnosticNotCompleted = "O diagnóstico desta Ordem de Serviço não foi concluído";
     public const string DiagnosticConsolidationNoServices = "O diagnóstico não possui serviços selecionados para consolidar";
+
+    // Quote generation (context-specific)
+    public const string QuoteRequiresAtLeastOneItem = "O orçamento deve ter pelo menos um item";
+    public const string QuoteNoConsolidatedServices = "A Ordem de Serviço não possui serviços consolidados ativos para gerar orçamento";
+    public const string QuoteAlreadyExists = "Esta Ordem de Serviço já possui um orçamento gerado";
+    public const string QuoteAlreadyDecided = "O orçamento desta Ordem de Serviço já foi decidido";
+    public const string QuoteRejectionReasonRequired = "Motivo de rejeição do orçamento é obrigatório";
+    public const string QuoteInvalidLaborPrice = "Preço de mão de obra não pode ser negativo";
+    public const string QuoteInvalidPartsTotal = "Total de peças não pode ser negativo";
+    public const string QuoteInvalidSuppliesTotal = "Total de insumos não pode ser negativo";
+    public static string QuoteNotFound(Guid serviceOrderId) =>
+        $"Orçamento da Ordem de Serviço '{serviceOrderId}' não encontrado";
+    public static string ServiceNotAvailableForQuote(Guid serviceId) =>
+        $"Serviço '{serviceId}' não está disponível no catálogo para geração de orçamento";
 }

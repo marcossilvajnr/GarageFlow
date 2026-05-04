@@ -13,6 +13,7 @@ public sealed class ServiceOrder
     public Guid VehicleId { get; private set; }
     public ServiceOrderStatus Status { get; private set; }
     public Diagnostic? Diagnostic { get; private set; }
+    public Quote? Quote { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
     public IReadOnlyList<ServiceOrderServiceItem> Services => _services.AsReadOnly();
@@ -155,5 +156,35 @@ public sealed class ServiceOrder
         }
 
         UpdatedAt = occurredAt;
+    }
+
+    public void GenerateQuote(IEnumerable<QuoteItem> items)
+    {
+        if (Quote is not null)
+            throw new QuoteAlreadyExistsException(DomainErrorMessages.QuoteAlreadyExists);
+
+        if (!_services.Any(s => s.IsActive))
+            throw new NoConsolidatedServicesException(DomainErrorMessages.QuoteNoConsolidatedServices);
+
+        Quote = Quote.Generate(Id, items);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AcceptQuote()
+    {
+        if (Quote is null)
+            throw new QuoteNotFoundException(DomainErrorMessages.QuoteNotFound(Id));
+
+        Quote.Accept();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RejectQuote(string reason)
+    {
+        if (Quote is null)
+            throw new QuoteNotFoundException(DomainErrorMessages.QuoteNotFound(Id));
+
+        Quote.Reject(reason);
+        UpdatedAt = DateTime.UtcNow;
     }
 }
