@@ -3,6 +3,7 @@ using GarageFlow.Application.Employees.Handlers;
 using GarageFlow.Application.Parts.Handlers;
 using GarageFlow.Application.ServiceOrders.Handlers;
 using GarageFlow.Application.Services.Handlers;
+using GarageFlow.Application.Stock.Handlers;
 using GarageFlow.Application.Suppliers.Handlers;
 using GarageFlow.Application.Supplies.Handlers;
 using GarageFlow.Application.Vehicles.Handlers;
@@ -74,6 +75,15 @@ public static class DependencyInjection
         services.AddScoped<AcceptQuoteHandler>();
         services.AddScoped<RejectQuoteHandler>();
         services.AddScoped<GetServiceOrderQuoteHandler>();
+
+        services.AddScoped<CreateSeparationOrderHandler>();
+        services.AddScoped<GetSeparationOrderByIdHandler>();
+        services.AddScoped<ListSeparationOrdersHandler>();
+        services.AddScoped<ReserveSeparationOrderHandler>();
+        services.AddScoped<WaitSeparationOrderPurchaseHandler>();
+        services.AddScoped<ResumeSeparationOrderAfterPurchaseHandler>();
+        services.AddScoped<ConfirmSeparationStockistWithdrawalHandler>();
+        services.AddScoped<ConfirmSeparationMechanicReceiptHandler>();
 
         return services;
     }

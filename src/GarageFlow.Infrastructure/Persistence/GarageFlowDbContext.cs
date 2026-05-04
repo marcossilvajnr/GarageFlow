@@ -3,6 +3,7 @@ using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Parts;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Services;
+using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Suppliers;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Domain.Vehicles;
@@ -12,6 +13,7 @@ using GarageFlow.Infrastructure.Persistence.Configurations.Employees;
 using GarageFlow.Infrastructure.Persistence.Configurations.Parts;
 using GarageFlow.Infrastructure.Persistence.Configurations.Services;
 using GarageFlow.Infrastructure.Persistence.Configurations.ServiceOrders;
+using GarageFlow.Infrastructure.Persistence.Configurations.Stock;
 using GarageFlow.Infrastructure.Persistence.Configurations.Suppliers;
 using GarageFlow.Infrastructure.Persistence.Configurations.Vehicles;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +31,7 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
     public DbSet<Part> Parts => Set<Part>();
     public DbSet<Supply> Supplies => Set<Supply>();
     public DbSet<ServiceOrder> ServiceOrders => Set<ServiceOrder>();
+    public DbSet<SeparationOrder> SeparationOrders => Set<SeparationOrder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,5 +43,6 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
         modelBuilder.ApplyConfiguration(new PartConfiguration());
         modelBuilder.ApplyConfiguration(new SupplyConfiguration());
         modelBuilder.ApplyConfiguration(new ServiceOrderConfiguration());
+        modelBuilder.ApplyConfiguration(new SeparationOrderConfiguration());
     }
 }

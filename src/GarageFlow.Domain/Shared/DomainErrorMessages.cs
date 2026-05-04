@@ -185,4 +185,24 @@ public static class DomainErrorMessages
         $"Orçamento da Ordem de Serviço '{serviceOrderId}' não encontrado";
     public static string ServiceNotAvailableForQuote(Guid serviceId) =>
         $"Serviço '{serviceId}' não está disponível no catálogo para geração de orçamento";
+
+    // SeparationOrder aggregate (context-specific)
+    public const string InvalidSeparationOrderExecutionOrderId = "Ordem de Execução é obrigatória";
+    public const string SeparationOrderMustHaveAtLeastOneItem = "Separação deve ter pelo menos um item";
+    public const string InvalidSeparationPartId = "Id da peça de separação inválido";
+    public const string InvalidSeparationSupplyId = "Id do insumo de separação inválido";
+    public const string InvalidSeparationItemName = "Item de separação inválido";
+    public const string InvalidSeparationItemQuantity = "Item de separação inválido";
+    public const string DuplicateSeparationPartItem = "Item de separação inválido";
+    public const string DuplicateSeparationSupplyItem = "Item de separação inválido";
+    public const string InvalidSeparationStockistId = "Estoquista é obrigatório";
+    public const string SeparationOrderNotPending = "Separação não está Pendente";
+    public const string SeparationOrderNotWaitingPurchase = "Separação não está Aguardando Compra";
+    public const string SeparationOrderNotWaitingPickup = "Separação não está Aguardando Retirada";
+    public const string SeparationOrderNotSeparated = "Separação não está Separada";
+    public const string SeparationOrderItemsNotReserved = "Itens da separação ainda não foram reservados";
+    public const string SeparationOrderWaitingStockistConfirmation = "Aguardando confirmação do estoquista";
+
+    // SeparationOrder not found (handlers - context-specific)
+    public static string SeparationOrderNotFound(Guid id) => $"Ordem de Separação '{id}' não encontrada";
 }
