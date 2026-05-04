@@ -49,6 +49,20 @@ public static class ServicesEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
+        group.MapPost("/{id:guid}/parts", AddServicePart)
+            .WithName("AddServicePart")
+            .WithSummary("Adiciona peça ao serviço.")
+            .Produces<ServiceResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        group.MapDelete("/{id:guid}/parts/{partId:guid}", RemoveServicePart)
+            .WithName("RemoveServicePart")
+            .WithSummary("Remove peça do serviço.")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -166,6 +180,49 @@ public static class ServicesEndpoints
         }
     }
 
+    private static async Task<IResult> AddServicePart(
+        Guid id,
+        AddServicePartRequest request,
+        AddServicePartHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new AddServicePartCommand(id, request.PartId, request.Quantity);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToResponse(dto));
+        }
+        catch (DuplicateServicePartException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException)
+        {
+            return Results.NotFound();
+        }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
+    private static async Task<IResult> RemoveServicePart(
+        Guid id,
+        Guid partId,
+        RemoveServicePartHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await handler.HandleAsync(new RemoveServicePartCommand(id, partId), cancellationToken);
+            return Results.NoContent();
+        }
+        catch (EntityNotFoundException)
+        {
+            return Results.NotFound();
+        }
+    }
+
     private static ServiceResponse MapToResponse(Application.Services.DTOs.ServiceDto dto) => new(
         dto.Id,
         dto.Code,
@@ -175,5 +232,6 @@ public static class ServicesEndpoints
         dto.EstimatedDurationMinutes,
         dto.IsActive,
         dto.CreatedAt,
-        dto.UpdatedAt);
+        dto.UpdatedAt,
+        dto.Parts.Select(p => new ServicePartResponse(p.PartId, p.PartName, p.Quantity)).ToList());
 }

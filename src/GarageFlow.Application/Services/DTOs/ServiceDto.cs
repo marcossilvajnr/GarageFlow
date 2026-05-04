@@ -9,4 +9,5 @@ public sealed record ServiceDto(
     int? EstimatedDurationMinutes,
     bool IsActive,
     DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    DateTime? UpdatedAt,
+    IReadOnlyList<ServicePartItemDto> Parts);

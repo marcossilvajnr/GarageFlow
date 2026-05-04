@@ -95,6 +95,12 @@ public static class DomainErrorMessages
     // Service not found (handlers - context-specific)
     public static string ServiceNotFound(Guid id) => $"Serviço '{id}' não encontrado";
 
+    // Service composition - parts (context-specific)
+    public const string InvalidServicePartQuantity = "Quantidade da peça deve ser maior que zero";
+    public const string DuplicateServicePart = "Peça já vinculada ao serviço";
+    public static string ServicePartNotFound(Guid serviceId, Guid partId) =>
+        $"Peça '{partId}' não vinculada ao serviço '{serviceId}'";
+
     // Part aggregate (context-specific)
     public const string InvalidPartName = "Nome da peça inválido";
     public const string InvalidPartCode = "Código da peça inválido";

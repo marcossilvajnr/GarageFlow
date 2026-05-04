@@ -25,5 +25,23 @@ internal sealed class ServiceConfiguration : IEntityTypeConfiguration<Service>
         builder.Property(s => s.IsActive).HasColumnName("is_active").IsRequired();
         builder.Property(s => s.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(s => s.UpdatedAt).HasColumnName("updated_at");
+
+        builder.OwnsMany(s => s.Parts, partsBuilder =>
+        {
+            partsBuilder.ToTable("service_parts");
+            partsBuilder.WithOwner().HasForeignKey("service_id");
+
+            partsBuilder.HasKey("service_id", nameof(ServicePartItem.PartId));
+            partsBuilder.Property(p => p.PartId).HasColumnName("part_id").IsRequired();
+            partsBuilder.Property(p => p.PartName).HasColumnName("part_name").HasMaxLength(200).IsRequired();
+            partsBuilder.Property(p => p.Quantity).HasColumnName("quantity").IsRequired();
+
+            partsBuilder.HasIndex("service_id", nameof(ServicePartItem.PartId))
+                .IsUnique()
+                .HasDatabaseName("ix_service_parts_service_id_part_id");
+        });
+
+        builder.Navigation(s => s.Parts)
+            .HasField("_parts");
     }
 }

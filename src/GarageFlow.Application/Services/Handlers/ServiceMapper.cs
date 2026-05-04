@@ -14,5 +14,6 @@ public static class ServiceMapper
         service.EstimatedDurationMinutes,
         service.IsActive,
         service.CreatedAt,
-        service.UpdatedAt);
+        service.UpdatedAt,
+        service.Parts.Select(p => new ServicePartItemDto(p.PartId, p.PartName, p.Quantity)).ToList());
 }

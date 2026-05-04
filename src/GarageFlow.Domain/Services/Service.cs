@@ -5,6 +5,8 @@ namespace GarageFlow.Domain.Services;
 
 public sealed class Service
 {
+    private List<ServicePartItem> _parts = [];
+
     public Guid Id { get; private set; }
     public string Code { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
@@ -14,6 +16,7 @@ public sealed class Service
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
+    public IReadOnlyList<ServicePartItem> Parts => _parts.AsReadOnly();
 
     private Service() { }
 
@@ -88,6 +91,28 @@ public sealed class Service
             throw new DomainException(DomainErrorMessages.ServiceAlreadyInactive);
 
         IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AddPart(Guid partId, string partName, int quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(DomainErrorMessages.InvalidServicePartQuantity);
+
+        if (_parts.Any(p => p.PartId == partId))
+            throw new DuplicateServicePartException(DomainErrorMessages.DuplicateServicePart);
+
+        _parts.Add(ServicePartItem.Create(partId, partName, quantity));
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RemovePart(Guid partId)
+    {
+        var item = _parts.FirstOrDefault(p => p.PartId == partId);
+        if (item is null)
+            throw new EntityNotFoundException(DomainErrorMessages.ServicePartNotFound(Id, partId));
+
+        _parts.Remove(item);
         UpdatedAt = DateTime.UtcNow;
     }
 }

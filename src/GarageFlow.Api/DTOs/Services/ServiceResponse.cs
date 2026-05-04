@@ -9,4 +9,5 @@ public sealed record ServiceResponse(
     int? EstimatedDurationMinutes,
     bool IsActive,
     DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    DateTime? UpdatedAt,
+    IReadOnlyList<ServicePartResponse> Parts);
