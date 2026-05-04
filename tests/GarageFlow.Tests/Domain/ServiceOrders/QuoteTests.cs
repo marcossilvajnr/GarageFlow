@@ -83,7 +83,7 @@ public sealed class QuoteTests
 
         quote.Id.Should().NotBeEmpty();
         quote.ServiceOrderId.Should().Be(serviceOrderId);
-        quote.Status.Should().Be(QuoteStatus.Pending);
+        quote.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
         quote.Items.Should().HaveCount(1);
         quote.GeneratedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         quote.AcceptedAt.Should().BeNull();
@@ -130,7 +130,7 @@ public sealed class QuoteTests
 
         quote.Accept();
 
-        quote.Status.Should().Be(QuoteStatus.Accepted);
+        quote.Status.Should().Be(QuoteStatus.CustomerApproved);
         quote.AcceptedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
@@ -168,7 +168,7 @@ public sealed class QuoteTests
 
         quote.Reject(reason);
 
-        quote.Status.Should().Be(QuoteStatus.Rejected);
+        quote.Status.Should().Be(QuoteStatus.CustomerRejected);
         quote.RejectedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         quote.RejectionReason.Should().Be(reason);
     }
@@ -230,8 +230,18 @@ public sealed class QuoteTests
         order.GenerateQuote(items);
 
         order.Quote.Should().NotBeNull();
-        order.Quote!.Status.Should().Be(QuoteStatus.Pending);
+        order.Quote!.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
         order.Quote.Items.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void ServiceOrderGenerateQuote_WithActiveServices_SetsStatusToWaitingApproval()
+    {
+        var order = CreateOrderWithConsolidatedService();
+
+        order.GenerateQuote([ValidItem()]);
+
+        order.Status.Should().Be(ServiceOrderStatus.WaitingApproval);
     }
 
     [Fact]
@@ -267,7 +277,56 @@ public sealed class QuoteTests
 
         order.AcceptQuote();
 
-        order.Quote!.Status.Should().Be(QuoteStatus.Accepted);
+        order.Quote!.Status.Should().Be(QuoteStatus.CustomerApproved);
+    }
+
+    [Fact]
+    public void ServiceOrderAcceptQuote_WhenPending_SetsServiceOrderStatusToQuoteApproved()
+    {
+        var order = CreateOrderWithConsolidatedService();
+        order.GenerateQuote([ValidItem()]);
+
+        order.AcceptQuote();
+
+        order.Status.Should().Be(ServiceOrderStatus.Approved);
+    }
+
+    [Fact]
+    public void ServiceOrderAcceptQuote_WhenPending_UpdatesUpdatedAt()
+    {
+        var order = CreateOrderWithConsolidatedService();
+        order.GenerateQuote([ValidItem()]);
+
+        order.AcceptQuote();
+
+        order.UpdatedAt.Should().NotBeNull();
+        order.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public void ServiceOrderAcceptQuote_WhenAlreadyAccepted_ThrowsQuoteAlreadyDecidedException()
+    {
+        var order = CreateOrderWithConsolidatedService();
+        order.GenerateQuote([ValidItem()]);
+        order.AcceptQuote();
+
+        var act = () => order.AcceptQuote();
+
+        act.Should().Throw<QuoteAlreadyDecidedException>()
+            .WithMessage(DomainErrorMessages.ServiceOrderNotWaitingForQuoteApproval);
+    }
+
+    [Fact]
+    public void ServiceOrderAcceptQuote_WhenAlreadyRejected_ThrowsQuoteAlreadyDecidedException()
+    {
+        var order = CreateOrderWithConsolidatedService();
+        order.GenerateQuote([ValidItem()]);
+        order.RejectQuote("Preço alto");
+
+        var act = () => order.AcceptQuote();
+
+        act.Should().Throw<QuoteAlreadyDecidedException>()
+            .WithMessage(DomainErrorMessages.ServiceOrderNotWaitingForQuoteApproval);
     }
 
     [Fact]
@@ -290,8 +349,57 @@ public sealed class QuoteTests
 
         order.RejectQuote("Preço alto");
 
-        order.Quote!.Status.Should().Be(QuoteStatus.Rejected);
+        order.Quote!.Status.Should().Be(QuoteStatus.CustomerRejected);
         order.Quote.RejectionReason.Should().Be("Preço alto");
+    }
+
+    [Fact]
+    public void ServiceOrderRejectQuote_WhenPending_SetsServiceOrderStatusToQuoteRejected()
+    {
+        var order = CreateOrderWithConsolidatedService();
+        order.GenerateQuote([ValidItem()]);
+
+        order.RejectQuote("Preço elevado");
+
+        order.Status.Should().Be(ServiceOrderStatus.Rejected);
+    }
+
+    [Fact]
+    public void ServiceOrderRejectQuote_WhenPending_UpdatesUpdatedAt()
+    {
+        var order = CreateOrderWithConsolidatedService();
+        order.GenerateQuote([ValidItem()]);
+
+        order.RejectQuote("Preço elevado");
+
+        order.UpdatedAt.Should().NotBeNull();
+        order.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public void ServiceOrderRejectQuote_WhenAlreadyRejected_ThrowsQuoteAlreadyDecidedException()
+    {
+        var order = CreateOrderWithConsolidatedService();
+        order.GenerateQuote([ValidItem()]);
+        order.RejectQuote("Primeira rejeição");
+
+        var act = () => order.RejectQuote("Segunda rejeição");
+
+        act.Should().Throw<QuoteAlreadyDecidedException>()
+            .WithMessage(DomainErrorMessages.ServiceOrderNotWaitingForQuoteApproval);
+    }
+
+    [Fact]
+    public void ServiceOrderRejectQuote_WhenAlreadyAccepted_ThrowsQuoteAlreadyDecidedException()
+    {
+        var order = CreateOrderWithConsolidatedService();
+        order.GenerateQuote([ValidItem()]);
+        order.AcceptQuote();
+
+        var act = () => order.RejectQuote("Arrependimento");
+
+        act.Should().Throw<QuoteAlreadyDecidedException>()
+            .WithMessage(DomainErrorMessages.ServiceOrderNotWaitingForQuoteApproval);
     }
 
     [Fact]

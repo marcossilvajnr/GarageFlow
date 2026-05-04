@@ -34,7 +34,7 @@ public sealed class Quote
             Id = Guid.NewGuid(),
             ServiceOrderId = serviceOrderId,
             TotalAmount = itemList.Sum(i => i.Subtotal),
-            Status = QuoteStatus.Pending,
+            Status = QuoteStatus.WaitingCustomerApproval,
             GeneratedAt = DateTime.UtcNow
         };
 
@@ -45,10 +45,10 @@ public sealed class Quote
 
     public void Accept()
     {
-        if (Status != QuoteStatus.Pending)
+        if (Status != QuoteStatus.WaitingCustomerApproval)
             throw new QuoteAlreadyDecidedException(DomainErrorMessages.QuoteAlreadyDecided);
 
-        Status = QuoteStatus.Accepted;
+        Status = QuoteStatus.CustomerApproved;
         AcceptedAt = DateTime.UtcNow;
     }
 
@@ -57,10 +57,10 @@ public sealed class Quote
         if (string.IsNullOrWhiteSpace(reason))
             throw new DomainException(DomainErrorMessages.QuoteRejectionReasonRequired);
 
-        if (Status != QuoteStatus.Pending)
+        if (Status != QuoteStatus.WaitingCustomerApproval)
             throw new QuoteAlreadyDecidedException(DomainErrorMessages.QuoteAlreadyDecided);
 
-        Status = QuoteStatus.Rejected;
+        Status = QuoteStatus.CustomerRejected;
         RejectedAt = DateTime.UtcNow;
         RejectionReason = reason;
     }

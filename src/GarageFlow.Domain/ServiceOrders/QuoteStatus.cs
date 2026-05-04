@@ -2,7 +2,7 @@ namespace GarageFlow.Domain.ServiceOrders;
 
 public enum QuoteStatus
 {
-    Pending = 0,
-    Accepted = 1,
-    Rejected = 2
+    WaitingCustomerApproval = 0,
+    CustomerApproved = 1,
+    CustomerRejected = 2
 }

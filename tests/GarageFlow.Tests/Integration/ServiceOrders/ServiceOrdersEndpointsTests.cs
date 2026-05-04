@@ -958,7 +958,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
-        quote!.Status.Should().Be(QuoteStatus.Pending);
+        quote!.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
         quote.Items.Should().HaveCount(1);
         quote.TotalAmount.Should().Be(quote.Items.Sum(i => i.Subtotal));
         quote.ServiceOrderId.Should().Be(so.Id);
@@ -1006,7 +1006,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
-        quote!.Status.Should().Be(QuoteStatus.Pending);
+        quote!.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
         quote.ServiceOrderId.Should().Be(so.Id);
     }
 
@@ -1040,7 +1040,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
-        quote!.Status.Should().Be(QuoteStatus.Accepted);
+        quote!.Status.Should().Be(QuoteStatus.CustomerApproved);
         quote.AcceptedAt.Should().NotBeNull();
     }
 
@@ -1087,7 +1087,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
-        quote!.Status.Should().Be(QuoteStatus.Rejected);
+        quote!.Status.Should().Be(QuoteStatus.CustomerRejected);
         quote.RejectedAt.Should().NotBeNull();
         quote.RejectionReason.Should().Be("Valor acima do orçamento esperado");
     }
@@ -1152,6 +1152,79 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
         body!.Quote.Should().NotBeNull();
-        body.Quote!.Status.Should().Be(QuoteStatus.Pending);
+        body.Quote!.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
+    }
+
+    // Task-018: Quote Decision Status Gate
+
+    [Fact]
+    public async Task PostQuoteAccept_WhenPending_ServiceOrderStatusIsQuoteApproved()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        body!.Status.Should().Be(ServiceOrderStatus.Approved);
+    }
+
+    [Fact]
+    public async Task PostQuoteReject_WhenPending_ServiceOrderStatusIsQuoteRejected()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+        await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
+            new RejectQuoteRequest("Valor fora do orçamento"));
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        body!.Status.Should().Be(ServiceOrderStatus.Rejected);
+    }
+
+    [Fact]
+    public async Task GetServiceOrders_AfterQuoteAccept_ReflectsQuoteApprovedStatus()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
+
+        var response = await _client.GetAsync("/service-orders?page=1&pageSize=50");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<PagedServiceOrderResponse>(JsonOptions);
+        var entry = body!.Items.FirstOrDefault(i => i.Id == so.Id);
+        entry.Should().NotBeNull();
+        entry!.Status.Should().Be(ServiceOrderStatus.Approved);
+    }
+
+    [Fact]
+    public async Task PostQuoteAccept_WhenAlreadyRejected_Returns409()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+        await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
+            new RejectQuoteRequest("Preço elevado"));
+
+        var response = await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task PostQuoteReject_WhenAlreadyAccepted_Returns409()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
+
+        var response = await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
+            new RejectQuoteRequest("Arrependimento"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 }

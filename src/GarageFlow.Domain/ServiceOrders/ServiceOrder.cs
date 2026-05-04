@@ -167,6 +167,7 @@ public sealed class ServiceOrder
             throw new NoConsolidatedServicesException(DomainErrorMessages.QuoteNoConsolidatedServices);
 
         Quote = Quote.Generate(Id, items);
+        Status = ServiceOrderStatus.WaitingApproval;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -175,7 +176,11 @@ public sealed class ServiceOrder
         if (Quote is null)
             throw new QuoteNotFoundException(DomainErrorMessages.QuoteNotFound(Id));
 
+        if (Status != ServiceOrderStatus.WaitingApproval)
+            throw new QuoteAlreadyDecidedException(DomainErrorMessages.ServiceOrderNotWaitingForQuoteApproval);
+
         Quote.Accept();
+        Status = ServiceOrderStatus.Approved;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -184,7 +189,11 @@ public sealed class ServiceOrder
         if (Quote is null)
             throw new QuoteNotFoundException(DomainErrorMessages.QuoteNotFound(Id));
 
+        if (Status != ServiceOrderStatus.WaitingApproval)
+            throw new QuoteAlreadyDecidedException(DomainErrorMessages.ServiceOrderNotWaitingForQuoteApproval);
+
         Quote.Reject(reason);
+        Status = ServiceOrderStatus.Rejected;
         UpdatedAt = DateTime.UtcNow;
     }
 }

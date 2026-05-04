@@ -71,7 +71,7 @@ public sealed class QuoteHandlersTests
         var dto = await handler.HandleAsync(new GenerateQuoteCommand(order.Id));
 
         dto.Should().NotBeNull();
-        dto.Status.Should().Be(QuoteStatus.Pending);
+        dto.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
         dto.Items.Should().HaveCount(1);
         dto.Items[0].LaborPrice.Should().Be(100m);
         dto.Items[0].PartsTotal.Should().Be(30m);   // 30 * 1
@@ -173,7 +173,7 @@ public sealed class QuoteHandlersTests
         var dto = await getHandler.HandleAsync(new GetServiceOrderQuoteQuery(order.Id));
 
         dto.Should().NotBeNull();
-        dto.Status.Should().Be(QuoteStatus.Pending);
+        dto.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
     }
 
     [Fact]
@@ -210,8 +210,18 @@ public sealed class QuoteHandlersTests
         var handler = new AcceptQuoteHandler(soRepo);
         var dto = await handler.HandleAsync(new AcceptQuoteCommand(order.Id));
 
-        dto.Status.Should().Be(QuoteStatus.Accepted);
+        dto.Status.Should().Be(QuoteStatus.CustomerApproved);
         dto.AcceptedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task AcceptQuote_WhenPending_SetsServiceOrderStatusToQuoteApproved()
+    {
+        var (soRepo, _, _, _, order) = await SetupOrderWithQuote();
+
+        await new AcceptQuoteHandler(soRepo).HandleAsync(new AcceptQuoteCommand(order.Id));
+
+        order.Status.Should().Be(ServiceOrderStatus.Approved);
     }
 
     [Fact]
@@ -259,9 +269,19 @@ public sealed class QuoteHandlersTests
         var handler = new RejectQuoteHandler(soRepo);
         var dto = await handler.HandleAsync(new RejectQuoteCommand(order.Id, "Preço elevado"));
 
-        dto.Status.Should().Be(QuoteStatus.Rejected);
+        dto.Status.Should().Be(QuoteStatus.CustomerRejected);
         dto.RejectedAt.Should().NotBeNull();
         dto.RejectionReason.Should().Be("Preço elevado");
+    }
+
+    [Fact]
+    public async Task RejectQuote_WhenPending_SetsServiceOrderStatusToQuoteRejected()
+    {
+        var (soRepo, _, _, _, order) = await SetupOrderWithQuote();
+
+        await new RejectQuoteHandler(soRepo).HandleAsync(new RejectQuoteCommand(order.Id, "Valor fora do orçamento"));
+
+        order.Status.Should().Be(ServiceOrderStatus.Rejected);
     }
 
     [Fact]
