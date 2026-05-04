@@ -1,0 +1,14 @@
+**/.DS_Store
+**/.git
+**/.gitignore
+**/.vscode
+**/.idea
+**/bin
+**/obj
+**/TestResults
+**/*.user
+**/*.suo
+**/*.swp
+**/*.tmp
+
+README.md
