@@ -74,11 +74,14 @@ abaixo do mínimo configurado.
 - Exceção: `DomainException("Quantidade reservada insuficiente")`
 
 ### Release(decimal quantity)
+- Pré-condição: `ItemType == Part` (insumo não pode ser devolvido após separação)
 - Pré-condição: `quantity > 0`; `ReservedQuantity >= quantity`
 - Ação: `ReservedQuantity -= quantity`; `AvailableQuantity += quantity`; `UpdatedAt = DateTime.UtcNow`
 - Pós-condição: peças devolvidas à disponibilidade; invariante satisfeito (RN-016)
 - Evento emitido: `StockUpdatedEvent`
-- Exceção: `DomainException("Quantidade a liberar inválida")`
+- Exceções:
+  - `DomainException("Insumo não pode ser devolvido ao estoque")`
+  - `DomainException("Quantidade a liberar inválida")`
 
 ### Replenish(decimal quantity)
 - Pré-condição: `quantity > 0`
@@ -99,7 +102,7 @@ abaixo do mínimo configurado.
 - [RN-012]: Verificação automática de estoque ao criar Ordem de Separação
 - [RN-014]: `AvailableQuantity` nunca pode ser menor que zero
 - [RN-015]: Três quantidades distintas: `TotalQuantity`, `AvailableQuantity`, `ReservedQuantity`
-- [RN-016]: Três operações de estoque: Reservar (`Reserve`), Baixar (`Decrease`), Liberar (`Release`)
+- [RN-016]: Três operações de estoque: Reservar (`Reserve`), Baixar (`Decrease`), Liberar (`Release`) apenas para `Part`
 - [RN-017]: `InsufficientStockEvent` desencadeia geração automática de Ordem de Compra
 
 ## Implementação C#
@@ -121,6 +124,7 @@ abaixo do mínimo configurado.
 - [ ] `Decrease(quantity)` após reserva válida deve decrementar reservado e total, manter disponível e emitir `StockUpdatedEvent`
 - [ ] `Decrease(quantity)` com `ReservedQuantity` insuficiente deve lançar `DomainException("Quantidade reservada insuficiente")`
 - [ ] `Release(quantity)` deve devolver quantidade à disponível e emitir `StockUpdatedEvent`
+- [ ] `Release(quantity)` com `ItemType == Supply` deve lançar `DomainException("Insumo não pode ser devolvido ao estoque")`
 - [ ] `Release(quantity)` maior que `ReservedQuantity` deve lançar `DomainException("Quantidade a liberar inválida")`
 - [ ] `Replenish(quantity)` deve incrementar total e disponível e emitir `StockUpdatedEvent`
 - [ ] `Replenish(0)` deve lançar `DomainException("Quantidade de reposição inválida")`

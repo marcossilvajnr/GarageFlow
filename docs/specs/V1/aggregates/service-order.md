@@ -8,215 +8,173 @@
 - Arquivo: `GarageFlow.Domain/ServiceOrders/ServiceOrder.cs`
 
 ## Responsabilidade
-Representa o ciclo de vida completo da Ordem de Serviço (OS), desde o
-recebimento até a entrega do veículo. É o agregado central do contexto,
-coordenando diagnóstico, geração/aprovação de orçamento e progresso da
-execução dos serviços contratados.
+Controla o ciclo de vida completo da OS, incluindo diagnóstico,
+orçamento, aprovação, execução e entrega.
 
 ## Atributos
 | Atributo | Tipo C# | Obrigatório | Regra |
 |----------|---------|-------------|-------|
-| Id | `Guid` | Sim | Gerado automaticamente via `Guid.NewGuid()` |
-| CustomerId | `Guid` | Sim | Imutável após criação (RN-001) |
-| VehicleId | `Guid` | Sim | Imutável após criação (RN-002) |
-| Status | `ServiceOrderStatus` | Sim | Fluxo obrigatório: `Received -> InDiagnostic -> WaitingApproval -> InExecution -> Finished -> Delivered` (RN-003) |
-| Diagnostic | `Diagnostic?` | Não | Nulo até `StartDiagnostic()` |
-| Quote | `Quote?` | Não | Nulo até `CompleteDiagnostic()` |
-| Items | `IReadOnlyList<ServiceItem>` | Sim | Deve conter pelo menos 1 item na criação |
-| TotalServices | `int` | Sim | Definido na aprovação do orçamento (`Items.Count`) |
-| CompletedServices | `int` | Sim | Incrementado por evento de conclusão de serviço |
-| CreatedAt | `DateTime` | Sim | Definido como `DateTime.UtcNow` no `Create()` |
-| UpdatedAt | `DateTime` | Sim | Atualizado a cada transição/mutação válida |
+| Id | `Guid` | Sim | Gerado automaticamente |
+| CustomerId | `Guid` | Sim | Imutável após criação |
+| VehicleId | `Guid` | Sim | Imutável após criação |
+| Status | `ServiceOrderStatus` | Sim | Fluxo canônico da OS |
+| Diagnostic | `Diagnostic?` | Não | Nulo até iniciar diagnóstico |
+| Quote | `Quote?` | Não | Nulo até concluir diagnóstico |
+| QuoteVersion | `int` | Sim | Versão atual do orçamento (incremental) |
+| Items | `IReadOnlyList<ServiceItem>` | Sim | Snapshot interno usado no orçamento |
+| Services | `IReadOnlyList<ServiceOrderServiceItem>` | Sim | Serviços da OS com origem e estado |
+| ServiceHistory | `IReadOnlyList<ServiceOrderServiceHistory>` | Sim | Log append-only das alterações de serviço |
+| TotalServices | `int` | Sim | Definido ao aprovar orçamento |
+| CompletedServices | `int` | Sim | Incrementado na conclusão das execuções |
+| CreatedAt | `DateTime` | Sim | Definido no `Create()` |
+| UpdatedAt | `DateTime` | Sim | Atualizado em transições |
 
-> **Enum `ServiceOrderStatus`:**
-> ```
-> Received, InDiagnostic, WaitingApproval, InExecution, Finished, Delivered
-> ```
+### Enum ServiceOrderStatus
+`Received | InDiagnostic | WaitingApproval | InExecution | Finished | Delivered`
 
-## Entidade Interna — ServiceItem
-`ServiceItem` representa um snapshot do serviço contratado no momento da criação da OS.
+## Tipo Interno — ServiceItem (snapshot)
+`ServiceItem` copia dados estruturais do catálogo para preservar histórico da OS.
 
 | Atributo | Tipo C# | Obrigatório | Regra |
 |----------|---------|-------------|-------|
-| ServiceId | `Guid` | Sim | Referência ao serviço do catálogo |
-| ServiceName | `string` | Sim | Nome do serviço no momento da contratação |
-| UnitPrice | `decimal` | Sim | Preço unitário no momento da contratação |
-| Quantity | `int` | Sim | Quantidade contratada; maior que zero |
+| ServiceId | `Guid` | Sim | Referência ao serviço de catálogo |
+| ServiceName | `string` | Sim | Snapshot textual |
+| Parts | `IReadOnlyList<ServiceItemPart>` | Sim | Snapshot de peças do serviço |
+| Supplies | `IReadOnlyList<ServiceItemSupply>` | Sim | Snapshot de insumos do serviço |
+
+### ServiceItemPart
+`PartId`, `PartName`, `Quantity`
+
+### ServiceItemSupply
+`SupplyId`, `SupplyName`, `Quantity`, `Unit`
+
+## Tipo Interno — ServiceOrderServiceItem (rastreável)
+`ServiceOrderServiceItem` representa o serviço selecionado na OS antes do snapshot final de orçamento.
+
+| Atributo | Tipo C# | Obrigatório | Regra |
+|----------|---------|-------------|-------|
+| ServiceId | `Guid` | Sim | Referência ao serviço de catálogo |
+| Source | `ServiceSource` | Sim | `FrontDesk` ou `Diagnostic` |
+| IsActive | `bool` | Sim | `false` quando removido |
+| AddedAt | `DateTime` | Sim | Data/hora da inclusão |
+| AddedBy | `Guid` | Sim | Ator responsável pela inclusão |
+| RemovedAt | `DateTime?` | Não | Data/hora da remoção |
+| RemovedBy | `Guid?` | Não | Ator responsável pela remoção |
+| RemovalReason | `string?` | Não | Motivo da remoção |
+
+### Tipo Interno — ServiceOrderServiceHistory (append-only)
+`Action`, `ServiceId`, `Source`, `ActorId`, `OccurredAt`, `Reason?`
+
+Regra de preço:
+- `ServiceItem` não armazena preço.
+- preços são resolvidos na geração de `Quote`.
 
 ## Invariantes
-1. `CustomerId` nunca pode ser alterado após criação (RN-001)
-2. `VehicleId` nunca pode ser alterado após criação (RN-002)
-3. `Status` só pode avançar na sequência obrigatória, sem salto ou retorno (RN-003)
-4. `Finish()` só pode executar quando `CompletedServices == TotalServices` (RN-004)
-5. `Items` nunca pode ser vazio na criação da OS
-6. `CompletedServices` nunca pode ser maior que `TotalServices`
+1. `CustomerId` e `VehicleId` imutáveis
+2. progressão de status sem salto/retorno
+3. finalização só com `CompletedServices == TotalServices`
+4. diagnóstico concluído não pode ser reaberto
+5. diagnóstico deve concluir com pelo menos 1 serviço selecionado
+6. alterações de serviços da OS exigem rastreabilidade completa (origem/ator/tempo)
+7. após diagnóstico concluído, composição de serviços ativos é congelada para orçamento
 
-## Diagrama de Estados
+## Fluxo de Estado
 ```mermaid
 stateDiagram-v2
     [*] --> Received
     Received --> InDiagnostic : StartDiagnostic()
     InDiagnostic --> WaitingApproval : CompleteDiagnostic()
     WaitingApproval --> InExecution : ApproveQuote()
-    InExecution --> Finished : Finish() / todos serviços concluídos
+    InExecution --> Finished : Finish()
     Finished --> Delivered : RegisterDelivery()
 ```
 
 ## Métodos de Domínio
 
-### Create(Guid customerId, Guid vehicleId, IEnumerable<ServiceItem> items)
-- Pré-condição: `customerId != Guid.Empty`
-- Pré-condição: `vehicleId != Guid.Empty`
-- Pré-condição: `items` não nulo e com pelo menos 1 item
-- Pré-condição: cada `ServiceItem` deve ter:
-  - `ServiceId != Guid.Empty`
-  - `ServiceName` não nulo/não vazio após `trim`
-  - `UnitPrice >= 0`
-  - `Quantity > 0`
-- Ação:
-  - Cria instância com `Id = Guid.NewGuid()`
-  - Define `Status = Received`
-  - Define `Diagnostic = null`, `Quote = null`
-  - Inicializa `TotalServices = 0`, `CompletedServices = 0`
-  - Define `CreatedAt = DateTime.UtcNow` e `UpdatedAt = DateTime.UtcNow`
-- Pós-condição: OS válida e pronta para iniciar diagnóstico
-- Evento emitido: `ServiceOrderCreatedEvent`
-- Exceções:
-  - `DomainException("Cliente é obrigatório")`
-  - `DomainException("Veículo é obrigatório")`
-  - `DomainException("OS deve ter pelo menos um serviço")`
-  - `DomainException("Item de serviço inválido")`
+### Create(Guid customerId, Guid vehicleId)
+- cria OS em `Received`
+- `Items` inicia vazio
 
 ### StartDiagnostic(Guid mechanicId)
-- Pré-condição: `Status == Received`
-- Pré-condição: `mechanicId != Guid.Empty`
-- Ação:
-  - Define `Status = InDiagnostic`
-  - Cria `Diagnostic` internamente via `Diagnostic.Start(Id, mechanicId)`
-  - Atualiza `UpdatedAt`
-- Pós-condição: diagnóstico em andamento
-- Evento emitido: `DiagnosticStartedEvent`
-- Exceções:
-  - `DomainException("OS não está no status Recebida")`
-  - `DomainException("Id do mecânico inválido")`
+- pré-condição: `Status == Received`
+- cria `Diagnostic` em `InProgress`
+- evento de integração canônico: `DiagnosticStartedEvent`
+
+### AddService(Guid serviceId, Guid actorId, ServiceSource source)
+- pré-condição: serviço ativo de catálogo
+- pré-condição: sem duplicidade ativa por `ServiceId`
+- ação:
+  - inclui item em `Services`
+  - registra entrada em `ServiceHistory`
+
+### RemoveService(Guid serviceId, Guid actorId, ServiceSource source, string reason)
+- pré-condição: serviço ativo existente na OS
+- pré-condição: motivo obrigatório
+- ação:
+  - marca item como removido (`IsActive = false`)
+  - registra entrada em `ServiceHistory`
 
 ### CompleteDiagnostic(string description)
-- Pré-condição: `Status == InDiagnostic`
-- Pré-condição: `Diagnostic` existente
-- Pré-condição: `description` não nula/não vazia
-- Ação:
-  - Aplica `trim` em `description` (somente bordas)
-  - Conclui `Diagnostic` interno
-  - Gera `Quote` automaticamente com base em `Items`
-  - Define `Status = WaitingApproval`
-  - Atualiza `UpdatedAt`
-- Pós-condição: diagnóstico concluído e orçamento pendente de aprovação
-- Eventos emitidos:
-  - `DiagnosticCompletedEvent`
-  - `QuoteGeneratedEvent`
-- Exceção: `DomainException("OS não está em Diagnóstico")`
+- pré-condição: `Status == InDiagnostic`
+- pré-condição: diagnóstico com ao menos 1 serviço selecionado
+- ação:
+  - conclui diagnóstico
+  - monta `ServiceItem` a partir dos serviços selecionados e suas composições de catálogo
+  - gera `Quote` com:
+    - `LaborPrice` via `Service.BasePrice`
+    - totais de peças e insumos via catálogo
+  - muda status para `WaitingApproval`
+  - congela composição de serviços ativos
+- eventos:
+  - integração canônica: `DiagnosticCompletedEvent`
+  - integração canônica: `QuoteGeneratedEvent`
 
 ### ApproveQuote()
-- Pré-condição: `Status == WaitingApproval`
-- Pré-condição: `Quote` existente e pendente
-- Ação:
-  - Aprova `Quote` interno
-  - Define `TotalServices = Items.Count`
-  - Define `CompletedServices = 0`
-  - Define `Status = InExecution`
-  - Atualiza `UpdatedAt`
-- Pós-condição: OS em execução e contador preparado
-- Eventos emitidos:
-  - `QuoteApprovedEvent`
-  - `ServiceOrderInExecutionEvent`
-- Exceção: `DomainException("OS não está Aguardando Aprovação")`
+- pré-condição: `Status == WaitingApproval`
+- aprova orçamento, define `TotalServices`, zera `CompletedServices`, muda para `InExecution`
+- eventos:
+  - integração canônica: `QuoteApprovedEvent`
+  - domínio interno: `ServiceOrderInExecutionEvent`
+
+### RejectQuote()
+- pré-condição: `Status == WaitingApproval`
+- ação: rejeita orçamento atual sem alterar itens/valores da versão rejeitada
+- observação: nova mudança de escopo exige retorno ao atendimento e nova versão de orçamento
 
 ### IncrementCompletedServices()
-- Pré-condição: `Status == InExecution`
-- Ação:
-  - Incrementa `CompletedServices++`
-  - Se `CompletedServices == TotalServices`, chama `Finish()`
-  - Atualiza `UpdatedAt`
-- Pós-condição: contador de concluídos atualizado; OS pode ser finalizada automaticamente
-- Exceção: `DomainException("OS não está Em Execução")`
-
-> `IncrementCompletedServices()` não publica evento de finalização diretamente.
-> Quando o total é atingido, ele delega para `Finish()`, que é a fonte única de
-> `ServiceOrderFinishedEvent`.
-
-> **Comentário obrigatório — mecanismo do contador (`TotalServices`/`CompletedServices`):**
-> Ao aprovar o orçamento, `TotalServices` é fixado com `Items.Count` e `CompletedServices` reinicia em `0`.
-> Cada conclusão de serviço (normalmente via evento de Produção) chama `IncrementCompletedServices()`,
-> que incrementa o progresso em uma unidade e verifica imediatamente o critério da RN-004.
-> Quando `CompletedServices` alcança `TotalServices`, a própria OS dispara `Finish()` automaticamente,
-> garantindo finalização determinística e impedindo encerramento prematuro.
+- pré-condição: `Status == InExecution`
+- incrementa progresso e chama `Finish()` ao atingir total
 
 ### Finish()
-- Pré-condição: `CompletedServices == TotalServices` (RN-004)
-- Ação:
-  - Define `Status = Finished`
-  - Atualiza `UpdatedAt`
-- Pós-condição: OS finalizada
-- Evento emitido: `ServiceOrderFinishedEvent`
-- Exceção: `DomainException("Existem serviços pendentes")`
+- pré-condição: `CompletedServices == TotalServices`
+- muda para `Finished`
+- evento de domínio interno: `ServiceOrderFinishedEvent`
 
 ### RegisterDelivery()
-- Pré-condição: `Status == Finished`
-- Ação:
-  - Define `Status = Delivered`
-  - Atualiza `UpdatedAt`
-- Pós-condição: veículo entregue ao cliente
-- Evento emitido: `VehicleDeliveredEvent`
-- Exceção: `DomainException("OS não está Finalizada")`
+- pré-condição: `Status == Finished`
+- muda para `Delivered`
+- evento de domínio interno: `VehicleDeliveredEvent`
 
-## Eventos de Domínio
-| Evento C# | Quando é emitido |
-|-----------|-----------------|
-| `ServiceOrderCreatedEvent` | Ao criar a OS |
-| `DiagnosticStartedEvent` | Ao iniciar diagnóstico |
-| `DiagnosticCompletedEvent` | Ao concluir diagnóstico |
-| `QuoteGeneratedEvent` | Ao gerar orçamento automaticamente após diagnóstico |
-| `QuoteApprovedEvent` | Ao aprovar orçamento |
-| `ServiceOrderInExecutionEvent` | Ao colocar OS em execução |
-| `ServiceOrderFinishedEvent` | Ao finalizar OS |
-| `VehicleDeliveredEvent` | Ao registrar entrega do veículo |
+## Classificação de Eventos
+- Eventos de integração canônicos deste agregado: `DiagnosticStartedEvent`, `DiagnosticCompletedEvent`, `QuoteGeneratedEvent`, `QuoteApprovedEvent`.
+- Eventos de domínio internos (não listados como contratos de integração): `ServiceOrderInExecutionEvent`, `ServiceOrderFinishedEvent`, `VehicleDeliveredEvent`.
+- Catálogo canônico de integração: `docs/Domain/agregados.md`.
 
 ## Regras de Negócio Relacionadas
-- [RN-001]: `CustomerId` é imutável após criação
-- [RN-002]: `VehicleId` é imutável após criação
-- [RN-003]: Progressão de status obrigatória
-- [RN-004]: Finalização só quando `CompletedServices == TotalServices`
-- [RN-006]: Uma OS só pode ter um diagnóstico ativo por vez
-- [RN-007]: Orçamento só pode ser gerado após diagnóstico concluído
-
-## Implementação C#
-- Construtor privado
-- Factory method estático `Create()`
-- Propriedades com `private set`
-- Exceções sempre via `DomainException`
-- Normalização textual: aplicar `trim` nas bordas em entradas de texto do agregado
-
-## Dependências
-- Entidades internas: `Diagnostic`, `Quote`
-- Tipo de suporte interno: `ServiceItem`
-- Agregados externos referenciados por ID: `Customer`, `Vehicle`, `Service`
+- [RN-001], [RN-002], [RN-003], [RN-004]
+- [RN-006], [RN-007]
+- [RN-026], [RN-028]
+- [RN-029], [RN-030], [RN-031]
 
 ## Testes Obrigatórios
-- [ ] criar OS válida
-- [ ] criar sem cliente (erro)
-- [ ] criar sem veículo (erro)
-- [ ] criar sem itens (erro)
-- [ ] criar com `ServiceItem` inválido (erro)
-- [ ] iniciar diagnóstico em OS Received
-- [ ] iniciar diagnóstico em status errado (erro)
-- [ ] completar diagnóstico
+- [ ] iniciar diagnóstico
+- [ ] adicionar/remover serviço no atendimento com rastreabilidade
+- [ ] adicionar/remover serviços no diagnóstico em `InProgress`
+- [ ] impedir alteração após `Completed`
+- [ ] congelar serviços após conclusão do diagnóstico
+- [ ] concluir diagnóstico sem serviços (erro)
+- [ ] gerar `ServiceItem` com snapshot de peças/insumos
+- [ ] gerar `Quote` com `LaborPrice` vindo de `Service.BasePrice`
 - [ ] aprovar orçamento
-- [ ] aprovar em status errado (erro)
-- [ ] incrementar serviços concluídos
-- [ ] finalizar quando todos concluídos
-- [ ] finalizar automaticamente via incremento deve emitir `ServiceOrderFinishedEvent` exatamente uma vez
-- [ ] tentar finalizar com serviços pendentes (erro)
-- [ ] registrar entrega
-- [ ] registrar entrega em status errado (erro)
-- [ ] tentar alterar CustomerId (erro)
-- [ ] tentar alterar VehicleId (erro)
+- [ ] rejeitar orçamento
+- [ ] finalizar só quando contador atingir total

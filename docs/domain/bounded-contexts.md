@@ -1,10 +1,8 @@
 # GarageFlow — Bounded Contexts
 
 ## Visão Geral
-
-O domínio do GarageFlow é dividido em 7 contextos delimitados.
-Cada contexto tem responsabilidade única e se comunica com
-os demais através de eventos de integração.
+O domínio do GarageFlow é dividido em 8 contextos delimitados.
+Cada contexto tem responsabilidade única e se comunica com os demais por eventos de integração.
 
 ---
 
@@ -27,239 +25,250 @@ graph TD
         Fornecedor
     end
 
-    subgraph BC4[Gestão de Ordens de Serviço]
+    subgraph BC4[Gestão de Pessoas]
+        Funcionario
+    end
+
+    subgraph BC5[Gestão de Ordens de Serviço]
         OrdemDeServico
         Diagnostico
         Orcamento
     end
 
-    subgraph BC5[Produção]
+    subgraph BC6[Produção]
         OrdemDeExecucao
     end
 
-    subgraph BC6[Gestão de Estoque]
+    subgraph BC7[Gestão de Estoque]
         Estoque
         OrdemDeSeparacao
     end
 
-    subgraph BC7[Compras]
+    subgraph BC8[Compras]
         OrdemDeCompra
     end
 
-    BC1 -->|ClienteId, VeiculoId| BC4
-    BC2 -->|ServicoId| BC4
-    BC2 -->|PecaId, InsumoId| BC6
-    BC3 -->|FornecedorId| BC7
-    BC4 -->|QuoteApprovedEvent| BC5
-    BC5 -->|ExecutionOrderCreatedEvent| BC6
-    BC5 -->|ExecutionOrderCompletedEvent| BC4
-    BC6 -->|SeparationOrderCompletedEvent| BC5
-    BC6 -->|InsufficientStockEvent| BC7
-    BC7 -->|PurchaseOrderCompletedEvent| BC6
+    BC1 -->|CustomerId, VehicleId| BC5
+    BC2 -->|ServiceId + composição| BC5
+    BC2 -->|PartId, SupplyId| BC7
+    BC3 -->|SupplierId| BC8
+    BC5 -->|QuoteApprovedEvent| BC6
+    BC6 -->|ExecutionOrderCreatedEvent| BC7
+    BC6 -->|ExecutionOrderCompletedEvent| BC5
+    BC7 -->|SeparationOrderCompletedEvent| BC6
+    BC7 -->|InsufficientStockEvent| BC8
+    BC8 -->|PurchaseOrderCompletedEvent| BC7
 ```
 
 ---
 
 ## 1. Gestão de Clientes
 
-**Responsabilidade:** Cadastro e histórico de clientes e veículos.
+Responsabilidade: cadastro e histórico de clientes e veículos.
 
-**Agregados:**
-- Cliente — identificado por CPF (PF) ou CNPJ (PJ)
-- Veículo — identificado por Placa e RENAVAM
+Agregados:
+- `Customer` (CPF/CNPJ)
+- `Vehicle` (LicensePlate/Renavam)
 
-**Regras críticas:**
-- CPF e CNPJ são únicos no sistema
-- Placa e RENAVAM são únicos no sistema
-- Um veículo pertence a um único cliente
-- Cliente nunca é deletado — apenas desativado
+Regras críticas:
+- CPF/CNPJ únicos
+- Placa/RENAVAM únicos
+- veículo pertence a um único cliente
+- remoção lógica (soft delete)
 
-**Comunicações:**
-- Fornece ClienteId e VeiculoId para Gestão de Ordens de Serviço
+Comunicações:
+- fornece `CustomerId` e `VehicleId` para Gestão de Ordens de Serviço
 
 ---
 
 ## 2. Catálogo
 
-**Responsabilidade:** Definição dos serviços, peças e insumos
-oferecidos pela oficina.
+Responsabilidade: definição de serviços, peças e insumos ofertados.
 
-**Agregados:**
-- Serviço — tipo de serviço com preço base e tempo estimado
-- Peça — componente físico substituível, controlado por unidade
-- Insumo — material consumível, controlado por quantidade variável
+Agregados:
+- `Service`
+- `Part`
+- `Supply`
 
-**Regras críticas:**
-- Serviços, peças e insumos nunca são deletados — apenas desativados
-- Tempo médio estimado é atualizado manualmente pelo administrativo
-- Preço base pode ser sobrescrito no orçamento da OS
+Regras críticas:
+- serviço, peça e insumo são desativáveis (soft delete)
+- `Service` mantém composição pré-definida de peças e insumos
+- composição de serviço só aceita itens não duplicados e quantidades > 0
+- `BasePrice` do serviço é a fonte de preço de mão de obra no orçamento
+- `Part` mantém `Code` e `Sku` como identificadores de catálogo
+- `Supply` mantém `Code`, `UnitOfMeasure`, `BaseCost` e pode referenciar `PreferredSupplierId`
 
-**Comunicações:**
-- Fornece ServicoId, PecaId e InsumoId para Gestão de Ordens de Serviço
-- Fornece PecaId e InsumoId para Gestão de Estoque
+Comunicações:
+- fornece `ServiceId` e composição para Gestão de Ordens de Serviço
+- fornece `PartId` e `SupplyId` para Gestão de Estoque
 
 ---
 
 ## 3. Fornecedores
 
-**Responsabilidade:** Cadastro de fornecedores de peças e insumos.
+Responsabilidade: cadastro de fornecedores de peças e insumos.
 
-**Agregados:**
-- Fornecedor — identificado por CNPJ
+Agregado:
+- `Supplier`
 
-**Regras críticas:**
-- CNPJ é único no sistema
-- Fornecedor nunca é deletado — apenas desativado
+Regras críticas:
+- CNPJ único
+- remoção lógica (soft delete)
 
-**Comunicações:**
-- Fornece FornecedorId para Compras
-
----
-
-## 4. Gestão de Ordens de Serviço
-
-**Responsabilidade:** Controle do ciclo de vida completo
-da Ordem de Serviço.
-
-**Agregados:**
-- OrdemDeServico — agregado raiz central
-- Diagnostico — análise técnica do veículo
-- Orcamento — proposta de custo gerada automaticamente
-
-**Status da OS:**
-
-```mermaid
-stateDiagram-v2
-    [*] --> Recebida
-    Recebida --> EmDiagnostico : Iniciar Diagnóstico
-    EmDiagnostico --> AguardandoAprovacao : Concluir Diagnóstico
-    AguardandoAprovacao --> EmExecucao : Cliente Aprova
-    EmExecucao --> Finalizada : Todos os serviços concluídos
-    Finalizada --> Entregue : Registrar Entrega
-```
-
-**Regras críticas:**
-- ClienteId e VeiculoId são imutáveis após criação
-- OS só vai para Em Execução após aprovação do cliente
-- OS só vai para Finalizada quando todos os serviços forem concluídos
-- OS mantém contador: TotalServicos e ServicosConcluidos
-
-**Comunicações:**
-- Consome ClienteId de Gestão de Clientes
-- Consome VeiculoId de Gestão de Clientes
-- Consome ServicoId do Catálogo
-- Publica `QuoteApprovedEvent` para Produção
-- Consome `ExecutionOrderCompletedEvent` de Produção para progresso da OS
+Comunicações:
+- fornece `SupplierId` para Compras
 
 ---
 
-## 5. Produção
+## 4. Gestão de Pessoas
 
-**Responsabilidade:** Controle da execução dos serviços
-pelos mecânicos.
+Responsabilidade: cadastro e ciclo de vida de funcionários internos do sistema.
 
-**Agregados:**
-- OrdemDeExecucao — representa a execução de um serviço
-  específico por um mecânico
+Agregado:
+- `Employee`
 
-**Status da Ordem de Execução:**
+Regras críticas:
+- CPF/CNPJ únicos no contexto de funcionários
+- cargo obrigatório
+- remoção lógica (soft delete)
 
-```mermaid
-stateDiagram-v2
-    [*] --> Pendente
-    Pendente --> Pronta : SeparationOrderCompletedEvent
-    Pronta --> EmExecucao : StartExecution
-    EmExecucao --> Concluida : Mecânico Conclui
-```
-
-**Regras críticas:**
-- Criada automaticamente ao aprovar orçamento (1 por serviço)
-- Só vai para `Pronta` após Ordem de Separação Concluída
-- Só vai para Em Execução a partir de `Pronta`
-- Registra IniciadoEm, ConcluidoEm e TempoRealMinutos
-- Ao concluir, incrementa contador de ServicosConcluidos na OS
-
-**Comunicações:**
-- Consome `QuoteApprovedEvent` de Gestão de Ordens de Serviço
-- Publica `ExecutionOrderCreatedEvent` para Gestão de Estoque
-- Publica `ExecutionOrderReadyEvent` ao marcar prontidão para início
-- Publica `ExecutionOrderCompletedEvent` para Gestão de Ordens de Serviço
-- Consome `SeparationOrderCompletedEvent` de Gestão de Estoque
+Comunicações:
+- fornece identidade e papel para fluxos operacionais do sistema
 
 ---
 
-## 6. Gestão de Estoque
+## 5. Gestão de Ordens de Serviço
 
-**Responsabilidade:** Controle de disponibilidade de peças
-e insumos e separação física para execução dos serviços.
+Responsabilidade: controle do ciclo de vida da OS, diagnóstico e orçamento.
 
-**Agregados:**
-- Estoque — controla quantidades de peças e insumos
-- OrdemDeSeparacao — separação física de itens para uma OE
+Agregados/entidades:
+- `ServiceOrder` (raiz)
+- `Diagnostic` (entidade interna)
+- `Quote` (entidade interna)
+- `ServiceItem` (value object interno)
 
-**Status da Ordem de Separação:**
+Status da OS:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Pendente
-    Pendente --> AguardandoCompra : Sem estoque
-    Pendente --> AguardandoRetirada : Com estoque
-    AguardandoCompra --> AguardandoRetirada : PurchaseOrderCompletedEvent
-    AguardandoRetirada --> Separada : Estoquista retira fisicamente
-    Separada --> Concluida : Mecânico confirma recebimento
+    [*] --> Received
+    Received --> InDiagnostic : StartDiagnostic
+    InDiagnostic --> WaitingApproval : CompleteDiagnostic
+    WaitingApproval --> InExecution : ApproveQuote
+    InExecution --> Finished : All services completed
+    Finished --> Delivered : RegisterDelivery
 ```
 
-**Modelo de Quantidades do Estoque:**
-- QuantidadeTotal — total físico no estoque
-- QuantidadeDisponivel — livre para novos pedidos
-- QuantidadeReservada — bloqueada para ordens em andamento
-- QuantidadeMinima — gatilho para geração de Ordem de Compra
+Regras críticas:
+- `CustomerId` e `VehicleId` imutáveis
+- mecânico seleciona serviços no diagnóstico
+- peças e insumos não são cadastrados manualmente no diagnóstico
+- após `Diagnostic.Completed`, não há reabertura
+- `Quote` calcula:
+  - `LaborPrice` via `Service.BasePrice`
+  - `PartsTotal` e `SuppliesTotal` via preços de catálogo no momento da geração
+- `ServiceItem` é snapshot estrutural (sem preço)
 
-**Regras críticas:**
-- Criada automaticamente ao criar Ordem de Execução (1 por OE)
-- Verificação de estoque automática na criação da Ordem de Separação
-- Se falta peça: gera Ordem de Compra e vai para Aguardando Compra
-- Se tem peça: reserva e vai para Aguardando Retirada
-- QuantidadeDisponivel nunca pode ser negativa
-- Estoquista confirma retirada física
-- Mecânico confirma recebimento das peças
-
-**Comunicações:**
-- Consome `ExecutionOrderCreatedEvent` de Produção
-- Publica `SeparationOrderCompletedEvent` para Produção
-- Publica `InsufficientStockEvent` para Compras
-- Consome `PurchaseOrderCompletedEvent` de Compras
+Comunicações:
+- consome `CustomerId` e `VehicleId` de Gestão de Clientes
+- consome `ServiceId` e composição do Catálogo
+- publica `QuoteApprovedEvent` para Produção
+- consome `ExecutionOrderCompletedEvent` para progresso da OS
 
 ---
 
-## 7. Compras
+## 6. Produção
 
-**Responsabilidade:** Reposição de estoque através de
-ordens de compra junto a fornecedores.
+Responsabilidade: execução de serviços pelos mecânicos.
 
-**Agregados:**
-- OrdemDeCompra — solicitação de compra de peças/insumos
+Agregado:
+- `ExecutionOrder`
 
-**Status da Ordem de Compra:**
+Status:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Criada
-    Criada --> Iniciada : Administrativo inicia
-    Iniciada --> Concluida : Estoquista recebe mercadoria
+    [*] --> Pending
+    Pending --> Ready : SeparationOrderCompletedEvent
+    Ready --> InExecution : StartExecution
+    InExecution --> Completed : CompleteExecution
 ```
 
-**Regras críticas:**
-- Gerada automaticamente pelo sistema quando detecta falta de estoque
-- Requer seleção de fornecedor pelo administrativo
-- Administrativo inicia o processo de compra
-- Estoquista registra o recebimento e atualiza o estoque
-- Ao concluir, dispara `PurchaseOrderCompletedEvent` para retomar separações pendentes
+Regras críticas:
+- criado automaticamente ao aprovar orçamento (1 por serviço)
+- só inicia execução após separação concluída
+- registra tempo real da execução
 
-**Comunicações:**
-- Consome `InsufficientStockEvent` de Gestão de Estoque
-- Consome FornecedorId de Fornecedores
-- Publica `PurchaseOrderCompletedEvent` para Gestão de Estoque
+Comunicações:
+- consome `QuoteApprovedEvent`
+- publica `ExecutionOrderCreatedEvent`
+- publica `ExecutionOrderReadyEvent`
+- publica `ExecutionOrderCompletedEvent`
+- consome `SeparationOrderCompletedEvent`
+
+---
+
+## 7. Gestão de Estoque
+
+Responsabilidade: controle de saldo e separação física para execução.
+
+Agregados:
+- `Stock`
+- `SeparationOrder`
+
+Status da separação:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending
+    Pending --> WaitingPurchase : no stock
+    Pending --> WaitingPickup : stock available
+    WaitingPurchase --> WaitingPickup : PurchaseOrderCompletedEvent
+    WaitingPickup --> Separated : Stockist withdrawal
+    Separated --> Completed : Mechanic receipt
+```
+
+Regras críticas:
+- separação criada automaticamente por execução
+- separação mantém listas separadas de peças e insumos
+- cancelamento antes da execução:
+  - peça pode retornar ao estoque
+  - insumo não retorna após separação
+- `AvailableQuantity` nunca negativa
+
+Comunicações:
+- consome `ExecutionOrderCreatedEvent`
+- publica `SeparationOrderCompletedEvent`
+- publica `InsufficientStockEvent`
+- consome `PurchaseOrderCompletedEvent`
+
+---
+
+## 8. Compras
+
+Responsabilidade: reposição de estoque por ordem de compra.
+
+Agregado:
+- `PurchaseOrder`
+
+Status:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created
+    Created --> Started : Administrative starts
+    Started --> Completed : Stockist confirms receipt
+```
+
+Regras críticas:
+- geração automática quando há insuficiência
+- fornecedor obrigatório para iniciar
+- conclusão aciona retomada automática de separações pendentes
+
+Comunicações:
+- consome `InsufficientStockEvent`
+- consome `SupplierId`
+- publica `PurchaseOrderCompletedEvent`
 
 ---
 
@@ -267,14 +276,14 @@ stateDiagram-v2
 
 ```mermaid
 graph TD
-    BC1[Gestão de Clientes] -->|ClienteId, VeiculoId| BC4[Gestão de OS]
-    BC2[Catálogo] -->|ServicoId| BC4
-    BC2 -->|PecaId, InsumoId| BC6[Gestão de Estoque]
-    BC3[Fornecedores] -->|FornecedorId| BC7[Compras]
-    BC4 -->|QuoteApprovedEvent| BC5[Produção]
-    BC5 -->|ExecutionOrderCreatedEvent| BC6
-    BC5 -->|ExecutionOrderCompletedEvent| BC4
-    BC6 -->|SeparationOrderCompletedEvent| BC5
-    BC6 -->|InsufficientStockEvent| BC7
-    BC7 -->|PurchaseOrderCompletedEvent| BC6
+    BC1[Gestão de Clientes] -->|CustomerId, VehicleId| BC5[Gestão de OS]
+    BC2[Catálogo] -->|ServiceId + composição| BC5
+    BC2 -->|PartId, SupplyId| BC7[Gestão de Estoque]
+    BC3[Fornecedores] -->|SupplierId| BC8[Compras]
+    BC5 -->|QuoteApprovedEvent| BC6[Produção]
+    BC6 -->|ExecutionOrderCreatedEvent| BC7
+    BC6 -->|ExecutionOrderCompletedEvent| BC5
+    BC7 -->|SeparationOrderCompletedEvent| BC6
+    BC7 -->|InsufficientStockEvent| BC8
+    BC8 -->|PurchaseOrderCompletedEvent| BC7
 ```

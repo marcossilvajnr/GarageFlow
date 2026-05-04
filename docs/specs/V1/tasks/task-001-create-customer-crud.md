@@ -59,6 +59,22 @@ Leitura obrigatória antes da implementação:
   - Efeito: `Deactivate()`.
   - Response `204`.
 
+Matriz de erro mandatória:
+- `POST /customers`
+  - validação de domínio -> `400`
+  - duplicidade de CPF/CNPJ -> `409`
+- `GET /customers/{id}`
+  - cliente inexistente -> `404`
+- `GET /customers`
+  - paginação inválida -> `400`
+- `PUT /customers/{id}`
+  - validação de domínio -> `400`
+  - cliente inexistente -> `404`
+  - duplicidade de CPF/CNPJ (quando aplicável) -> `409`
+- `DELETE /customers/{id}`
+  - cliente inexistente -> `404`
+  - cliente já inativo -> `400`
+
 ### 5.2 Contratos internos
 - Commands:
   - `CreateCustomerCommand`
@@ -105,6 +121,7 @@ Leitura obrigatória antes da implementação:
 - Criar endpoints REST de `Customer`.
 - Criar DTOs de request/response.
 - Mapear exceções para status HTTP padronizados.
+- Validar entrada de paginação na borda: `page > 0` e `pageSize > 0`.
 
 ### Tests
 - Domínio:
@@ -148,6 +165,10 @@ Leitura obrigatória antes da implementação:
 ### API (`src/GarageFlow.Api`)
 - `Endpoints/CustomersEndpoints.cs`
 - `Program.cs` (mapear endpoints)
+
+Regra de estrutura mandatória:
+- O agregado e contrato de repositório de cliente devem permanecer em `src/GarageFlow.Domain/Customers/*`.
+- Não é permitido criar `Customer` sob outro contexto de domínio.
 
 ### Tests (`tests/GarageFlow.Tests` ou projetos separados)
 - `Domain/Customers/CustomerTests.cs`
@@ -201,3 +222,14 @@ Leitura obrigatória antes da implementação:
 ## Regras de Interpretação
 - **Regra de negócio**: obrigatória, não negociável.
 - **Decisão de implementação**: ajustável, desde que não conflite com o canônico.
+
+## 12) Guardrails Não-Negociáveis
+- Proibido parsing de `ex.Message` para decidir status HTTP.
+- Proibido mapear toda `DomainException` para um único status HTTP sem distinguir causa.
+- Proibido criar caminhos de arquivo fora da seção de arquivos sem justificativa explícita na resposta final.
+- Proibido alterar itens de `Out` sem registrar impacto e aprovação.
+
+## 13) Contrato de Arquivos e Estrutura
+- Os caminhos definidos na seção de arquivos desta task são mandatórios.
+- Qualquer desvio de estrutura deve ser registrado na resposta final com justificativa técnica.
+- Não criar estrutura paralela de pastas para o mesmo contexto funcional.

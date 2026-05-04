@@ -8,17 +8,19 @@
 - Arquivo: `GarageFlow.Domain/Stock/SeparationOrder.cs`
 
 ## Responsabilidade
-Representa a separação física de peças e insumos para uma `ExecutionOrder`.
-Controla reserva, compra (quando necessário), retirada pelo estoquista e
-confirmação de recebimento pelo mecânico, concluindo a custódia dos itens.
+Representa a separação física de materiais necessários para uma `ExecutionOrder`,
+com listas distintas de peças e insumos.
+Controla reserva, retomada após compra, retirada pelo estoquista e
+confirmação de recebimento pelo mecânico.
 
 ## Atributos
 | Atributo | Tipo C# | Obrigatório | Regra |
 |----------|---------|-------------|-------|
 | Id | `Guid` | Sim | Gerado automaticamente via `Guid.NewGuid()` |
 | ExecutionOrderId | `Guid` | Sim | Imutável após criação |
-| Status | `SeparationOrderStatus` | Sim | Fluxo por dois caminhos: com estoque ou sem estoque |
-| Items | `IReadOnlyList<SeparationItem>` | Sim | Deve conter pelo menos 1 item |
+| Status | `SeparationOrderStatus` | Sim | Fluxo com/sem compra, sem salto de estado |
+| Parts | `IReadOnlyList<SeparationPartItem>` | Sim | Pode iniciar vazio; sem duplicidade por `PartId` |
+| Supplies | `IReadOnlyList<SeparationSupplyItem>` | Sim | Pode iniciar vazio; sem duplicidade por `SupplyId` |
 | StockistId | `Guid?` | Não | Nulo até confirmação do estoquista |
 | ConfirmedByStockistAt | `DateTime?` | Não | Nulo até confirmação do estoquista |
 | ConfirmedByMechanicAt | `DateTime?` | Não | Nulo até confirmação do mecânico |
@@ -29,57 +31,51 @@ confirmação de recebimento pelo mecânico, concluindo a custódia dos itens.
 > Pending, WaitingPurchase, WaitingPickup, Separated, Completed
 > ```
 
-## Entidade Interna — SeparationItem
-`SeparationItem` representa cada peça/insumo necessário para a execução.
+## Tipos Internos
 
+### SeparationPartItem
 | Atributo | Tipo C# | Obrigatório | Regra |
 |----------|---------|-------------|-------|
-| ItemId | `Guid` | Sim | Referência ao item de catálogo |
-| ItemType | `SeparationItemType` | Sim | `Part` ou `Supply` |
-| ItemName | `string` | Sim | Nome do item no momento da separação |
-| Quantity | `decimal` | Sim | Quantidade solicitada (maior que zero) |
-| IsReserved | `bool` | Sim | Indica se item já foi reservado no estoque |
+| PartId | `Guid` | Sim | Referência da peça no catálogo |
+| PartName | `string` | Sim | Snapshot textual da peça |
+| Quantity | `int` | Sim | Maior que zero |
+| IsReserved | `bool` | Sim | Indica reserva de estoque |
 
-> **Enum `SeparationItemType`:**
-> ```
-> Part, Supply
-> ```
+### SeparationSupplyItem
+| Atributo | Tipo C# | Obrigatório | Regra |
+|----------|---------|-------------|-------|
+| SupplyId | `Guid` | Sim | Referência do insumo no catálogo |
+| SupplyName | `string` | Sim | Snapshot textual do insumo |
+| Quantity | `decimal` | Sim | Maior que zero |
+| Unit | `SupplyUnit` | Sim | Unidade canônica de medida |
+| IsReserved | `bool` | Sim | Indica reserva de estoque |
 
 ## Invariantes
-1. `ExecutionOrderId` nunca pode ser alterado após criação
-2. `Items` nunca pode ser vazio
-3. Fluxo de status válido:
-   - Caminho 1 (tem estoque): `Pending -> WaitingPickup -> Separated -> Completed`
-   - Caminho 2 (sem estoque): `Pending -> WaitingPurchase -> WaitingPickup -> Separated -> Completed`
-4. `Completed` só é permitido após dupla confirmação de custódia (RN-013)
-5. `ConfirmedByMechanicAt` só pode ser definido após confirmação prévia do estoquista
+1. `ExecutionOrderId` nunca pode ser alterado após criação.
+2. A separação deve conter pelo menos um item no total (`Parts` ou `Supplies`).
+3. `Parts` não aceita `PartId` duplicado.
+4. `Supplies` não aceita `SupplyId` duplicado.
+5. Fluxos válidos:
+   - Com estoque: `Pending -> WaitingPickup -> Separated -> Completed`
+   - Sem estoque: `Pending -> WaitingPurchase -> WaitingPickup -> Separated -> Completed`
+6. `Completed` exige dupla confirmação de custódia (estoquista + mecânico).
+7. `ConfirmedByMechanicAt` só pode ser definido após `ConfirmedByStockistAt`.
 
-## Diagrama de Estados
-```mermaid
-stateDiagram-v2
-    [*] --> Pending
-    Pending --> WaitingPickup : Reserve()
-    Pending --> WaitingPurchase : WaitForPurchase()
-    WaitingPurchase --> WaitingPickup : ResumeAfterPurchase()
-    WaitingPickup --> Separated : ConfirmStockistWithdrawal()
-    Separated --> Completed : ConfirmMechanicReceipt()
-```
+## Origem dos Itens
+As listas `Parts` e `Supplies` são construídas a partir dos `ServiceItem` da OS,
+que por sua vez são snapshots do catálogo no momento do diagnóstico.
 
 ## Métodos de Domínio
 
-### Create(Guid executionOrderId, IEnumerable<SeparationItem> items)
+### Create(Guid executionOrderId, IEnumerable<SeparationPartItem> parts, IEnumerable<SeparationSupplyItem> supplies)
 - Pré-condição: `executionOrderId != Guid.Empty`
-- Pré-condição: `items` não nulo e com pelo menos 1 item
-- Pré-condição: cada `SeparationItem` deve ter:
-  - `ItemId != Guid.Empty`
-  - `ItemName` não nulo/não vazio após `trim`
-  - `Quantity > 0`
+- Pré-condição: pelo menos um item entre `parts` e `supplies`
+- Pré-condição: itens válidos (`Id` válido, nome não vazio, quantidade > 0)
 - Ação:
-  - Cria instância com `Id = Guid.NewGuid()`
-  - Define `Status = Pending`
-  - Define `StockistId = null`, `ConfirmedByStockistAt = null`, `ConfirmedByMechanicAt = null`
-  - Define `CreatedAt = DateTime.UtcNow`
-- Pós-condição: ordem de separação criada e pendente
+  - cria instância com `Status = Pending`
+  - inicializa confirmações e custodiante como `null`
+  - define `CreatedAt = DateTime.UtcNow`
+- Pós-condição: ordem criada e pronta para decisão de reserva/compra
 - Evento emitido: `SeparationOrderCreatedEvent`
 - Exceções:
   - `DomainException("Ordem de Execução é obrigatória")`
@@ -89,38 +85,36 @@ stateDiagram-v2
 ### Reserve()
 - Pré-condição: `Status == Pending`
 - Ação:
-  - Define `IsReserved = true` para todos os `Items`
-  - Define `Status = WaitingPickup`
-- Pós-condição: itens reservados e aguardando retirada
-- Evento emitido: nenhum (a reserva efetiva de estoque publica `PartsReservedEvent` em `Stock`)
+  - define `IsReserved = true` para todas as peças e insumos
+  - define `Status = WaitingPickup`
+- Pós-condição: materiais reservados e aguardando retirada
+- Evento emitido: nenhum de integração (`PartsReservedEvent` é publicado por `Stock`)
 - Exceção: `DomainException("Separação não está Pendente")`
 
 ### WaitForPurchase()
 - Pré-condição: `Status == Pending`
-- Ação:
-  - Define `Status = WaitingPurchase`
-- Pós-condição: separação aguardando reposição de estoque
-- Evento emitido: nenhum (`InsufficientStockEvent` é publicado por `Stock`)
+- Ação: define `Status = WaitingPurchase`
+- Pós-condição: separação aguardando reposição
+- Evento emitido: nenhum de integração (`InsufficientStockEvent` é publicado por `Stock`)
 - Exceção: `DomainException("Separação não está Pendente")`
 
 ### ResumeAfterPurchase()
 - Pré-condição: `Status == WaitingPurchase`
 - Ação:
-  - Define `IsReserved = true` para todos os `Items`
-  - Define `Status = WaitingPickup`
-- Pós-condição: separação retomada após compra concluída
+  - define `IsReserved = true` para todas as peças e insumos
+  - define `Status = WaitingPickup`
+- Pós-condição: separação retomada com materiais reservados
 - Exceção: `DomainException("Separação não está Aguardando Compra")`
 
 ### ConfirmStockistWithdrawal(Guid stockistId)
 - Pré-condição: `Status == WaitingPickup`
 - Pré-condição: `stockistId != Guid.Empty`
-- Pré-condição: todos os `Items` estão com `IsReserved == true`
+- Pré-condição: todos os itens com `IsReserved == true`
 - Ação:
-  - Define `StockistId = stockistId`
-  - Define `ConfirmedByStockistAt = DateTime.UtcNow`
-  - Define `Status = Separated`
-- Pós-condição: retirada física confirmada pelo estoquista
-- Evento emitido: `PartsSeparatedEvent`
+  - define `StockistId = stockistId`
+  - define `ConfirmedByStockistAt = DateTime.UtcNow`
+  - define `Status = Separated`
+- Pós-condição: retirada física confirmada
 - Exceções:
   - `DomainException("Separação não está Aguardando Retirada")`
   - `DomainException("Estoquista é obrigatório")`
@@ -130,60 +124,50 @@ stateDiagram-v2
 - Pré-condição: `Status == Separated`
 - Pré-condição: `ConfirmedByStockistAt` possui valor
 - Ação:
-  - Define `ConfirmedByMechanicAt = DateTime.UtcNow`
-  - Define `Status = Completed`
-- Pós-condição: custódia concluída com confirmação do mecânico
+  - define `ConfirmedByMechanicAt = DateTime.UtcNow`
+  - define `Status = Completed`
+- Pós-condição: custódia concluída
 - Evento emitido: `SeparationOrderCompletedEvent`
 - Exceções:
   - `DomainException("Aguardando confirmação do estoquista")`
   - `DomainException("Separação não está Separada")`
 
-> **Comentário obrigatório — dupla confirmação e dois caminhos:**
-> A `SeparationOrder` tem dois fluxos possíveis de status (com estoque e sem estoque),
-> mas ambos convergem para a mesma regra de custódia: só concluir após confirmação
-> do estoquista (retirada física) e do mecânico (recebimento). Essa dupla confirmação
-> atende a RN-013 e garante rastreabilidade completa do material.
->
-> No caminho sem estoque, a retomada é orquestrada pelo Application Service na
-> sequência `Stock.Replenish() -> Stock.Reserve() -> SeparationOrder.ResumeAfterPurchase()`.
-> Assim, ao voltar para `WaitingPickup`, a separação já está com itens reservados.
+## Política de Cancelamento
+Quando houver cancelamento antes do início da execução:
+- peças reservadas podem retornar ao estoque;
+- insumos não retornam ao estoque após a separação.
+
+A reposição/devolução física é orquestrada na camada de aplicação,
+respeitando o status da `SeparationOrder` e o tipo de item.
 
 ## Eventos de Domínio
 | Evento C# | Quando é emitido |
 |-----------|-----------------|
 | `SeparationOrderCreatedEvent` | Ao criar a ordem de separação |
-| `PartsSeparatedEvent` | Ao confirmar retirada física pelo estoquista |
 | `SeparationOrderCompletedEvent` | Ao confirmar recebimento pelo mecânico |
 
 ## Regras de Negócio Relacionadas
-- [RN-011]: Criada automaticamente para cada `ExecutionOrder`
-- [RN-012]: Verificação automática de estoque na criação
-- [RN-013]: Dupla confirmação de custódia (estoquista + mecânico)
-- [RN-020]: Retomada após compra concluída
-
-## Implementação C#
-- Construtor privado
-- Factory method estático `Create()`
-- Propriedades com `private set`
-- Exceções sempre via `DomainException`
-- Normalização textual: aplicar `trim` nas bordas em entradas de texto do agregado
+- [RN-011]: criada automaticamente para cada `ExecutionOrder`
+- [RN-012]: verificação automática de estoque na criação
+- [RN-013]: dupla confirmação de custódia
+- [RN-020]: retomada após compra concluída
 
 ## Dependências
 - Agregados externos referenciados por ID: `ExecutionOrder`
 - Integra com: `Stock` (reserva/disponibilidade) e `PurchaseOrder` (retomada)
 
 ## Testes Obrigatórios
-- [ ] criar válida
+- [ ] criar válida com peças e/ou insumos
 - [ ] criar sem executionOrderId (erro)
-- [ ] criar sem items (erro)
+- [ ] criar sem itens (erro)
 - [ ] criar com item inválido (erro)
+- [ ] criar com peça duplicada (erro)
+- [ ] criar com insumo duplicado (erro)
 - [ ] reservar estoque disponível
 - [ ] marcar aguardando compra
 - [ ] retomar após compra
-- [ ] retomar após compra deve marcar itens como reservados
-- [ ] retomar sem estar em WaitingPurchase (erro)
 - [ ] confirmar retirada do estoquista
 - [ ] confirmar retirada sem itens reservados (erro)
-- [ ] confirmar em status errado (erro)
 - [ ] confirmar recebimento do mecânico
 - [ ] confirmar recebimento antes do estoquista (erro)
+- [ ] aplicar política de cancelamento por tipo de item

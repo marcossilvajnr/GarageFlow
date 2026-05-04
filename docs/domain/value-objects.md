@@ -15,10 +15,10 @@ Todos os VOs seguem:
 | VO (PT) | Classe (EN) | Uso Canônico | Bounded Context |
 |---|---|---|---|
 | CPF | `Cpf` | `Customer` | Customers |
-| CNPJ | `Cnpj` | `Customer`, `Supplier` | Customers, Fornecedores |
-| E-mail | `Email` | `Customer`, `Supplier` | Customers, Fornecedores |
-| Telefone | `PhoneNumber` | `Customer`, `Supplier` | Customers, Fornecedores |
-| Endereço | `Address` | `Customer`, `Supplier` | Customers, Fornecedores |
+| CNPJ | `Cnpj` | `Customer`, `Supplier`, `Employee` | Customers, Fornecedores, Gestão de Pessoas |
+| E-mail | `Email` | `Customer`, `Supplier`, `Employee` | Customers, Fornecedores, Gestão de Pessoas |
+| Telefone | `PhoneNumber` | `Customer`, `Supplier`, `Employee` | Customers, Fornecedores, Gestão de Pessoas |
+| Endereço | `Address` | `Customer`, `Supplier`, `Employee` | Customers, Fornecedores, Gestão de Pessoas |
 | Placa | `LicensePlate` | `Vehicle` | Customers |
 | RENAVAM | `Renavam` | `Vehicle` | Customers |
 

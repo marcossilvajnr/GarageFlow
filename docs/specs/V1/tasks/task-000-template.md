@@ -40,6 +40,12 @@ Antes de implementar, ler obrigatoriamente:
 - Response: `<campos>`
 - Códigos HTTP esperados: `<200/201/400/404/409/...>`
 
+Matriz de erro obrigatória por endpoint:
+- Cenário: `<ex.: duplicidade de documento>`
+- Origem do erro: `<ex.: DomainException com código estável>`
+- HTTP esperado: `<ex.: 409>`
+- Regra: proibido decidir status HTTP por parsing textual de mensagem.
+
 ### 5.2 Contratos internos
 - Commands/Queries: `<nomes>`
 - Eventos (se aplicável): referenciar apenas `docs/Domain/agregados.md`.
@@ -66,9 +72,14 @@ Antes de implementar, ler obrigatoriamente:
 - `<domínio/aplicação/integração>`
 
 ## 7) Arquivos a Criar/Alterar
-Listar caminhos esperados, agrupando por camada:
+Listar caminhos obrigatórios, agrupando por camada:
 - `src/...`
 - `tests/...`
+
+Contrato de arquivos:
+- Caminhos definidos nesta seção são mandatórios.
+- Mudanças fora da lista devem ser justificadas explicitamente na resposta final.
+- Não é permitido criar estrutura alternativa de pastas sem atualização prévia da task.
 
 ## 8) Critérios de Pronto
 - [ ] Build da solução sem erros.
@@ -97,8 +108,17 @@ Listar caminhos esperados, agrupando por camada:
 - [ ] Implementar por vertical slice (Domain -> Application -> Infrastructure -> API -> Tests).
 - [ ] Garantir mensagens de erro em português.
 - [ ] Traduzir violação de unicidade para `DomainException`.
+- [ ] Não fazer parsing de texto de mensagem para decidir status HTTP.
+- [ ] Validar contratos de entrada na borda (ex.: `page > 0`, `pageSize > 0` e limites máximos quando aplicável).
+- [ ] Respeitar estritamente os caminhos de arquivo definidos na task.
 - [ ] Atualizar documentação canônica se houver mudança de regra de negócio.
 
 ## Regras de Interpretação
 - **Regra de negócio**: obrigatória, não negociável.
 - **Decisão de implementação**: ajustável, desde que não conflite com o canônico.
+
+## Guardrails Não-Negociáveis
+- Proibido parsing de `ex.Message` para decidir semântica de transporte.
+- Proibido retornar `404` para qualquer erro sem distinção da causa de domínio.
+- Proibido usar strings inline para mensagens de erro.
+- Proibido alterar escopo `Out` sem registrar justificativa e impacto.
