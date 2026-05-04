@@ -205,4 +205,14 @@ public static class DomainErrorMessages
 
     // SeparationOrder not found (handlers - context-specific)
     public static string SeparationOrderNotFound(Guid id) => $"Ordem de Separação '{id}' não encontrada";
+
+    // ExecutionOrder aggregate (context-specific)
+    public const string InvalidExecutionOrderServiceOrderId = "OS é obrigatória";
+    public const string InvalidExecutionOrderServiceId = "Serviço é obrigatório";
+    public const string InvalidExecutionOrderMechanicId = "Mecânico é obrigatório";
+    public const string ExecutionOrderNotReady = "Ordem de Execução não está Pronta para Início";
+    public const string ExecutionOrderNotInExecution = "Ordem de Execução não está Em Execução";
+
+    // ExecutionOrder not found (handlers - context-specific)
+    public static string ExecutionOrderNotFound(Guid id) => $"Ordem de Execução '{id}' não encontrada";
 }
