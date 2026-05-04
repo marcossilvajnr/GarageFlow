@@ -166,4 +166,8 @@ public static class DomainErrorMessages
     public const string DiagnosticServiceAlreadyAdded = "Serviço já adicionado ao diagnóstico";
     public static string DiagnosticServiceNotFound(Guid serviceId) =>
         $"Serviço '{serviceId}' não encontrado no diagnóstico";
+
+    // Diagnostic consolidation (context-specific)
+    public const string DiagnosticNotCompleted = "O diagnóstico desta Ordem de Serviço não foi concluído";
+    public const string DiagnosticConsolidationNoServices = "O diagnóstico não possui serviços selecionados para consolidar";
 }

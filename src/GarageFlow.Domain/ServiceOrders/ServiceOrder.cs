@@ -126,4 +126,34 @@ public sealed class ServiceOrder
         Diagnostic.Complete(description);
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void ConsolidateDiagnosticServices()
+    {
+        if (Diagnostic is null)
+            throw new DiagnosticNotCompletedException(DomainErrorMessages.DiagnosticNotStarted);
+
+        if (Diagnostic.Status != DiagnosticStatus.Completed)
+            throw new DiagnosticNotCompletedException(DomainErrorMessages.DiagnosticNotCompleted);
+
+        if (Diagnostic.SelectedServices.Count == 0)
+            throw new DiagnosticNoServicesException(DomainErrorMessages.DiagnosticConsolidationNoServices);
+
+        var mechanicId = Diagnostic.MechanicId;
+        var occurredAt = DateTime.UtcNow;
+
+        foreach (var serviceId in Diagnostic.SelectedServices)
+        {
+            if (_services.Any(s => s.ServiceId == serviceId && s.IsActive))
+                continue;
+
+            var item = ServiceOrderServiceItem.Create(serviceId, mechanicId, ServiceSource.Diagnostic);
+            _services.Add(item);
+
+            var historyEntry = ServiceOrderServiceHistory.Create(
+                serviceId, ServiceOrderServiceAction.Added, ServiceSource.Diagnostic, mechanicId, occurredAt);
+            _serviceHistory.Add(historyEntry);
+        }
+
+        UpdatedAt = occurredAt;
+    }
 }

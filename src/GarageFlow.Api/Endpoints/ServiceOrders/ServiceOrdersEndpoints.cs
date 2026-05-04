@@ -80,6 +80,13 @@ public static class ServiceOrdersEndpoints
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
+        group.MapPost("/{id:guid}/diagnostic/consolidate-services", ConsolidateDiagnosticServices)
+            .WithName("ConsolidateDiagnosticServices")
+            .WithSummary("Consolida os serviços do diagnóstico concluído na Ordem de Serviço.")
+            .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
         return endpoints;
     }
 
@@ -305,6 +312,31 @@ public static class ServiceOrdersEndpoints
         catch (DomainException ex)
         {
             return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
+    private static async Task<IResult> ConsolidateDiagnosticServices(
+        Guid id,
+        ConsolidateDiagnosticServicesHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new ConsolidateDiagnosticServicesCommand(id);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToResponse(dto));
+        }
+        catch (DiagnosticNotCompletedException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (DiagnosticNoServicesException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
         }
     }
 

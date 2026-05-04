@@ -312,4 +312,73 @@ public sealed class DiagnosticHandlersTests
 
         await act.Should().ThrowAsync<DiagnosticNotInProgressException>();
     }
+
+    // ── ConsolidateDiagnosticServicesHandler ───────────────────────────────
+
+    [Fact]
+    public async Task ConsolidateDiagnosticServices_WithCompletedDiagnostic_ReturnsUpdatedDto()
+    {
+        var soRepo = new FakeServiceOrderRepository();
+        var serviceId = Guid.NewGuid();
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        serviceOrder.StartDiagnostic(Guid.NewGuid());
+        serviceOrder.AddDiagnosticService(serviceId);
+        serviceOrder.CompleteDiagnostic("Diagnóstico concluído.");
+        await soRepo.AddAsync(serviceOrder);
+
+        var handler = new ConsolidateDiagnosticServicesHandler(soRepo);
+        var command = new ConsolidateDiagnosticServicesCommand(serviceOrder.Id);
+
+        var dto = await handler.HandleAsync(command);
+
+        dto.Services.Should().ContainSingle(s => s.ServiceId == serviceId && s.IsActive);
+        dto.ServiceHistory.Should().ContainSingle(h =>
+            h.ServiceId == serviceId &&
+            h.Action == ServiceOrderServiceAction.Added &&
+            h.Source == ServiceSource.Diagnostic);
+    }
+
+    [Fact]
+    public async Task ConsolidateDiagnosticServices_WithNonExistentServiceOrder_ThrowsEntityNotFoundException()
+    {
+        var soRepo = new FakeServiceOrderRepository();
+        var handler = new ConsolidateDiagnosticServicesHandler(soRepo);
+        var command = new ConsolidateDiagnosticServicesCommand(Guid.NewGuid());
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
+
+    [Fact]
+    public async Task ConsolidateDiagnosticServices_WithNoDiagnostic_ThrowsDiagnosticNotCompletedException()
+    {
+        var soRepo = new FakeServiceOrderRepository();
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        await soRepo.AddAsync(serviceOrder);
+
+        var handler = new ConsolidateDiagnosticServicesHandler(soRepo);
+        var command = new ConsolidateDiagnosticServicesCommand(serviceOrder.Id);
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<DiagnosticNotCompletedException>();
+    }
+
+    [Fact]
+    public async Task ConsolidateDiagnosticServices_WithInProgressDiagnostic_ThrowsDiagnosticNotCompletedException()
+    {
+        var soRepo = new FakeServiceOrderRepository();
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        serviceOrder.StartDiagnostic(Guid.NewGuid());
+        serviceOrder.AddDiagnosticService(Guid.NewGuid());
+        await soRepo.AddAsync(serviceOrder);
+
+        var handler = new ConsolidateDiagnosticServicesHandler(soRepo);
+        var command = new ConsolidateDiagnosticServicesCommand(serviceOrder.Id);
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<DiagnosticNotCompletedException>();
+    }
 }

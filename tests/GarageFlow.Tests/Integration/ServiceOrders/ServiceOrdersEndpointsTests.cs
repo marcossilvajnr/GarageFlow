@@ -782,4 +782,143 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         body.Diagnostic!.MechanicId.Should().Be(mechanicId);
         body.Diagnostic.Status.Should().Be(DiagnosticStatus.InProgress);
     }
+
+    // Task-016: Consolidate diagnostic services integration tests
+
+    private async Task<ServiceOrderResponse> CompleteDiagnostic(Guid serviceOrderId, string description)
+    {
+        var response = await _client.PostAsJsonAsync(
+            $"/service-orders/{serviceOrderId}/diagnostic/complete",
+            new CompleteDiagnosticRequest(description));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions))!;
+    }
+
+    [Fact]
+    public async Task PostConsolidateDiagnosticServices_WithCompletedDiagnostic_Returns200WithConsolidatedServices()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+        var service = await CreateService("SVC-016-001", "Revisão Completa 016-001");
+        var mechanicId = Guid.NewGuid();
+        await StartDiagnostic(serviceOrder.Id, mechanicId);
+        await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
+        await CompleteDiagnostic(serviceOrder.Id, "Motor com desgaste.");
+
+        var response = await _client.PostAsync(
+            $"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        body!.Services.Should().ContainSingle(s => s.ServiceId == service.Id && s.IsActive);
+        body.Services.Single().Source.Should().Be(ServiceSource.Diagnostic);
+        body.Services.Single().AddedByActorId.Should().Be(mechanicId);
+        body.ServiceHistory.Should().ContainSingle(h =>
+            h.ServiceId == service.Id &&
+            h.Action == ServiceOrderServiceAction.Added &&
+            h.Source == ServiceSource.Diagnostic);
+    }
+
+    [Fact]
+    public async Task PostConsolidateDiagnosticServices_WithNonExistentServiceOrder_Returns404()
+    {
+        var response = await _client.PostAsync(
+            $"/service-orders/{Guid.NewGuid()}/diagnostic/consolidate-services", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PostConsolidateDiagnosticServices_WithNoDiagnostic_Returns409()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+
+        var response = await _client.PostAsync(
+            $"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task PostConsolidateDiagnosticServices_WithInProgressDiagnostic_Returns409()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+        var service = await CreateService("SVC-016-002", "Alinhamento 016-002");
+        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
+
+        var response = await _client.PostAsync(
+            $"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task PostConsolidateDiagnosticServices_IsIdempotent_SecondCallDoesNotDuplicate()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+        var service = await CreateService("SVC-016-003", "Balanceamento 016-003");
+        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
+        await CompleteDiagnostic(serviceOrder.Id, "Diagnóstico finalizado.");
+        await _client.PostAsync($"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
+
+        var response = await _client.PostAsync(
+            $"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        body!.Services.Count(s => s.ServiceId == service.Id && s.IsActive).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetServiceOrderById_AfterConsolidation_ReturnsServicesAndHistory()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+        var service = await CreateService("SVC-016-004", "Suspensão 016-004");
+        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
+        await CompleteDiagnostic(serviceOrder.Id, "Suspensão com desgaste.");
+        await _client.PostAsync($"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
+
+        var response = await _client.GetAsync($"/service-orders/{serviceOrder.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        body!.Services.Should().ContainSingle(s => s.ServiceId == service.Id && s.IsActive);
+        body.ServiceHistory.Should().ContainSingle(h =>
+            h.ServiceId == service.Id &&
+            h.Action == ServiceOrderServiceAction.Added &&
+            h.Source == ServiceSource.Diagnostic);
+    }
+
+    [Fact]
+    public async Task GetServiceOrders_AfterConsolidation_ListReflectsConsolidatedServices()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+        var service = await CreateService("SVC-016-005", "Freios 016-005");
+        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
+        await CompleteDiagnostic(serviceOrder.Id, "Freios com desgaste.");
+        await _client.PostAsync($"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
+
+        var response = await _client.GetAsync("/service-orders?page=1&pageSize=100");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<PagedServiceOrderResponse>(JsonOptions);
+        var found = body!.Items.FirstOrDefault(so => so.Id == serviceOrder.Id);
+        found.Should().NotBeNull();
+        found!.Services.Should().ContainSingle(s => s.ServiceId == service.Id && s.IsActive);
+    }
 }
