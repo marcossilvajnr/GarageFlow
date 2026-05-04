@@ -215,4 +215,22 @@ public static class DomainErrorMessages
 
     // ExecutionOrder not found (handlers - context-specific)
     public static string ExecutionOrderNotFound(Guid id) => $"Ordem de Execução '{id}' não encontrada";
+
+    // PurchaseOrder aggregate (context-specific)
+    public const string PurchaseOrderMustHaveAtLeastOneSeparationOrder = "Deve haver pelo menos uma Ordem de Separação";
+    public const string InvalidPurchaseOrderSeparationOrderId = "Deve haver pelo menos uma Ordem de Separação";
+    public const string PurchaseOrderMustHaveAtLeastOneItem = "Ordem de Compra deve ter pelo menos um item";
+    public const string InvalidPurchaseItemId = "Item da ordem de compra inválido";
+    public const string InvalidPurchaseItemType = "Item da ordem de compra inválido";
+    public const string InvalidPurchaseItemName = "Item da ordem de compra inválido";
+    public const string InvalidPurchaseItemQuantity = "Item da ordem de compra inválido";
+    public const string InvalidPurchaseItemUnitPrice = "Item da ordem de compra inválido";
+    public const string PurchaseOrderSupplierRequired = "Fornecedor é obrigatório";
+    public const string PurchaseOrderCannotChangeSupplierAfterStart = "Não é possível alterar fornecedor após início";
+    public const string PurchaseOrderSupplierNotSet = "Fornecedor não foi selecionado";
+    public const string PurchaseOrderNotCreated = "Ordem de Compra não está no status Criada";
+    public const string PurchaseOrderNotStarted = "Ordem de Compra não está Iniciada";
+
+    // PurchaseOrder not found (handlers - context-specific)
+    public static string PurchaseOrderNotFound(Guid id) => $"Ordem de Compra '{id}' não encontrada";
 }

@@ -1,0 +1,13 @@
+using GarageFlow.Domain.Purchasing;
+
+namespace GarageFlow.Application.Purchasing.DTOs;
+
+public sealed record PurchaseOrderDto(
+    Guid Id,
+    IReadOnlyList<Guid> SeparationOrderIds,
+    Guid? SupplierId,
+    PurchaseOrderStatus Status,
+    IReadOnlyList<PurchaseItemDto> Items,
+    DateTime CreatedAt,
+    DateTime? StartedAt,
+    DateTime? CompletedAt);

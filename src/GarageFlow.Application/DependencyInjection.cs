@@ -2,6 +2,7 @@ using GarageFlow.Application.Customers.Handlers;
 using GarageFlow.Application.Employees.Handlers;
 using GarageFlow.Application.Executions.Handlers;
 using GarageFlow.Application.Parts.Handlers;
+using GarageFlow.Application.Purchasing.Handlers;
 using GarageFlow.Application.ServiceOrders.Handlers;
 using GarageFlow.Application.Services.Handlers;
 using GarageFlow.Application.Stock.Handlers;
@@ -92,6 +93,13 @@ public static class DependencyInjection
         services.AddScoped<MarkExecutionOrderReadyHandler>();
         services.AddScoped<StartExecutionOrderHandler>();
         services.AddScoped<CompleteExecutionOrderHandler>();
+
+        services.AddScoped<CreatePurchaseOrderHandler>();
+        services.AddScoped<GetPurchaseOrderByIdHandler>();
+        services.AddScoped<ListPurchaseOrdersHandler>();
+        services.AddScoped<AssignPurchaseOrderSupplierHandler>();
+        services.AddScoped<StartPurchaseOrderHandler>();
+        services.AddScoped<CompletePurchaseOrderHandler>();
 
         return services;
     }

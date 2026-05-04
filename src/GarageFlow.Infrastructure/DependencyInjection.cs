@@ -2,6 +2,7 @@ using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Parts;
+using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Services;
 using GarageFlow.Domain.Stock;
@@ -43,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
         services.AddScoped<ISeparationOrderRepository, SeparationOrderRepository>();
         services.AddScoped<IExecutionOrderRepository, ExecutionOrderRepository>();
+        services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
 
         return services;
     }
