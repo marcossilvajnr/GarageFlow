@@ -184,6 +184,10 @@ public static class PurchaseOrdersEndpoints
             var dto = await handler.HandleAsync(new CompletePurchaseOrderCommand(id), cancellationToken);
             return Results.Ok(MapToResponse(dto));
         }
+        catch (InvalidSeparationOrderStatusTransitionException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
+        }
         catch (InvalidPurchaseOrderStatusTransitionException ex)
         {
             return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });

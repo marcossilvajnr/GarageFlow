@@ -3,8 +3,10 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Purchasing;
+using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Suppliers;
 using GarageFlow.Domain.Purchasing;
+using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.Integration;
 
 namespace GarageFlow.Tests.Integration.Purchasing;
@@ -292,12 +294,28 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
+    private async Task<SeparationOrderResponse> CreateSeparationOrderInWaitingPurchase()
+    {
+        var createReq = new CreateSeparationOrderRequest(
+            Guid.NewGuid(),
+            [new CreateSeparationPartItemRequest(Guid.NewGuid(), "Filtro de óleo", 1)],
+            []);
+        var createResp = await _client.PostAsJsonAsync("/separation-orders", createReq);
+        createResp.EnsureSuccessStatusCode();
+        var separation = (await createResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
+
+        var waitResp = await _client.PostAsync($"/separation-orders/{separation.Id}/wait-purchase", null);
+        waitResp.EnsureSuccessStatusCode();
+        return (await waitResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
+    }
+
     // --- POST /purchase-orders/{id}/complete ---
 
     [Fact]
     public async Task CompletePurchaseOrder_WhenStarted_Returns200()
     {
-        var created = await CreatePurchaseOrder();
+        var separation = await CreateSeparationOrderInWaitingPurchase();
+        var created = await CreatePurchaseOrder(ValidCreateRequest([separation.Id]));
         var supplierId = await CreateSupplier();
 
         await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/assign-supplier",
@@ -313,9 +331,28 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     }
 
     [Fact]
+    public async Task CompletePurchaseOrder_SeparationMovesToWaitingPickup()
+    {
+        var separation = await CreateSeparationOrderInWaitingPurchase();
+        var created = await CreatePurchaseOrder(ValidCreateRequest([separation.Id]));
+        var supplierId = await CreateSupplier();
+
+        await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/assign-supplier",
+            new AssignPurchaseOrderSupplierRequest(supplierId));
+        await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/start", new { });
+        await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/complete", new { });
+
+        var separationResp = await _client.GetAsync($"/separation-orders/{separation.Id}");
+        separationResp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var separationBody = await separationResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
+        separationBody!.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
+    }
+
+    [Fact]
     public async Task CompletePurchaseOrder_WhenCreated_Returns409()
     {
-        var created = await CreatePurchaseOrder();
+        var separation = await CreateSeparationOrderInWaitingPurchase();
+        var created = await CreatePurchaseOrder(ValidCreateRequest([separation.Id]));
 
         var response = await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/complete", new { });
 
