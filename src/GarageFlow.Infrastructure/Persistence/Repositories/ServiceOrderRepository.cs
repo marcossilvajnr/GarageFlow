@@ -6,12 +6,19 @@ namespace GarageFlow.Infrastructure.Persistence.Repositories;
 internal sealed class ServiceOrderRepository(GarageFlowDbContext dbContext) : IServiceOrderRepository
 {
     public async Task<ServiceOrder?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        => await dbContext.ServiceOrders.FindAsync([id], cancellationToken);
+        => await dbContext.ServiceOrders
+            .Include(so => so.Services)
+            .Include(so => so.ServiceHistory)
+            .FirstOrDefaultAsync(so => so.Id == id, cancellationToken);
 
     public async Task<(IReadOnlyList<ServiceOrder> Items, int TotalCount)> ListAsync(
         int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.ServiceOrders.AsNoTracking();
+        var query = dbContext.ServiceOrders
+            .Include(so => so.Services)
+            .Include(so => so.ServiceHistory)
+            .AsNoTracking();
+
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
             .OrderBy(so => so.CreatedAt)

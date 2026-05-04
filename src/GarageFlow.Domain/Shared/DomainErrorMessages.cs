@@ -143,4 +143,13 @@ public static class DomainErrorMessages
 
     // ServiceOrder not found (handlers - context-specific)
     public static string ServiceOrderNotFound(Guid id) => $"Ordem de Serviço '{id}' não encontrada";
+
+    // ServiceOrder service operations (context-specific)
+    public const string InvalidServiceOrderServiceId = "Id do serviço da OS inválido";
+    public const string InvalidServiceOrderActorId = "Id do ator da operação é inválido";
+    public const string ServiceOrderServiceAlreadyActive = "Serviço já está ativo nesta Ordem de Serviço";
+    public const string ServiceOrderServiceRemovalReasonRequired = "Motivo de remoção do serviço é obrigatório";
+    public const string ServiceOrderServiceInactive = "O serviço está inativo e não pode ser adicionado à Ordem de Serviço";
+    public static string ServiceOrderServiceNotFound(Guid serviceId) =>
+        $"Serviço '{serviceId}' não está vinculado ou ativo nesta Ordem de Serviço";
 }

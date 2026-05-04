@@ -34,6 +34,21 @@ public static class ServiceOrdersEndpoints
             .Produces<PagedServiceOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
+        group.MapPost("/{id:guid}/services", AddServiceToServiceOrder)
+            .WithName("AddServiceToServiceOrder")
+            .WithSummary("Adiciona um serviço à Ordem de Serviço (FrontDesk).")
+            .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        group.MapDelete("/{id:guid}/services/{serviceId:guid}", RemoveServiceFromServiceOrder)
+            .WithName("RemoveServiceFromServiceOrder")
+            .WithSummary("Remove um serviço da Ordem de Serviço (FrontDesk).")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -101,6 +116,85 @@ public static class ServiceOrdersEndpoints
         return Results.Ok(response);
     }
 
+    private static async Task<IResult> AddServiceToServiceOrder(
+        Guid id,
+        AddServiceToServiceOrderRequest request,
+        AddServiceToServiceOrderHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new AddServiceToServiceOrderCommand(id, request.ServiceId, request.ActorId);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToResponse(dto));
+        }
+        catch (DuplicateServiceOrderServiceException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
+    private static async Task<IResult> RemoveServiceFromServiceOrder(
+        Guid id,
+        Guid serviceId,
+        [FromBody] RemoveServiceFromServiceOrderRequest request,
+        RemoveServiceFromServiceOrderHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new RemoveServiceFromServiceOrderCommand(id, serviceId, request.ActorId, request.Reason);
+            await handler.HandleAsync(command, cancellationToken);
+            return Results.NoContent();
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
     private static ServiceOrderResponse MapToResponse(ServiceOrderDto dto) =>
-        new(dto.Id, dto.CustomerId, dto.VehicleId, dto.Status, dto.CreatedAt, dto.UpdatedAt);
+        new(
+            dto.Id,
+            dto.CustomerId,
+            dto.VehicleId,
+            dto.Status,
+            dto.CreatedAt,
+            dto.UpdatedAt,
+            dto.Services.Select(MapToServiceResponse).ToList(),
+            dto.ServiceHistory.Select(MapToServiceHistoryResponse).ToList());
+
+    private static ServiceOrderServiceResponse MapToServiceResponse(ServiceOrderServiceItemDto dto) =>
+        new(
+            dto.Id,
+            dto.ServiceId,
+            dto.Source,
+            dto.AddedByActorId,
+            dto.AddedAt,
+            dto.IsActive,
+            dto.RemovedAt,
+            dto.RemovedByActorId,
+            dto.RemovalReason);
+
+    private static ServiceOrderServiceHistoryResponse MapToServiceHistoryResponse(ServiceOrderServiceHistoryDto dto) =>
+        new(
+            dto.Id,
+            dto.ServiceId,
+            dto.Action,
+            dto.Source,
+            dto.ActorId,
+            dto.OccurredAt,
+            dto.Reason);
 }

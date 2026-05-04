@@ -3,6 +3,7 @@ using System;
 using GarageFlow.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GarageFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(GarageFlowDbContext))]
-    partial class GarageFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260504023052_AddServiceOrderServiceComposition")]
+    partial class AddServiceOrderServiceComposition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -735,7 +738,9 @@ namespace GarageFlow.Infrastructure.Persistence.Migrations
                             b1.Property<Guid>("service_order_id")
                                 .HasColumnType("uuid");
 
-                            b1.HasKey("service_order_id", "Id");
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("service_order_id");
 
                             b1.ToTable("service_order_service_history", (string)null);
 
@@ -746,7 +751,7 @@ namespace GarageFlow.Infrastructure.Persistence.Migrations
                     b.OwnsMany("GarageFlow.Domain.ServiceOrders.ServiceOrderServiceItem", "Services", b1 =>
                         {
                             b1.Property<Guid>("Id")
-                                .ValueGeneratedNever()
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid")
                                 .HasColumnName("id");
 
@@ -786,12 +791,10 @@ namespace GarageFlow.Infrastructure.Persistence.Migrations
                             b1.Property<Guid>("service_order_id")
                                 .HasColumnType("uuid");
 
-                            b1.HasKey("service_order_id", "Id");
+                            b1.HasKey("Id");
 
-                            b1.HasIndex("service_order_id", "ServiceId")
-                                .IsUnique()
-                                .HasFilter("\"is_active\" = true")
-                                .HasDatabaseName("ux_service_order_services_active");
+                            b1.HasIndex("service_order_id", "ServiceId", "IsActive")
+                                .HasDatabaseName("ix_service_order_services_active");
 
                             b1.ToTable("service_order_services", (string)null);
 

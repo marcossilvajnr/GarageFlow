@@ -12,5 +12,29 @@ internal static class ServiceOrderMapper
             serviceOrder.VehicleId,
             serviceOrder.Status,
             serviceOrder.CreatedAt,
-            serviceOrder.UpdatedAt);
+            serviceOrder.UpdatedAt,
+            serviceOrder.Services.Select(ToServiceItemDto).ToList(),
+            serviceOrder.ServiceHistory.Select(ToServiceHistoryDto).ToList());
+
+    private static ServiceOrderServiceItemDto ToServiceItemDto(ServiceOrderServiceItem item) =>
+        new(
+            item.Id,
+            item.ServiceId,
+            item.Source,
+            item.AddedByActorId,
+            item.AddedAt,
+            item.IsActive,
+            item.RemovedAt,
+            item.RemovedByActorId,
+            item.RemovalReason);
+
+    private static ServiceOrderServiceHistoryDto ToServiceHistoryDto(ServiceOrderServiceHistory history) =>
+        new(
+            history.Id,
+            history.ServiceId,
+            history.Action,
+            history.Source,
+            history.ActorId,
+            history.OccurredAt,
+            history.Reason);
 }

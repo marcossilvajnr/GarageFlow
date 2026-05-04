@@ -8,4 +8,6 @@ public sealed record ServiceOrderDto(
     Guid VehicleId,
     ServiceOrderStatus Status,
     DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    DateTime? UpdatedAt,
+    IReadOnlyList<ServiceOrderServiceItemDto> Services,
+    IReadOnlyList<ServiceOrderServiceHistoryDto> ServiceHistory);
