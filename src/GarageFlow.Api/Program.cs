@@ -2,6 +2,7 @@ using GarageFlow.Api.Endpoints;
 using GarageFlow.Api.Endpoints.Customers;
 using GarageFlow.Api.Endpoints.Employees;
 using GarageFlow.Api.Endpoints.Parts;
+using GarageFlow.Api.Endpoints.ServiceOrders;
 using GarageFlow.Api.Endpoints.Services;
 using GarageFlow.Api.Endpoints.Suppliers;
 using GarageFlow.Api.Endpoints.Supplies;
@@ -50,6 +51,7 @@ app.MapEmployeeEndpoints();
 app.MapServiceEndpoints();
 app.MapPartEndpoints();
 app.MapSupplyEndpoints();
+app.MapServiceOrderEndpoints();
 
 app.Run();
 

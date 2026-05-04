@@ -135,4 +135,11 @@ public static class DomainErrorMessages
     public const string InvalidServiceSupplyUnit = "Unidade do insumo não é compatível com composição de serviço";
     public static string ServiceSupplyNotFound(Guid serviceId, Guid supplyId) =>
         $"Insumo '{supplyId}' não vinculado ao serviço '{serviceId}'";
+
+    // ServiceOrder aggregate (context-specific)
+    public const string InvalidServiceOrderCustomerId = "Id do cliente da OS inválido";
+    public const string InvalidServiceOrderVehicleId = "Id do veículo da OS inválido";
+
+    // ServiceOrder not found (handlers - context-specific)
+    public static string ServiceOrderNotFound(Guid id) => $"Ordem de Serviço '{id}' não encontrada";
 }
