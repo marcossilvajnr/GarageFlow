@@ -1,11 +1,13 @@
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Shared;
+using GarageFlow.Domain.Supplies;
 
 namespace GarageFlow.Domain.Services;
 
 public sealed class Service
 {
     private List<ServicePartItem> _parts = [];
+    private List<ServiceSupplyItem> _supplies = [];
 
     public Guid Id { get; private set; }
     public string Code { get; private set; } = string.Empty;
@@ -17,6 +19,7 @@ public sealed class Service
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
     public IReadOnlyList<ServicePartItem> Parts => _parts.AsReadOnly();
+    public IReadOnlyList<ServiceSupplyItem> Supplies => _supplies.AsReadOnly();
 
     private Service() { }
 
@@ -113,6 +116,28 @@ public sealed class Service
             throw new EntityNotFoundException(DomainErrorMessages.ServicePartNotFound(Id, partId));
 
         _parts.Remove(item);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AddSupply(Guid supplyId, string supplyName, decimal quantity, SupplyUnit unit)
+    {
+        if (quantity <= 0)
+            throw new DomainException(DomainErrorMessages.InvalidServiceSupplyQuantity);
+
+        if (_supplies.Any(s => s.SupplyId == supplyId))
+            throw new DuplicateServiceSupplyException(DomainErrorMessages.DuplicateServiceSupply);
+
+        _supplies.Add(ServiceSupplyItem.Create(supplyId, supplyName, quantity, unit));
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RemoveSupply(Guid supplyId)
+    {
+        var item = _supplies.FirstOrDefault(s => s.SupplyId == supplyId);
+        if (item is null)
+            throw new EntityNotFoundException(DomainErrorMessages.ServiceSupplyNotFound(Id, supplyId));
+
+        _supplies.Remove(item);
         UpdatedAt = DateTime.UtcNow;
     }
 }

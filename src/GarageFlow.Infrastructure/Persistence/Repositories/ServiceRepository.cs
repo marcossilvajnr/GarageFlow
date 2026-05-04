@@ -11,12 +11,15 @@ internal sealed class ServiceRepository(GarageFlowDbContext dbContext) : IServic
     public async Task<Service?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => await dbContext.Services
             .Include(s => s.Parts)
+            .Include(s => s.Supplies)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
     public async Task<(IReadOnlyList<Service> Items, int TotalCount)> ListAsync(
         int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.Services.AsNoTracking().Include(s => s.Parts);
+        var query = dbContext.Services.AsNoTracking()
+            .Include(s => s.Parts)
+            .Include(s => s.Supplies);
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
             .OrderBy(s => s.CreatedAt)
@@ -53,6 +56,9 @@ internal sealed class ServiceRepository(GarageFlowDbContext dbContext) : IServic
         catch (DbUpdateException ex)
             when (ex.InnerException is PostgresException { SqlState: "23505" } pgEx)
         {
+            if (pgEx.ConstraintName?.Contains("service_supplies") == true)
+                throw new DuplicateServiceSupplyException(DomainErrorMessages.DuplicateServiceSupply);
+
             if (pgEx.ConstraintName?.Contains("service_parts") == true)
                 throw new DuplicateServicePartException(DomainErrorMessages.DuplicateServicePart);
 

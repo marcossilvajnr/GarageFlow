@@ -15,5 +15,6 @@ public static class ServiceMapper
         service.IsActive,
         service.CreatedAt,
         service.UpdatedAt,
-        service.Parts.Select(p => new ServicePartItemDto(p.PartId, p.PartName, p.Quantity)).ToList());
+        service.Parts.Select(p => new ServicePartItemDto(p.PartId, p.PartName, p.Quantity)).ToList(),
+        service.Supplies.Select(s => new ServiceSupplyItemDto(s.SupplyId, s.SupplyName, s.Quantity, s.Unit)).ToList());
 }

@@ -10,4 +10,5 @@ public sealed record ServiceResponse(
     bool IsActive,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
-    IReadOnlyList<ServicePartResponse> Parts);
+    IReadOnlyList<ServicePartResponse> Parts,
+    IReadOnlyList<ServiceSupplyResponse> Supplies);

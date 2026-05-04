@@ -63,6 +63,20 @@ public static class ServicesEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPost("/{id:guid}/supplies", AddServiceSupply)
+            .WithName("AddServiceSupply")
+            .WithSummary("Adiciona insumo ao serviço.")
+            .Produces<ServiceResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        group.MapDelete("/{id:guid}/supplies/{supplyId:guid}", RemoveServiceSupply)
+            .WithName("RemoveServiceSupply")
+            .WithSummary("Remove insumo do serviço.")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+
         return endpoints;
     }
 
@@ -223,6 +237,49 @@ public static class ServicesEndpoints
         }
     }
 
+    private static async Task<IResult> AddServiceSupply(
+        Guid id,
+        AddServiceSupplyRequest request,
+        AddServiceSupplyHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new AddServiceSupplyCommand(id, request.SupplyId, request.Quantity);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToResponse(dto));
+        }
+        catch (DuplicateServiceSupplyException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException)
+        {
+            return Results.NotFound();
+        }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
+    private static async Task<IResult> RemoveServiceSupply(
+        Guid id,
+        Guid supplyId,
+        RemoveServiceSupplyHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await handler.HandleAsync(new RemoveServiceSupplyCommand(id, supplyId), cancellationToken);
+            return Results.NoContent();
+        }
+        catch (EntityNotFoundException)
+        {
+            return Results.NotFound();
+        }
+    }
+
     private static ServiceResponse MapToResponse(Application.Services.DTOs.ServiceDto dto) => new(
         dto.Id,
         dto.Code,
@@ -233,5 +290,6 @@ public static class ServicesEndpoints
         dto.IsActive,
         dto.CreatedAt,
         dto.UpdatedAt,
-        dto.Parts.Select(p => new ServicePartResponse(p.PartId, p.PartName, p.Quantity)).ToList());
+        dto.Parts.Select(p => new ServicePartResponse(p.PartId, p.PartName, p.Quantity)).ToList(),
+        dto.Supplies.Select(s => new ServiceSupplyResponse(s.SupplyId, s.SupplyName, s.Quantity, s.Unit)).ToList());
 }

@@ -1,4 +1,5 @@
 using GarageFlow.Domain.Services;
+using GarageFlow.Domain.Supplies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -43,5 +44,24 @@ internal sealed class ServiceConfiguration : IEntityTypeConfiguration<Service>
 
         builder.Navigation(s => s.Parts)
             .HasField("_parts");
+
+        builder.OwnsMany(s => s.Supplies, suppliesBuilder =>
+        {
+            suppliesBuilder.ToTable("service_supplies");
+            suppliesBuilder.WithOwner().HasForeignKey("service_id");
+
+            suppliesBuilder.HasKey("service_id", nameof(ServiceSupplyItem.SupplyId));
+            suppliesBuilder.Property(s => s.SupplyId).HasColumnName("supply_id").IsRequired();
+            suppliesBuilder.Property(s => s.SupplyName).HasColumnName("supply_name").HasMaxLength(200).IsRequired();
+            suppliesBuilder.Property(s => s.Quantity).HasColumnName("quantity").HasColumnType("numeric(18,4)").IsRequired();
+            suppliesBuilder.Property(s => s.Unit).HasColumnName("unit").HasConversion<int>().IsRequired();
+
+            suppliesBuilder.HasIndex("service_id", nameof(ServiceSupplyItem.SupplyId))
+                .IsUnique()
+                .HasDatabaseName("ix_service_supplies_service_id_supply_id");
+        });
+
+        builder.Navigation(s => s.Supplies)
+            .HasField("_supplies");
     }
 }

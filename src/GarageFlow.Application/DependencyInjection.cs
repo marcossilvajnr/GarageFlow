@@ -44,6 +44,8 @@ public static class DependencyInjection
         services.AddScoped<ListServicesHandler>();
         services.AddScoped<AddServicePartHandler>();
         services.AddScoped<RemoveServicePartHandler>();
+        services.AddScoped<AddServiceSupplyHandler>();
+        services.AddScoped<RemoveServiceSupplyHandler>();
 
         services.AddScoped<CreatePartHandler>();
         services.AddScoped<UpdatePartHandler>();

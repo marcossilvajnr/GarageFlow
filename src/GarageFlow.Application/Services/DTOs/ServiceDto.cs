@@ -10,4 +10,5 @@ public sealed record ServiceDto(
     bool IsActive,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
-    IReadOnlyList<ServicePartItemDto> Parts);
+    IReadOnlyList<ServicePartItemDto> Parts,
+    IReadOnlyList<ServiceSupplyItemDto> Supplies);

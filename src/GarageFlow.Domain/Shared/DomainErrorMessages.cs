@@ -128,4 +128,11 @@ public static class DomainErrorMessages
 
     // Supply not found (handlers - context-specific)
     public static string SupplyNotFound(Guid id) => $"Insumo '{id}' não encontrado";
+
+    // Service composition - supplies (context-specific)
+    public const string InvalidServiceSupplyQuantity = "Quantidade do insumo deve ser maior que zero";
+    public const string DuplicateServiceSupply = "Insumo já vinculado ao serviço";
+    public const string InvalidServiceSupplyUnit = "Unidade do insumo não é compatível com composição de serviço";
+    public static string ServiceSupplyNotFound(Guid serviceId, Guid supplyId) =>
+        $"Insumo '{supplyId}' não vinculado ao serviço '{serviceId}'";
 }
