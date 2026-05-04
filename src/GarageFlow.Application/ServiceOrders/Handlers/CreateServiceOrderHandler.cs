@@ -29,6 +29,9 @@ public sealed class CreateServiceOrderHandler(
         if (vehicle is null)
             throw new EntityNotFoundException(DomainErrorMessages.VehicleNotFound(command.VehicleId));
 
+        if (vehicle.CustomerId != command.CustomerId)
+            throw new DomainException(DomainErrorMessages.ServiceOrderVehicleCustomerMismatch);
+
         var serviceOrder = ServiceOrder.Create(command.CustomerId, command.VehicleId);
 
         await serviceOrderRepository.AddAsync(serviceOrder, cancellationToken);

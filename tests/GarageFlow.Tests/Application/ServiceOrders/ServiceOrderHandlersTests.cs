@@ -113,6 +113,32 @@ public sealed class ServiceOrderHandlersTests
         await act.Should().ThrowAsync<EntityNotFoundException>();
     }
 
+    [Fact]
+    public async Task CreateServiceOrder_WithVehicleFromAnotherCustomer_ThrowsDomainException()
+    {
+        var customer1 = ValidCustomer();
+        var customer2 = Customer.Create(
+            "Maria Souza", CustomerDocumentType.Cpf, "111.444.777-35",
+            "maria@email.com", "11911112222", ValidAddress());
+        var vehicleFromCustomer1 = ValidVehicle(customer1.Id);
+
+        var customerRepo = new FakeCustomerRepository();
+        var vehicleRepo = new FakeVehicleRepository();
+        var serviceOrderRepo = new FakeServiceOrderRepository();
+
+        await customerRepo.AddAsync(customer1);
+        await customerRepo.AddAsync(customer2);
+        await vehicleRepo.AddAsync(vehicleFromCustomer1);
+
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo);
+        var command = new CreateServiceOrderCommand(customer2.Id, vehicleFromCustomer1.Id);
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<DomainException>()
+            .WithMessage("Veículo não pertence ao cliente informado para a OS");
+    }
+
     // GetById handler tests
 
     [Fact]

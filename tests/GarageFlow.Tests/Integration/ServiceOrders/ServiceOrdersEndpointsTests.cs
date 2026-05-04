@@ -105,6 +105,19 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     }
 
     [Fact]
+    public async Task PostServiceOrder_WithVehicleFromAnotherCustomer_Returns400()
+    {
+        var customer1 = await CreateCustomer("111.222.333-96");
+        var customer2 = await CreateCustomer("555.666.777-20");
+        var vehicle = await CreateVehicle(customer1.Id, "JKL-3456", "98765432108");
+
+        var request = new CreateServiceOrderRequest(customer2.Id, vehicle.Id);
+        var response = await _client.PostAsJsonAsync("/service-orders", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task GetServiceOrderById_Existing_Returns200()
     {
         var customer = await CreateCustomer("987.654.321-00");

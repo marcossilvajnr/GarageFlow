@@ -139,6 +139,7 @@ public static class DomainErrorMessages
     // ServiceOrder aggregate (context-specific)
     public const string InvalidServiceOrderCustomerId = "Id do cliente da OS inválido";
     public const string InvalidServiceOrderVehicleId = "Id do veículo da OS inválido";
+    public const string ServiceOrderVehicleCustomerMismatch = "Veículo não pertence ao cliente informado para a OS";
 
     // ServiceOrder not found (handlers - context-specific)
     public static string ServiceOrderNotFound(Guid id) => $"Ordem de Serviço '{id}' não encontrada";
