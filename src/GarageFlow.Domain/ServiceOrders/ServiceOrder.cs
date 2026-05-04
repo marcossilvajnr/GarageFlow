@@ -12,6 +12,7 @@ public sealed class ServiceOrder
     public Guid CustomerId { get; private set; }
     public Guid VehicleId { get; private set; }
     public ServiceOrderStatus Status { get; private set; }
+    public Diagnostic? Diagnostic { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
     public IReadOnlyList<ServiceOrderServiceItem> Services => _services.AsReadOnly();
@@ -84,5 +85,45 @@ public sealed class ServiceOrder
         _serviceHistory.Add(historyEntry);
 
         UpdatedAt = occurredAt;
+    }
+
+    public void StartDiagnostic(Guid mechanicId)
+    {
+        if (mechanicId == Guid.Empty)
+            throw new DomainException(DomainErrorMessages.InvalidDiagnosticMechanicId);
+
+        if (Status != ServiceOrderStatus.Received)
+            throw new DiagnosticAlreadyStartedException(DomainErrorMessages.DiagnosticAlreadyStarted);
+
+        Diagnostic = Diagnostic.Start(Id, mechanicId);
+        Status = ServiceOrderStatus.InDiagnostic;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AddDiagnosticService(Guid serviceId)
+    {
+        if (Diagnostic is null)
+            throw new DiagnosticNotInProgressException(DomainErrorMessages.DiagnosticNotStarted);
+
+        Diagnostic.AddService(serviceId);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RemoveDiagnosticService(Guid serviceId)
+    {
+        if (Diagnostic is null)
+            throw new DiagnosticNotInProgressException(DomainErrorMessages.DiagnosticNotStarted);
+
+        Diagnostic.RemoveService(serviceId);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void CompleteDiagnostic(string description)
+    {
+        if (Diagnostic is null)
+            throw new DiagnosticNotInProgressException(DomainErrorMessages.DiagnosticNotStarted);
+
+        Diagnostic.Complete(description);
+        UpdatedAt = DateTime.UtcNow;
     }
 }

@@ -1,11 +1,22 @@
 using GarageFlow.Domain.ServiceOrders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.Json;
 
 namespace GarageFlow.Infrastructure.Persistence.Configurations.ServiceOrders;
 
 internal sealed class ServiceOrderConfiguration : IEntityTypeConfiguration<ServiceOrder>
 {
+    private static readonly ValueConverter<List<Guid>, string> GuidListConverter = new(
+        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+        v => JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null) ?? new List<Guid>());
+    private static readonly ValueComparer<List<Guid>> GuidListComparer = new(
+        (a, b) => a!.SequenceEqual(b!),
+        list => list.Aggregate(0, (current, value) => HashCode.Combine(current, value.GetHashCode())),
+        list => list.ToList());
+
     public void Configure(EntityTypeBuilder<ServiceOrder> builder)
     {
         builder.ToTable("service_orders");
@@ -22,6 +33,35 @@ internal sealed class ServiceOrderConfiguration : IEntityTypeConfiguration<Servi
         builder.HasIndex(so => so.CustomerId).HasDatabaseName("ix_service_orders_customer_id");
         builder.HasIndex(so => so.VehicleId).HasDatabaseName("ix_service_orders_vehicle_id");
         builder.HasIndex(so => so.Status).HasDatabaseName("ix_service_orders_status");
+
+        builder.OwnsOne(so => so.Diagnostic, diagBuilder =>
+        {
+            diagBuilder.ToTable("service_order_diagnostics");
+            diagBuilder.WithOwner().HasForeignKey(d => d.ServiceOrderId);
+
+            diagBuilder.HasKey(d => d.ServiceOrderId);
+            diagBuilder.Property(d => d.Id).HasColumnName("id");
+            diagBuilder.Property(d => d.ServiceOrderId).HasColumnName("service_order_id").IsRequired();
+            diagBuilder.HasIndex(d => d.Id).IsUnique().HasDatabaseName("ix_service_order_diagnostics_id");
+            diagBuilder.Property(d => d.MechanicId).HasColumnName("mechanic_id").IsRequired();
+            diagBuilder.Property(d => d.Description).HasColumnName("description").HasMaxLength(2000);
+            diagBuilder.Property(d => d.StartedAt).HasColumnName("started_at").IsRequired();
+            diagBuilder.Property(d => d.CompletedAt).HasColumnName("completed_at");
+            diagBuilder.Property(d => d.Status)
+                .HasColumnName("status")
+                .HasConversion<int>()
+                .IsRequired();
+
+            diagBuilder.Property(d => d.SelectedServiceIds)
+                .HasColumnName("selected_service_ids")
+                .HasConversion(GuidListConverter)
+                .Metadata.SetValueComparer(GuidListComparer);
+            diagBuilder.Property(d => d.SelectedServiceIds)
+                .IsRequired()
+                .HasDefaultValue(new List<Guid>());
+        });
+
+        builder.Navigation(so => so.Diagnostic).AutoInclude();
 
         builder.OwnsMany(so => so.Services, b =>
         {

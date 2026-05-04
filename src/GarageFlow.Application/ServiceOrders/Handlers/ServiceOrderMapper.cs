@@ -11,10 +11,21 @@ internal static class ServiceOrderMapper
             serviceOrder.CustomerId,
             serviceOrder.VehicleId,
             serviceOrder.Status,
+            serviceOrder.Diagnostic is not null ? ToDiagnosticDto(serviceOrder.Diagnostic) : null,
             serviceOrder.CreatedAt,
             serviceOrder.UpdatedAt,
             serviceOrder.Services.Select(ToServiceItemDto).ToList(),
             serviceOrder.ServiceHistory.Select(ToServiceHistoryDto).ToList());
+
+    private static DiagnosticDto ToDiagnosticDto(Diagnostic diagnostic) =>
+        new(
+            diagnostic.Id,
+            diagnostic.MechanicId,
+            diagnostic.Description,
+            diagnostic.SelectedServices,
+            diagnostic.StartedAt,
+            diagnostic.CompletedAt,
+            diagnostic.Status);
 
     private static ServiceOrderServiceItemDto ToServiceItemDto(ServiceOrderServiceItem item) =>
         new(

@@ -49,6 +49,37 @@ public static class ServiceOrdersEndpoints
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
+        group.MapPost("/{id:guid}/diagnostic/start", StartDiagnostic)
+            .WithName("StartDiagnostic")
+            .WithSummary("Inicia o diagnóstico da Ordem de Serviço.")
+            .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        group.MapPost("/{id:guid}/diagnostic/services", AddDiagnosticService)
+            .WithName("AddDiagnosticService")
+            .WithSummary("Adiciona um serviço ao diagnóstico da Ordem de Serviço.")
+            .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        group.MapDelete("/{id:guid}/diagnostic/services/{serviceId:guid}", RemoveDiagnosticService)
+            .WithName("RemoveDiagnosticService")
+            .WithSummary("Remove um serviço do diagnóstico da Ordem de Serviço.")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
+        group.MapPost("/{id:guid}/diagnostic/complete", CompleteDiagnostic)
+            .WithName("CompleteDiagnostic")
+            .WithSummary("Conclui o diagnóstico da Ordem de Serviço.")
+            .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
         return endpoints;
     }
 
@@ -165,16 +196,139 @@ public static class ServiceOrdersEndpoints
         }
     }
 
+    private static async Task<IResult> StartDiagnostic(
+        Guid id,
+        StartDiagnosticRequest request,
+        StartDiagnosticHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new StartDiagnosticCommand(id, request.MechanicId);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToResponse(dto));
+        }
+        catch (DiagnosticAlreadyStartedException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
+    private static async Task<IResult> AddDiagnosticService(
+        Guid id,
+        AddDiagnosticServiceRequest request,
+        AddDiagnosticServiceHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new AddDiagnosticServiceCommand(id, request.ServiceId);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToResponse(dto));
+        }
+        catch (DiagnosticNotInProgressException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (DuplicateDiagnosticServiceException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
+    private static async Task<IResult> RemoveDiagnosticService(
+        Guid id,
+        Guid serviceId,
+        RemoveDiagnosticServiceHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new RemoveDiagnosticServiceCommand(id, serviceId);
+            await handler.HandleAsync(command, cancellationToken);
+            return Results.NoContent();
+        }
+        catch (DiagnosticNotInProgressException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (DiagnosticLastServiceException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+    }
+
+    private static async Task<IResult> CompleteDiagnostic(
+        Guid id,
+        CompleteDiagnosticRequest request,
+        CompleteDiagnosticHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new CompleteDiagnosticCommand(id, request.Description);
+            var dto = await handler.HandleAsync(command, cancellationToken);
+            return Results.Ok(MapToResponse(dto));
+        }
+        catch (DiagnosticNotInProgressException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (DiagnosticNoServicesException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
     private static ServiceOrderResponse MapToResponse(ServiceOrderDto dto) =>
         new(
             dto.Id,
             dto.CustomerId,
             dto.VehicleId,
             dto.Status,
+            dto.Diagnostic is not null ? MapToDiagnosticResponse(dto.Diagnostic) : null,
             dto.CreatedAt,
             dto.UpdatedAt,
             dto.Services.Select(MapToServiceResponse).ToList(),
             dto.ServiceHistory.Select(MapToServiceHistoryResponse).ToList());
+
+    private static DiagnosticResponse MapToDiagnosticResponse(DiagnosticDto dto) =>
+        new(
+            dto.Id,
+            dto.MechanicId,
+            dto.Description,
+            dto.SelectedServices,
+            dto.StartedAt,
+            dto.CompletedAt,
+            dto.Status);
 
     private static ServiceOrderServiceResponse MapToServiceResponse(ServiceOrderServiceItemDto dto) =>
         new(

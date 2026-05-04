@@ -65,6 +65,10 @@ public static class DependencyInjection
         services.AddScoped<ListServiceOrdersHandler>();
         services.AddScoped<AddServiceToServiceOrderHandler>();
         services.AddScoped<RemoveServiceFromServiceOrderHandler>();
+        services.AddScoped<StartDiagnosticHandler>();
+        services.AddScoped<AddDiagnosticServiceHandler>();
+        services.AddScoped<RemoveDiagnosticServiceHandler>();
+        services.AddScoped<CompleteDiagnosticHandler>();
 
         return services;
     }

@@ -152,4 +152,18 @@ public static class DomainErrorMessages
     public const string ServiceOrderServiceInactive = "O serviço está inativo e não pode ser adicionado à Ordem de Serviço";
     public static string ServiceOrderServiceNotFound(Guid serviceId) =>
         $"Serviço '{serviceId}' não está vinculado ou ativo nesta Ordem de Serviço";
+
+    // ServiceOrder identity (shared by diagnostic)
+    public const string InvalidServiceOrderId = "Id da Ordem de Serviço inválido";
+
+    // Diagnostic operations (context-specific)
+    public const string InvalidDiagnosticMechanicId = "Id do mecânico do diagnóstico é inválido";
+    public const string DiagnosticAlreadyStarted = "O diagnóstico desta Ordem de Serviço já foi iniciado";
+    public const string DiagnosticNotStarted = "O diagnóstico desta Ordem de Serviço não foi iniciado";
+    public const string DiagnosticAlreadyCompleted = "O diagnóstico já foi concluído";
+    public const string DiagnosticDescriptionRequired = "Descrição do diagnóstico é obrigatória";
+    public const string DiagnosticMustHaveAtLeastOneService = "O diagnóstico deve ter pelo menos um serviço";
+    public const string DiagnosticServiceAlreadyAdded = "Serviço já adicionado ao diagnóstico";
+    public static string DiagnosticServiceNotFound(Guid serviceId) =>
+        $"Serviço '{serviceId}' não encontrado no diagnóstico";
 }
