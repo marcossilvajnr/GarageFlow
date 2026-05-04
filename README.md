@@ -64,3 +64,18 @@ dotnet run --project src/GarageFlow.Api/GarageFlow.Api.csproj
 dotnet build
 dotnet test
 ```
+
+## Pipeline Manual de Qualidade e Segurança
+Workflow:
+- `.github/workflows/manual-quality-gate.yml`
+
+Execução:
+1. GitHub -> `Actions` -> `Manual Quality Gate`
+2. `Run workflow`
+
+Evidências geradas:
+- dashboard executivo visual no `Summary` do workflow;
+- relatório visual de testes no run do GitHub Actions;
+- cobertura de testes (`coverage-summary.md` + `coverage-html.tar.gz`);
+- vulnerabilidades de dependências (`security-report.json` + `security-report.md`);
+- contagem de testes por tipo (`test-breakdown.json` + `test-breakdown.md`).

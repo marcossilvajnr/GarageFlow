@@ -1,0 +1,120 @@
+name: Manual Quality Gate
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: manual-quality-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality_and_reports:
+    name: Quality and Security Reports
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore GarageFlow.slnx
+
+      - name: Build
+        run: dotnet build GarageFlow.slnx --configuration Release --no-restore
+
+      - name: Test with coverage
+        run: >-
+          dotnet test GarageFlow.slnx
+          --configuration Release
+          --no-build
+          --collect:"XPlat Code Coverage"
+          --logger "trx;LogFileName=test-results.trx"
+          --results-directory TestResults
+
+      - name: Publish test report (visual)
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test Results
+          path: "TestResults/**/*.trx"
+          reporter: dotnet-trx
+
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Generate coverage report
+        run: ./.github/scripts/generate-coverage-summary.sh
+
+      - name: Generate security report
+        run: ./.github/scripts/generate-security-summary.sh
+
+      - name: Emit security warnings
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("artifacts/security/security-report.json").read_text(encoding="utf-8") or "{}")
+          emitted = 0
+          for project in data.get("projects", []):
+              project_name = project.get("path", "unknown")
+              for fw in project.get("frameworks", []):
+                  packages = fw.get("topLevelPackages", []) + fw.get("transitivePackages", [])
+                  for pkg in packages:
+                      pkg_name = pkg.get("name", "unknown")
+                      pkg_ver = pkg.get("resolvedVersion", "unknown")
+                      for vuln in pkg.get("vulnerabilities", []):
+                          sev = str(vuln.get("severity", "")).lower()
+                          if sev in {"high", "critical"}:
+                              advisory = vuln.get("advisoryurl", "n/a")
+                              print(f"::warning title=Security {sev.upper()}::{project_name} | {pkg_name} {pkg_ver} | {advisory}")
+                              emitted += 1
+                              if emitted >= 20:
+                                  break
+                      if emitted >= 20:
+                          break
+                  if emitted >= 20:
+                      break
+              if emitted >= 20:
+                  break
+          PY
+
+      - name: Generate test breakdown report
+        run: ./.github/scripts/generate-test-breakdown.sh
+
+      - name: Generate executive dashboard
+        run: ./.github/scripts/generate-executive-summary.sh
+
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-reports
+          path: |
+            artifacts/executive/executive-summary.md
+            artifacts/coverage/coverage-summary.md
+            artifacts/coverage/coverage-html.tar.gz
+            artifacts/security/security-report.json
+            artifacts/security/security-report.md
+            artifacts/test-breakdown/test-breakdown.json
+            artifacts/test-breakdown/test-breakdown.md
+            TestResults/**/*.trx
+
+      - name: Publish job summary
+        run: |
+          echo "# Manual Quality Gate" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/executive/executive-summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/coverage/coverage-summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/security/security-report.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/test-breakdown/test-breakdown.md >> "$GITHUB_STEP_SUMMARY"
