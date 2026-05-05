@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Executions;
+using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Stock;
@@ -29,14 +30,28 @@ public sealed class SeparationExecutionIntegrationEndpointsTests(GarageFlowWebAp
         return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
     }
 
+    private async Task<Guid> CreatePart()
+    {
+        var request = new CreatePartRequest("Filtro de óleo", $"P-{Guid.NewGuid():N}"[..10], $"SKU-{Guid.NewGuid():N}"[..12], "UN", 50m);
+        var response = await _client.PostAsJsonAsync("/parts", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<PartResponse>(JsonOptions);
+        return body!.Id;
+    }
+
     private async Task<SeparationOrderResponse> CreateSeparatedSeparationOrder(Guid executionOrderId)
     {
+        var partId = await CreatePart();
+        var request = new CreateSeparationOrderRequest(
+            executionOrderId,
+            [new CreateSeparationPartItemRequest(partId, "Filtro de óleo", 1)],
+            []);
+
+        await SeedStockForRequest(request);
+
         var createResponse = await _client.PostAsJsonAsync(
             "/separation-orders",
-            new CreateSeparationOrderRequest(
-                executionOrderId,
-                [new CreateSeparationPartItemRequest(Guid.NewGuid(), "Filtro de óleo", 1)],
-                []));
+            request);
         createResponse.EnsureSuccessStatusCode();
         var separation = (await createResponse.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
 
@@ -51,6 +66,25 @@ public sealed class SeparationExecutionIntegrationEndpointsTests(GarageFlowWebAp
         separated.Status.Should().Be(SeparationOrderStatus.Separated);
 
         return separated;
+    }
+
+    private async Task SeedStockForRequest(CreateSeparationOrderRequest request, decimal initialQuantity = 100m)
+    {
+        foreach (var part in request.Parts ?? [])
+        {
+            var response = await _client.PostAsJsonAsync(
+                "/stock/entries",
+                new CreateStockEntryRequest(part.PartId, StockItemType.Part, initialQuantity, 0m, "Seed integração separação", null));
+            response.EnsureSuccessStatusCode();
+        }
+
+        foreach (var supply in request.Supplies ?? [])
+        {
+            var response = await _client.PostAsJsonAsync(
+                "/stock/entries",
+                new CreateStockEntryRequest(supply.SupplyId, StockItemType.Supply, initialQuantity, 0m, "Seed integração separação", null));
+            response.EnsureSuccessStatusCode();
+        }
     }
 
     [Fact]

@@ -150,6 +150,10 @@ public static class SeparationOrdersEndpoints
             var dto = await handler.HandleAsync(new ReserveSeparationOrderCommand(id), cancellationToken);
             return Results.Ok(MapToResponse(dto));
         }
+        catch (StockQuantityConflictException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Estoque insuficiente", Detail = ex.Message, Status = 409 });
+        }
         catch (InvalidSeparationOrderStatusTransitionException ex)
         {
             return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
@@ -189,6 +193,10 @@ public static class SeparationOrdersEndpoints
         {
             var dto = await handler.HandleAsync(new ResumeSeparationOrderAfterPurchaseCommand(id), cancellationToken);
             return Results.Ok(MapToResponse(dto));
+        }
+        catch (StockQuantityConflictException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Estoque insuficiente", Detail = ex.Message, Status = 409 });
         }
         catch (InvalidSeparationOrderStatusTransitionException ex)
         {

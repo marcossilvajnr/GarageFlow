@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Domain.Stock;
@@ -20,11 +21,23 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         PropertyNameCaseInsensitive = true
     };
 
-    private static CreateSeparationOrderRequest ValidCreateRequest(Guid? executionOrderId = null) =>
-        new(
+    private async Task<Guid> CreatePart()
+    {
+        var request = new CreatePartRequest("Filtro de óleo", $"P-{Guid.NewGuid():N}"[..10], $"SKU-{Guid.NewGuid():N}"[..12], "UN", 50m);
+        var response = await _client.PostAsJsonAsync("/parts", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<PartResponse>(JsonOptions);
+        return body!.Id;
+    }
+
+    private async Task<CreateSeparationOrderRequest> ValidCreateRequestAsync(Guid? executionOrderId = null)
+    {
+        var partId = await CreatePart();
+        return new CreateSeparationOrderRequest(
             executionOrderId ?? Guid.NewGuid(),
-            [new CreateSeparationPartItemRequest(Guid.NewGuid(), "Filtro de óleo", 2)],
+            [new CreateSeparationPartItemRequest(partId, "Filtro de óleo", 2)],
             []);
+    }
 
     private async Task<Guid> CreateExecutionOrder()
     {
@@ -35,9 +48,31 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         return body!.Id;
     }
 
+    private async Task SeedStockForRequest(
+        CreateSeparationOrderRequest request,
+        decimal initialQuantity = 100m)
+    {
+        foreach (var part in request.Parts ?? [])
+        {
+            var response = await _client.PostAsJsonAsync(
+                "/stock/entries",
+                new CreateStockEntryRequest(part.PartId, StockItemType.Part, initialQuantity, 0m, "Seed integração separação", null));
+            response.EnsureSuccessStatusCode();
+        }
+
+        foreach (var supply in request.Supplies ?? [])
+        {
+            var response = await _client.PostAsJsonAsync(
+                "/stock/entries",
+                new CreateStockEntryRequest(supply.SupplyId, StockItemType.Supply, initialQuantity, 0m, "Seed integração separação", null));
+            response.EnsureSuccessStatusCode();
+        }
+    }
+
     private async Task<SeparationOrderResponse> CreateSeparationOrder(CreateSeparationOrderRequest? request = null)
     {
-        var req = request ?? ValidCreateRequest();
+        var req = request ?? await ValidCreateRequestAsync();
+        await SeedStockForRequest(req);
         var response = await _client.PostAsJsonAsync("/separation-orders", req);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
@@ -48,7 +83,8 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     [Fact]
     public async Task CreateSeparationOrder_WithValidData_Returns201()
     {
-        var response = await _client.PostAsJsonAsync("/separation-orders", ValidCreateRequest());
+        var request = await ValidCreateRequestAsync();
+        var response = await _client.PostAsJsonAsync("/separation-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
@@ -61,7 +97,8 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     [Fact]
     public async Task CreateSeparationOrder_WithEmptyExecutionOrderId_Returns400()
     {
-        var request = ValidCreateRequest(Guid.Empty);
+        var validRequest = await ValidCreateRequestAsync();
+        var request = validRequest with { ExecutionOrderId = Guid.Empty };
         var response = await _client.PostAsJsonAsync("/separation-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -278,7 +315,8 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     public async Task ConfirmMechanicReceipt_WhenSeparated_Returns200WithCompleted()
     {
         var executionOrderId = await CreateExecutionOrder();
-        var created = await CreateSeparationOrder(ValidCreateRequest(executionOrderId));
+        var request = await ValidCreateRequestAsync(executionOrderId);
+        var created = await CreateSeparationOrder(request);
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
         await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
             new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
