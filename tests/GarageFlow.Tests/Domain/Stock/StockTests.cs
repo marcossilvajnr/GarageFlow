@@ -53,14 +53,16 @@ public sealed class StockTests
     }
 
     [Fact]
-    public void Release_WithSupply_ShouldThrowDomainException()
+    public void Release_WithSupply_ShouldReleaseReservedQuantity()
     {
         var stock = global::GarageFlow.Domain.Stock.Stock.Create(Guid.NewGuid(), StockItemType.Supply, 10m, 0m);
         stock.Reserve(2m);
 
-        var act = () => stock.Release(1m);
+        stock.Release(1m);
 
-        act.Should().Throw<DomainException>();
+        stock.TotalQuantity.Should().Be(10m);
+        stock.ReservedQuantity.Should().Be(1m);
+        stock.AvailableQuantity.Should().Be(9m);
     }
 
     [Fact]

@@ -161,7 +161,7 @@ Decisões vigentes:
 | Confirmar Recebimento (Mecânico) | ConfirmMechanicReceipt() | SeparationOrder |
 | Reservar Estoque | Reserve() | Stock |
 | Baixar Estoque | Decrease() | Stock |
-| Liberar Reserva (somente peça) | Release() | Stock |
+| Liberar Reserva (ajuste manual de estoque) | Release() | Stock |
 | Repor Estoque | Replenish() | Stock |
 | Atribuir Fornecedor | AssignSupplier() | PurchaseOrder |
 | Iniciar Compra | Start() | PurchaseOrder |
@@ -178,6 +178,12 @@ Decisões vigentes:
 - `Quote` é imutável por versão após geração.
 - Cada versão só pode transicionar de `WaitingCustomerApproval` para `CustomerApproved` ou `CustomerRejected`.
 - Mudança de escopo solicitada pelo cliente gera nova versão de orçamento no atendimento.
+
+## Regra Canônica de Ajuste Manual de Estoque
+- `Release()` em `Stock` é operação de ajuste manual para peças e insumos.
+- Exige justificativa obrigatória.
+- É governada por perfil `Administrative`.
+- Não substitui a devolução operacional total vinculada à `SeparationOrder`.
 
 ---
 

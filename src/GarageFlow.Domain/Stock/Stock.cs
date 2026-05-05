@@ -77,9 +77,6 @@ public sealed class Stock
 
     public void Release(decimal quantity, string? reason = null, Guid? referenceId = null)
     {
-        if (ItemType == StockItemType.Supply)
-            throw new DomainException(DomainErrorMessages.StockSupplyCannotBeReleased);
-
         if (quantity <= 0)
             throw new DomainException(DomainErrorMessages.InvalidStockOperationQuantity);
 

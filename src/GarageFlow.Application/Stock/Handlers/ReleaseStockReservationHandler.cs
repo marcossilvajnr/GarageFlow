@@ -15,6 +15,9 @@ public sealed class ReleaseStockReservationHandler(
 {
     public async Task<StockPositionDto> HandleAsync(ReleaseStockReservationCommand command, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(command.Reason))
+            throw new DomainException(DomainErrorMessages.StockReleaseReasonRequired);
+
         await StockItemExistenceValidator.EnsureExistsAsync(
             command.ItemId,
             command.ItemType,

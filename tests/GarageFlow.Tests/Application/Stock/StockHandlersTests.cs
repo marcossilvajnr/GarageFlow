@@ -50,7 +50,7 @@ public sealed class StockHandlersTests
     }
 
     [Fact]
-    public async Task ReleaseStock_ForSupply_ShouldThrowDomainException()
+    public async Task ReleaseStock_ForSupply_WithReason_ShouldReleaseReservedQuantity()
     {
         var stockRepo = new FakeStockRepository();
         var partRepo = new FakePartRepository();
@@ -66,7 +66,30 @@ public sealed class StockHandlersTests
         await reserveHandler.HandleAsync(new ReserveStockCommand(supply.Id, StockItemType.Supply, 5m, null, null));
 
         var releaseHandler = new ReleaseStockReservationHandler(stockRepo, partRepo, supplyRepo);
-        var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(supply.Id, StockItemType.Supply, 1m, null, null));
+        var result = await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(supply.Id, StockItemType.Supply, 1m, "Ajuste manual", null));
+
+        result.ReservedQuantity.Should().Be(4m);
+        result.AvailableQuantity.Should().Be(16m);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithoutReason_ShouldThrowDomainException()
+    {
+        var stockRepo = new FakeStockRepository();
+        var partRepo = new FakePartRepository();
+        var supplyRepo = new FakeSupplyRepository();
+
+        var part = Part.Create("Pastilha", "P-ST-004", "SKU-ST-004", "UN", 40m);
+        await partRepo.AddAsync(part);
+
+        var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
+        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, 5m, 0m, null, null));
+
+        var reserveHandler = new ReserveStockHandler(stockRepo, partRepo, supplyRepo);
+        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, StockItemType.Part, 2m, null, null));
+
+        var releaseHandler = new ReleaseStockReservationHandler(stockRepo, partRepo, supplyRepo);
+        var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(part.Id, StockItemType.Part, 1m, null, null));
 
         await act.Should().ThrowAsync<DomainException>();
     }

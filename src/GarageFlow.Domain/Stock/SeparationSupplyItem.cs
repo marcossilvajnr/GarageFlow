@@ -39,4 +39,9 @@ public sealed class SeparationSupplyItem
     {
         IsReserved = true;
     }
+
+    internal void UnmarkReserved()
+    {
+        IsReserved = false;
+    }
 }

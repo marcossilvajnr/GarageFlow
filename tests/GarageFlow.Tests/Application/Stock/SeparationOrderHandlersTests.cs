@@ -346,6 +346,57 @@ public sealed class SeparationOrderHandlersTests
         await act.Should().ThrowAsync<InvalidSeparationOrderStatusTransitionException>();
     }
 
+    // --- ReturnSeparationOrderTotalHandler ---
+
+    [Fact]
+    public async Task ReturnTotal_WhenSeparated_ReturnsPendingStatusAndReleasesStock()
+    {
+        var repo = new FakeSeparationOrderRepository();
+        var (command, stockRepo) = await BuildCommandWithStockAsync(stockQuantity: 50m);
+        var createDto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
+        await new ReserveSeparationOrderHandler(repo, stockRepo)
+            .HandleAsync(new ReserveSeparationOrderCommand(createDto.Id));
+        await new ConfirmSeparationStockistWithdrawalHandler(repo)
+            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(createDto.Id, Guid.NewGuid()));
+
+        var result = await new ReturnSeparationOrderTotalHandler(repo, stockRepo)
+            .HandleAsync(new ReturnSeparationOrderTotalCommand(createDto.Id));
+
+        result.Status.Should().Be(SeparationOrderStatus.Pending);
+        result.StockistId.Should().BeNull();
+        result.ConfirmedByStockistAt.Should().BeNull();
+
+        var partId = command.Parts[0].PartId;
+        var stock = await stockRepo.GetByItemAsync(partId, StockItemType.Part);
+        stock!.ReservedQuantity.Should().Be(0m);
+        stock.AvailableQuantity.Should().Be(50m);
+    }
+
+    [Fact]
+    public async Task ReturnTotal_WhenNotSeparated_ThrowsSeparationOrderCustodyPreconditionException()
+    {
+        var repo = new FakeSeparationOrderRepository();
+        var (command, stockRepo) = await BuildCommandWithStockAsync();
+        var createDto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
+
+        var act = async () => await new ReturnSeparationOrderTotalHandler(repo, stockRepo)
+            .HandleAsync(new ReturnSeparationOrderTotalCommand(createDto.Id));
+
+        await act.Should().ThrowAsync<SeparationOrderCustodyPreconditionException>();
+    }
+
+    [Fact]
+    public async Task ReturnTotal_WhenNotFound_ThrowsEntityNotFoundException()
+    {
+        var repo = new FakeSeparationOrderRepository();
+        var stockRepo = new FakeStockRepository();
+
+        var act = async () => await new ReturnSeparationOrderTotalHandler(repo, stockRepo)
+            .HandleAsync(new ReturnSeparationOrderTotalCommand(Guid.NewGuid()));
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
+
     // --- ConfirmSeparationMechanicReceiptHandler ---
 
     [Fact]

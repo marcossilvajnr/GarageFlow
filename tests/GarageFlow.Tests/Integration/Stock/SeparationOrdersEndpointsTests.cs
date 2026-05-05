@@ -309,6 +309,44 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    // --- POST /separation-orders/{id}/return-total ---
+
+    [Fact]
+    public async Task ReturnTotal_WhenSeparated_Returns200WithPending()
+    {
+        var created = await CreateSeparationOrder();
+        await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
+        await _client.PostAsJsonAsync(
+            $"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
+            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+
+        var response = await _client.PostAsync($"/separation-orders/{created.Id}/return-total", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
+        body!.Status.Should().Be(SeparationOrderStatus.Pending);
+        body.StockistId.Should().BeNull();
+        body.ConfirmedByStockistAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ReturnTotal_WhenNotEligible_Returns409()
+    {
+        var created = await CreateSeparationOrder();
+
+        var response = await _client.PostAsync($"/separation-orders/{created.Id}/return-total", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task ReturnTotal_WhenNotFound_Returns404()
+    {
+        var response = await _client.PostAsync($"/separation-orders/{Guid.NewGuid()}/return-total", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
     // --- POST /separation-orders/{id}/confirm-mechanic-receipt ---
 
     [Fact]

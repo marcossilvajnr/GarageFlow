@@ -82,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<GetSeparationOrderByIdHandler>();
         services.AddScoped<ListSeparationOrdersHandler>();
         services.AddScoped<ReserveSeparationOrderHandler>();
+        services.AddScoped<ReturnSeparationOrderTotalHandler>();
         services.AddScoped<WaitSeparationOrderPurchaseHandler>();
         services.AddScoped<ResumeSeparationOrderAfterPurchaseHandler>();
         services.AddScoped<ConfirmSeparationStockistWithdrawalHandler>();

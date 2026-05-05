@@ -84,13 +84,25 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     }
 
     [Fact]
-    public async Task ReleaseStock_ForSupply_Returns400()
+    public async Task ReleaseStock_ForSupply_WithReason_Returns200()
     {
         var supplyId = await CreateSupply();
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(supplyId, StockItemType.Supply, 10m, 0m, null, null));
         await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(supplyId, StockItemType.Supply, 2m, null, null));
 
-        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(supplyId, StockItemType.Supply, 1m, null, null));
+        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(supplyId, StockItemType.Supply, 1m, "Ajuste manual", null));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithoutReason_Returns400()
+    {
+        var partId = await CreatePart();
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+
+        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }

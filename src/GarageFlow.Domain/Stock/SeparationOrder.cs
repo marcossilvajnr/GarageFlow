@@ -118,4 +118,23 @@ public sealed class SeparationOrder
         ConfirmedByMechanicAt = DateTime.UtcNow;
         Status = SeparationOrderStatus.Completed;
     }
+
+    public void EnsureEligibleForTotalReturnBeforeMechanicReceipt()
+    {
+        if (Status != SeparationOrderStatus.Separated || ConfirmedByStockistAt is null || ConfirmedByMechanicAt is not null)
+            throw new SeparationOrderCustodyPreconditionException(
+                DomainErrorMessages.SeparationOrderNotEligibleForTotalReturn);
+    }
+
+    public void ReturnTotalBeforeMechanicReceipt()
+    {
+        EnsureEligibleForTotalReturnBeforeMechanicReceipt();
+
+        foreach (var part in _parts) part.UnmarkReserved();
+        foreach (var supply in _supplies) supply.UnmarkReserved();
+
+        StockistId = null;
+        ConfirmedByStockistAt = null;
+        Status = SeparationOrderStatus.Pending;
+    }
 }

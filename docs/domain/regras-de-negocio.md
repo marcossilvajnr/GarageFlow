@@ -125,12 +125,24 @@ A separação só é concluída com duas confirmações:
 ### RN-016 — Operações de Estoque
 - Reservar: `Available--`, `Reserved++`
 - Baixar: `Reserved--`, `Total--`
-- Liberar (somente peça): `Reserved--`, `Available++`
+- Liberar: `Reserved--`, `Available++`
 
-### Regra de devolução após cancelamento de separação
-- Peças podem retornar ao estoque se cancelamento ocorrer antes da execução.
-- Insumos não retornam ao estoque após separação.
-- Tentativas de `Release` para `Supply` devem ser rejeitadas pelo domínio.
+### RN-032 — Devolução Total Vinculada à Ordem de Separação
+A devolução de itens retirados do estoque é permitida somente antes de `ConfirmMechanicReceipt`.
+
+Regras obrigatórias:
+- a devolução deve referenciar obrigatoriamente a `SeparationOrder` de origem;
+- a devolução é total da ordem (todos os itens de peças e insumos);
+- após `ConfirmMechanicReceipt`, devolução é bloqueada no fluxo operacional;
+- toda devolução valida que nenhuma quantidade devolvida ultrapassa a quantidade retirada.
+
+### RN-033 — Liberação Manual de Reserva de Estoque
+A liberação manual de reserva via operação de estoque é permitida para peças e insumos como ajuste operacional.
+
+Regras obrigatórias:
+- a operação exige justificativa obrigatória;
+- a operação é restrita ao perfil `Administrative`;
+- a operação não substitui o fluxo de devolução total vinculado à `SeparationOrder`.
 
 ### RN-017 — Geração de Ordem de Compra
 Falta de estoque gera `PurchaseOrder` automaticamente.
@@ -175,7 +187,7 @@ O tempo estimado de serviço é definido e atualizado manualmente pelo Administr
 |-|------|--------|
 | Natureza | Componente discreto | Material consumível |
 | Medida | Unidade inteira | Quantidade variável |
-| Devolução ao estoque | Sim (se não usada) | Não |
+| Devolução ao estoque | Sim (antes de `ConfirmMechanicReceipt`) | Sim (antes de `ConfirmMechanicReceipt`) |
 
 ### Regra vigente — Composição de Serviço no Catálogo
 `Service` mantém listas pré-definidas de peças e insumos para execução:
@@ -225,3 +237,5 @@ Cada serviço selecionado aparece no máximo uma vez (sem quantidade no diagnós
 | RN-029 | Alterações de serviços na OS são rastreáveis por origem/ator/tempo |
 | RN-030 | Serviços da OS ficam congelados após diagnóstico concluído |
 | RN-031 | Orçamento é imutável por versão; mudança gera nova versão |
+| RN-032 | Devolução de retirada exige ordem de separação, ocorre apenas antes de `ConfirmMechanicReceipt` e é total |
+| RN-033 | Liberação manual de reserva exige justificativa e é restrita ao perfil `Administrative` |

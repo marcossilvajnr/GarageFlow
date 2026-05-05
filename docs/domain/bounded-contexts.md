@@ -233,9 +233,16 @@ stateDiagram-v2
 Regras críticas:
 - separação criada automaticamente por execução
 - separação mantém listas separadas de peças e insumos
-- cancelamento antes da execução:
-  - peça pode retornar ao estoque
-  - insumo não retorna após separação
+- devolução de retirada:
+  - permitida somente antes de `ConfirmMechanicReceipt`
+  - vinculada obrigatoriamente à `SeparationOrder` de origem
+  - total para todos os itens da ordem (peças e insumos)
+  - bloqueada após `ConfirmMechanicReceipt`
+- ajuste manual de reserva de estoque:
+  - permite peças e insumos
+  - exige justificativa obrigatória
+  - é restrito ao perfil `Administrative`
+  - não substitui o fluxo de devolução total da `SeparationOrder`
 - `AvailableQuantity` nunca negativa
 
 Comunicações:

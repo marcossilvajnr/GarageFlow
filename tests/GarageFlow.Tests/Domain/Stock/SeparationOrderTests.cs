@@ -318,6 +318,49 @@ public sealed class SeparationOrderTests
         order.Status.Should().Be(SeparationOrderStatus.Separated);
     }
 
+    // --- ReturnTotalBeforeMechanicReceipt (Separated -> Pending) ---
+
+    [Fact]
+    public void ReturnTotalBeforeMechanicReceipt_WhenSeparated_RevertsToPendingAndClearsCustody()
+    {
+        var order = SeparationOrder.Create(Guid.NewGuid(), [ValidPart()], [ValidSupply()]);
+        order.Reserve();
+        order.ConfirmStockistWithdrawal(Guid.NewGuid());
+
+        order.ReturnTotalBeforeMechanicReceipt();
+
+        order.Status.Should().Be(SeparationOrderStatus.Pending);
+        order.StockistId.Should().BeNull();
+        order.ConfirmedByStockistAt.Should().BeNull();
+        order.Parts.Should().AllSatisfy(p => p.IsReserved.Should().BeFalse());
+        order.Supplies.Should().AllSatisfy(s => s.IsReserved.Should().BeFalse());
+    }
+
+    [Fact]
+    public void ReturnTotalBeforeMechanicReceipt_WhenNotSeparated_ThrowsSeparationOrderCustodyPreconditionException()
+    {
+        var order = SeparationOrder.Create(Guid.NewGuid(), [ValidPart()], [ValidSupply()]);
+
+        var act = () => order.ReturnTotalBeforeMechanicReceipt();
+
+        act.Should().Throw<SeparationOrderCustodyPreconditionException>()
+            .WithMessage("Separação não está elegível para devolução total");
+    }
+
+    [Fact]
+    public void ReturnTotalBeforeMechanicReceipt_AfterMechanicReceipt_ThrowsSeparationOrderCustodyPreconditionException()
+    {
+        var order = SeparationOrder.Create(Guid.NewGuid(), [ValidPart()], [ValidSupply()]);
+        order.Reserve();
+        order.ConfirmStockistWithdrawal(Guid.NewGuid());
+        order.ConfirmMechanicReceipt();
+
+        var act = () => order.ReturnTotalBeforeMechanicReceipt();
+
+        act.Should().Throw<SeparationOrderCustodyPreconditionException>()
+            .WithMessage("Separação não está elegível para devolução total");
+    }
+
     // --- Full flow: with stock ---
 
     [Fact]

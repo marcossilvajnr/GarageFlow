@@ -129,10 +129,12 @@ Todos os agregados seguem:
   - `PartId`, `PartName`, `Quantity`, `IsReserved`
 - `SeparationSupplyItem`:
   - `SupplyId`, `SupplyName`, `Quantity`, `Unit`, `IsReserved`
-- Regra de cancelamento de separação:
-  - Peças podem retornar ao estoque quando houver cancelamento antes da execução.
-  - Insumos não retornam ao estoque após separação.
-  - Tentativa de liberação (`Release`) para insumo deve ser rejeitada.
+- Regra de devolução vinculada à separação:
+  - devolução é permitida somente antes de `ConfirmMechanicReceipt`;
+  - devolução referencia obrigatoriamente a `SeparationOrder` de origem;
+  - devolução é total (todos os itens de peças e insumos da ordem);
+  - após `ConfirmMechanicReceipt`, devolução operacional é bloqueada;
+  - validação obrigatória impede devolver quantidade acima da retirada.
 
 ### PurchaseOrder
 - Fluxo: `Created -> Started -> Completed`
@@ -151,6 +153,8 @@ Todos os agregados seguem:
 - RN-029: alterações de serviços da OS exigem rastreabilidade por origem/ator/tempo.
 - RN-030: serviços da OS ficam congelados após conclusão do diagnóstico.
 - RN-031: orçamento é imutável por versão; mudança gera nova versão.
+- RN-032: devolução de retirada exige referência da `SeparationOrder`, ocorre apenas antes de `ConfirmMechanicReceipt` e é total.
+- RN-033: liberação manual de reserva de estoque aceita peças e insumos, exige justificativa e é restrita ao perfil `Administrative`.
 
 ## Eventos Canônicos do BC Estoque
 No escopo do BC de Estoque, os eventos canônicos e seus publicadores oficiais são:

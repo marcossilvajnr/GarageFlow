@@ -36,4 +36,9 @@ public sealed class SeparationPartItem
     {
         IsReserved = true;
     }
+
+    internal void UnmarkReserved()
+    {
+        IsReserved = false;
+    }
 }

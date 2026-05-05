@@ -202,6 +202,7 @@ public static class DomainErrorMessages
     public const string SeparationOrderNotWaitingPurchase = "Separação não está Aguardando Compra";
     public const string SeparationOrderNotWaitingPickup = "Separação não está Aguardando Retirada";
     public const string SeparationOrderNotSeparated = "Separação não está Separada";
+    public const string SeparationOrderNotEligibleForTotalReturn = "Separação não está elegível para devolução total";
     public const string SeparationOrderItemsNotReserved = "Itens da separação ainda não foram reservados";
     public const string SeparationOrderWaitingStockistConfirmation = "Aguardando confirmação do estoquista";
     public const string SeparationOrderNotCompletedForExecution = "Separação da execução não está concluída";
@@ -215,6 +216,7 @@ public static class DomainErrorMessages
     public const string InvalidStockInitialQuantity = "Quantidade inicial do estoque inválida";
     public const string InvalidStockMinimumQuantity = "Quantidade mínima do estoque inválida";
     public const string InvalidStockOperationQuantity = "Quantidade da operação de estoque deve ser maior que zero";
+    public const string StockReleaseReasonRequired = "Motivo da liberação de estoque é obrigatório";
     public const string InvalidStockAdjustmentQuantity = "Ajuste de estoque não pode ser zero";
     public const string StockAdjustmentReasonRequired = "Motivo do ajuste de estoque é obrigatório";
     public const string InvalidStockOperationReason = "Motivo da operação de estoque inválido";

@@ -40,6 +40,13 @@ public static class SeparationOrdersEndpoints
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
+        group.MapPost("/{id:guid}/return-total", ReturnSeparationOrderTotal)
+            .WithName("ReturnSeparationOrderTotal")
+            .WithSummary("Realiza devolução total dos itens da Ordem de Separação antes do recebimento do mecânico.")
+            .Produces<SeparationOrderResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
         group.MapPost("/{id:guid}/wait-purchase", WaitSeparationOrderPurchase)
             .WithName("WaitSeparationOrderPurchase")
             .WithSummary("Coloca a Ordem de Separação em aguardo de compra.")
@@ -173,6 +180,34 @@ public static class SeparationOrdersEndpoints
         {
             var dto = await handler.HandleAsync(new WaitSeparationOrderPurchaseCommand(id), cancellationToken);
             return Results.Ok(MapToResponse(dto));
+        }
+        catch (InvalidSeparationOrderStatusTransitionException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
+        }
+    }
+
+    private static async Task<IResult> ReturnSeparationOrderTotal(
+        Guid id,
+        ReturnSeparationOrderTotalHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var dto = await handler.HandleAsync(new ReturnSeparationOrderTotalCommand(id), cancellationToken);
+            return Results.Ok(MapToResponse(dto));
+        }
+        catch (SeparationOrderCustodyPreconditionException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Pré-condição de custódia não atendida", Detail = ex.Message, Status = 409 });
+        }
+        catch (StockQuantityConflictException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito de estoque", Detail = ex.Message, Status = 409 });
         }
         catch (InvalidSeparationOrderStatusTransitionException ex)
         {
