@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Stock;
+using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Tests.Integration;
@@ -24,6 +25,15 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
             executionOrderId ?? Guid.NewGuid(),
             [new CreateSeparationPartItemRequest(Guid.NewGuid(), "Filtro de óleo", 2)],
             []);
+
+    private async Task<Guid> CreateExecutionOrder()
+    {
+        var request = new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid());
+        var response = await _client.PostAsJsonAsync("/execution-orders", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
+        return body!.Id;
+    }
 
     private async Task<SeparationOrderResponse> CreateSeparationOrder(CreateSeparationOrderRequest? request = null)
     {
@@ -267,7 +277,8 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     [Fact]
     public async Task ConfirmMechanicReceipt_WhenSeparated_Returns200WithCompleted()
     {
-        var created = await CreateSeparationOrder();
+        var executionOrderId = await CreateExecutionOrder();
+        var created = await CreateSeparationOrder(ValidCreateRequest(executionOrderId));
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
         await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
             new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
@@ -277,6 +288,19 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
         body!.Status.Should().Be(SeparationOrderStatus.Completed);
+    }
+
+    [Fact]
+    public async Task ConfirmMechanicReceipt_WhenExecutionOrderNotFound_Returns404()
+    {
+        var created = await CreateSeparationOrder();
+        await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
+        await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
+            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+
+        var response = await _client.PostAsync($"/separation-orders/{created.Id}/confirm-mechanic-receipt", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]

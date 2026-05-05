@@ -2,9 +2,11 @@ using FluentAssertions;
 using GarageFlow.Application.Stock.Commands;
 using GarageFlow.Application.Stock.Handlers;
 using GarageFlow.Application.Stock.Queries;
+using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Supplies;
+using GarageFlow.Tests.Application.Executions;
 
 namespace GarageFlow.Tests.Application.Stock;
 
@@ -15,6 +17,13 @@ public sealed class SeparationOrderHandlersTests
             executionOrderId ?? Guid.NewGuid(),
             [new CreateSeparationPartItemCommand(Guid.NewGuid(), "Filtro de óleo", 2)],
             []);
+
+    private static async Task<ExecutionOrder> AddPendingExecutionOrder(FakeExecutionOrderRepository repository)
+    {
+        var executionOrder = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        await repository.AddAsync(executionOrder);
+        return executionOrder;
+    }
 
     // --- CreateSeparationOrderHandler ---
 
@@ -230,30 +239,35 @@ public sealed class SeparationOrderHandlersTests
     public async Task ConfirmMechanicReceipt_WhenSeparated_ReturnsCompletedStatus()
     {
         var repo = new FakeSeparationOrderRepository();
+        var executionRepo = new FakeExecutionOrderRepository();
+        var executionOrder = await AddPendingExecutionOrder(executionRepo);
         var createHandler = new CreateSeparationOrderHandler(repo);
-        var dto = await createHandler.HandleAsync(ValidCreateCommand());
+        var dto = await createHandler.HandleAsync(ValidCreateCommand(executionOrder.Id));
 
         await new ReserveSeparationOrderHandler(repo).HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
         await new ConfirmSeparationStockistWithdrawalHandler(repo).HandleAsync(
             new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
 
-        var confirmHandler = new ConfirmSeparationMechanicReceiptHandler(repo);
+        var confirmHandler = new ConfirmSeparationMechanicReceiptHandler(repo, executionRepo);
         var result = await confirmHandler.HandleAsync(new ConfirmSeparationMechanicReceiptCommand(dto.Id));
 
         result.Status.Should().Be(SeparationOrderStatus.Completed);
         result.ConfirmedByMechanicAt.Should().NotBeNull();
+        executionOrder.Status.Should().Be(ExecutionOrderStatus.Ready);
     }
 
     [Fact]
     public async Task ConfirmMechanicReceipt_WhenNotSeparated_ThrowsInvalidSeparationOrderStatusTransitionException()
     {
         var repo = new FakeSeparationOrderRepository();
+        var executionRepo = new FakeExecutionOrderRepository();
+        var executionOrder = await AddPendingExecutionOrder(executionRepo);
         var createHandler = new CreateSeparationOrderHandler(repo);
-        var dto = await createHandler.HandleAsync(ValidCreateCommand());
+        var dto = await createHandler.HandleAsync(ValidCreateCommand(executionOrder.Id));
 
         await new ReserveSeparationOrderHandler(repo).HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
 
-        var confirmHandler = new ConfirmSeparationMechanicReceiptHandler(repo);
+        var confirmHandler = new ConfirmSeparationMechanicReceiptHandler(repo, executionRepo);
         var act = async () => await confirmHandler.HandleAsync(new ConfirmSeparationMechanicReceiptCommand(dto.Id));
 
         await act.Should().ThrowAsync<InvalidSeparationOrderStatusTransitionException>();
@@ -263,9 +277,28 @@ public sealed class SeparationOrderHandlersTests
     public async Task ConfirmMechanicReceipt_WhenNotFound_ThrowsEntityNotFoundException()
     {
         var repo = new FakeSeparationOrderRepository();
-        var handler = new ConfirmSeparationMechanicReceiptHandler(repo);
+        var executionRepo = new FakeExecutionOrderRepository();
+        var handler = new ConfirmSeparationMechanicReceiptHandler(repo, executionRepo);
 
         var act = async () => await handler.HandleAsync(new ConfirmSeparationMechanicReceiptCommand(Guid.NewGuid()));
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
+
+    [Fact]
+    public async Task ConfirmMechanicReceipt_WhenExecutionOrderNotFound_ThrowsEntityNotFoundException()
+    {
+        var repo = new FakeSeparationOrderRepository();
+        var executionRepo = new FakeExecutionOrderRepository();
+        var createHandler = new CreateSeparationOrderHandler(repo);
+        var dto = await createHandler.HandleAsync(ValidCreateCommand(Guid.NewGuid()));
+
+        await new ReserveSeparationOrderHandler(repo).HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
+        await new ConfirmSeparationStockistWithdrawalHandler(repo).HandleAsync(
+            new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
+
+        var handler = new ConfirmSeparationMechanicReceiptHandler(repo, executionRepo);
+        var act = async () => await handler.HandleAsync(new ConfirmSeparationMechanicReceiptCommand(dto.Id));
 
         await act.Should().ThrowAsync<EntityNotFoundException>();
     }
