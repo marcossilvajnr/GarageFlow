@@ -170,6 +170,14 @@ public static class ExecutionOrdersEndpoints
             var dto = await handler.HandleAsync(new CompleteExecutionOrderCommand(id), cancellationToken);
             return Results.Ok(MapToResponse(dto));
         }
+        catch (StockQuantityConflictException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito de estoque", Detail = ex.Message, Status = 409 });
+        }
+        catch (SeparationOrderCustodyPreconditionException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Pré-condição de separação não atendida", Detail = ex.Message, Status = 409 });
+        }
         catch (InvalidExecutionOrderStatusTransitionException ex)
         {
             return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });

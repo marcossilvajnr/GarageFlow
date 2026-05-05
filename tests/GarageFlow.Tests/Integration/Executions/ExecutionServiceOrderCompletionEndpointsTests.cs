@@ -3,9 +3,12 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Executions;
+using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.ServiceOrders;
+using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
+using GarageFlow.Domain.Stock;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Tests.Integration;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,6 +62,49 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
         return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
     }
 
+    private async Task<Guid> CreatePartWithStock(decimal initialQuantity = 10m)
+    {
+        var code = $"PC-{Guid.NewGuid():N}"[..10];
+        var sku = $"SK-{Guid.NewGuid():N}"[..12];
+        var partResp = await _client.PostAsJsonAsync("/parts",
+            new CreatePartRequest("Filtro de óleo", code, sku, "UN", 50m));
+        partResp.EnsureSuccessStatusCode();
+        var part = (await partResp.Content.ReadFromJsonAsync<PartResponse>(JsonOptions))!;
+
+        var stockResp = await _client.PostAsJsonAsync("/stock/entries",
+            new CreateStockEntryRequest(part.Id, StockItemType.Part, initialQuantity, 0m, "Seed completion", null));
+        stockResp.EnsureSuccessStatusCode();
+
+        return part.Id;
+    }
+
+    private async Task CreateAndReserveSeparation(Guid executionOrderId, Guid partId)
+    {
+        var createResp = await _client.PostAsJsonAsync("/separation-orders",
+            new CreateSeparationOrderRequest(
+                executionOrderId,
+                [new CreateSeparationPartItemRequest(partId, "Filtro de óleo", 1)],
+                []));
+        createResp.EnsureSuccessStatusCode();
+        var separation = (await createResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
+
+        var reserveResp = await _client.PostAsync($"/separation-orders/{separation.Id}/reserve", null);
+        reserveResp.EnsureSuccessStatusCode();
+        await MarkSeparationAsCompleted(separation.Id);
+    }
+
+    private async Task MarkSeparationAsCompleted(Guid separationOrderId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
+        var separation = await db.SeparationOrders.FindAsync(separationOrderId);
+        separation.Should().NotBeNull();
+        typeof(SeparationOrder)
+            .GetProperty(nameof(SeparationOrder.Status))!
+            .SetValue(separation!, SeparationOrderStatus.Completed);
+        await db.SaveChangesAsync();
+    }
+
     // --- POST /execution-orders/{id}/complete com execuções pendentes mantém OS em andamento ---
 
     [Fact]
@@ -71,6 +117,10 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
 
         await AdvanceToInExecution(first.Id);
         await AdvanceToInExecution(second.Id);
+        var partId1 = await CreatePartWithStock();
+        var partId2 = await CreatePartWithStock();
+        await CreateAndReserveSeparation(first.Id, partId1);
+        await CreateAndReserveSeparation(second.Id, partId2);
 
         // Complete only the first execution
         var completeResponse = await _client.PostAsync($"/execution-orders/{first.Id}/complete", null);
@@ -91,6 +141,8 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
 
         var execution = await CreateExecution(serviceOrderId);
         await AdvanceToInExecution(execution.Id);
+        var partId = await CreatePartWithStock();
+        await CreateAndReserveSeparation(execution.Id, partId);
 
         var completeResponse = await _client.PostAsync($"/execution-orders/{execution.Id}/complete", null);
         completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -111,6 +163,10 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
 
         await AdvanceToInExecution(first.Id);
         await AdvanceToInExecution(second.Id);
+        var partId1 = await CreatePartWithStock();
+        var partId2 = await CreatePartWithStock();
+        await CreateAndReserveSeparation(first.Id, partId1);
+        await CreateAndReserveSeparation(second.Id, partId2);
 
         // Complete first — SO stays InExecution
         await _client.PostAsync($"/execution-orders/{first.Id}/complete", null);
@@ -141,9 +197,12 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
     [Fact]
     public async Task CompleteExecution_WhenNotInExecution_Returns409()
     {
-        var request = new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrderId = await SeedServiceOrderInExecution();
+        var request = new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid());
         var created = await (await _client.PostAsJsonAsync("/execution-orders", request))
             .Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
+        var partId = await CreatePartWithStock();
+        await CreateAndReserveSeparation(created!.Id, partId);
 
         var response = await _client.PostAsync($"/execution-orders/{created!.Id}/complete", null);
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);

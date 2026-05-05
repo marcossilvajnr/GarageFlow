@@ -204,9 +204,11 @@ public static class DomainErrorMessages
     public const string SeparationOrderNotSeparated = "Separação não está Separada";
     public const string SeparationOrderItemsNotReserved = "Itens da separação ainda não foram reservados";
     public const string SeparationOrderWaitingStockistConfirmation = "Aguardando confirmação do estoquista";
+    public const string SeparationOrderNotCompletedForExecution = "Separação da execução não está concluída";
 
     // SeparationOrder not found (handlers - context-specific)
     public static string SeparationOrderNotFound(Guid id) => $"Ordem de Separação '{id}' não encontrada";
+    public static string SeparationOrderNotFoundForExecution(Guid executionOrderId) => $"Ordem de Separação para a Execução '{executionOrderId}' não encontrada";
 
     // Stock aggregate (context-specific)
     public const string InvalidStockItemId = "Id do item de estoque inválido";

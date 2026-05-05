@@ -9,6 +9,9 @@ internal sealed class FakeSeparationOrderRepository : ISeparationOrderRepository
     public Task<SeparationOrder?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => Task.FromResult(_store.FirstOrDefault(so => so.Id == id));
 
+    public Task<SeparationOrder?> GetByExecutionOrderIdAsync(Guid executionOrderId, CancellationToken cancellationToken = default)
+        => Task.FromResult(_store.FirstOrDefault(so => so.ExecutionOrderId == executionOrderId));
+
     public Task<(IReadOnlyList<SeparationOrder> Items, int TotalCount)> ListAsync(
         int page, int pageSize, CancellationToken cancellationToken = default)
     {

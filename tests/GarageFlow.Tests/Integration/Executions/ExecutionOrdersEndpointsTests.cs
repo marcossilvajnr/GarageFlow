@@ -3,8 +3,11 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Executions;
+using GarageFlow.Api.DTOs.Parts;
+using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
+using GarageFlow.Domain.Stock;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Tests.Integration;
 using Microsoft.Extensions.DependencyInjection;
@@ -217,11 +220,57 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
 
     // --- POST /execution-orders/{id}/complete ---
 
+    private async Task<Guid> CreatePartWithStock(decimal quantity = 100m)
+    {
+        var partCode = $"P-{Guid.NewGuid():N}"[..10];
+        var partSku = $"SKU-{Guid.NewGuid():N}"[..12];
+        var partResp = await _client.PostAsJsonAsync("/parts", new CreatePartRequest("Filtro de óleo", partCode, partSku, "UN", 50m));
+        partResp.EnsureSuccessStatusCode();
+        var part = (await partResp.Content.ReadFromJsonAsync<PartResponse>(JsonOptions))!;
+
+        var stockResp = await _client.PostAsJsonAsync("/stock/entries",
+            new CreateStockEntryRequest(part.Id, StockItemType.Part, quantity, 0m, "Seed integração execução", null));
+        stockResp.EnsureSuccessStatusCode();
+
+        return part.Id;
+    }
+
+    private async Task<SeparationOrderResponse> CreateAndReserveSeparation(Guid executionOrderId, Guid partId)
+    {
+        var createResp = await _client.PostAsJsonAsync("/separation-orders",
+            new CreateSeparationOrderRequest(
+                executionOrderId,
+                [new CreateSeparationPartItemRequest(partId, "Filtro de óleo", 1)],
+                []));
+        createResp.EnsureSuccessStatusCode();
+        var separation = (await createResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
+
+        var reserveResp = await _client.PostAsync($"/separation-orders/{separation.Id}/reserve", null);
+        reserveResp.EnsureSuccessStatusCode();
+        await MarkSeparationAsCompleted(separation.Id);
+
+        return separation;
+    }
+
+    private async Task MarkSeparationAsCompleted(Guid separationOrderId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
+        var separation = await db.SeparationOrders.FindAsync(separationOrderId);
+        separation.Should().NotBeNull();
+        typeof(SeparationOrder)
+            .GetProperty(nameof(SeparationOrder.Status))!
+            .SetValue(separation!, SeparationOrderStatus.Completed);
+        await db.SaveChangesAsync();
+    }
+
     [Fact]
     public async Task CompleteExecution_WhenInExecution_Returns200WithCompleted()
     {
         var serviceOrderId = await SeedServiceOrderInExecution();
         var created = await CreateExecutionOrder(new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid()));
+        var partId = await CreatePartWithStock();
+        await CreateAndReserveSeparation(created.Id, partId);
         await _client.PostAsync($"/execution-orders/{created.Id}/mark-ready", null);
         await _client.PostAsJsonAsync($"/execution-orders/{created.Id}/start", new StartExecutionOrderRequest(Guid.NewGuid()));
 
@@ -239,6 +288,8 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     public async Task CompleteExecution_WhenPending_Returns409()
     {
         var created = await CreateExecutionOrder();
+        var partId = await CreatePartWithStock();
+        await CreateAndReserveSeparation(created.Id, partId);
 
         var response = await _client.PostAsync($"/execution-orders/{created.Id}/complete", null);
 
@@ -249,6 +300,8 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     public async Task CompleteExecution_WhenReady_Returns409()
     {
         var created = await CreateExecutionOrder();
+        var partId = await CreatePartWithStock();
+        await CreateAndReserveSeparation(created.Id, partId);
         await _client.PostAsync($"/execution-orders/{created.Id}/mark-ready", null);
 
         var response = await _client.PostAsync($"/execution-orders/{created.Id}/complete", null);
