@@ -30,7 +30,7 @@ orçamento, aprovação, execução e entrega.
 | UpdatedAt | `DateTime` | Sim | Atualizado em transições |
 
 ### Enum ServiceOrderStatus
-`Received | InDiagnostic | WaitingApproval | InExecution | Finished | Delivered`
+`Received | InDiagnostic | WaitingApproval | Approved | Rejected | InExecution | Finished | Delivered`
 
 ## Tipo Interno — ServiceItem (snapshot)
 `ServiceItem` copia dados estruturais do catálogo para preservar histórico da OS.
@@ -84,7 +84,9 @@ stateDiagram-v2
     [*] --> Received
     Received --> InDiagnostic : StartDiagnostic()
     InDiagnostic --> WaitingApproval : CompleteDiagnostic()
-    WaitingApproval --> InExecution : ApproveQuote()
+    WaitingApproval --> Approved : ApproveQuote()
+    WaitingApproval --> Rejected : RejectQuote()
+    Approved --> InExecution : StartExecutionFlow()
     InExecution --> Finished : Finish()
     Finished --> Delivered : RegisterDelivery()
 ```
@@ -131,14 +133,13 @@ stateDiagram-v2
 
 ### ApproveQuote()
 - pré-condição: `Status == WaitingApproval`
-- aprova orçamento, define `TotalServices`, zera `CompletedServices`, muda para `InExecution`
+- aprova orçamento, define `TotalServices`, zera `CompletedServices`, muda para `Approved`
 - eventos:
   - integração canônica: `QuoteApprovedEvent`
-  - domínio interno: `ServiceOrderInExecutionEvent`
 
 ### RejectQuote()
 - pré-condição: `Status == WaitingApproval`
-- ação: rejeita orçamento atual sem alterar itens/valores da versão rejeitada
+- ação: rejeita orçamento atual sem alterar itens/valores da versão rejeitada e muda status para `Rejected`
 - observação: nova mudança de escopo exige retorno ao atendimento e nova versão de orçamento
 
 ### IncrementCompletedServices()
@@ -158,7 +159,7 @@ stateDiagram-v2
 ## Classificação de Eventos
 - Eventos de integração canônicos deste agregado: `DiagnosticStartedEvent`, `DiagnosticCompletedEvent`, `QuoteGeneratedEvent`, `QuoteApprovedEvent`.
 - Eventos de domínio internos (não listados como contratos de integração): `ServiceOrderInExecutionEvent`, `ServiceOrderFinishedEvent`, `VehicleDeliveredEvent`.
-- Catálogo canônico de integração: `docs/Domain/agregados.md`.
+- Catálogo canônico de integração: `docs/domain/agregados.md`.
 
 ## Regras de Negócio Relacionadas
 - [RN-001], [RN-002], [RN-003], [RN-004]

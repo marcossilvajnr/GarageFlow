@@ -79,6 +79,8 @@ Decisões vigentes:
 | Recebida | Received |
 | Em Diagnóstico | InDiagnostic |
 | Aguardando Aprovação | WaitingApproval |
+| Aprovada | Approved |
+| Rejeitada | Rejected |
 | Em Execução | InExecution |
 | Finalizada | Finished |
 | Entregue | Delivered |
@@ -112,6 +114,13 @@ Decisões vigentes:
 | Criada | Created |
 | Iniciada | Started |
 | Concluída | Completed |
+
+### QuoteStatus
+| Domínio (PT) | Código (EN) |
+|--------------|-------------|
+| Aguardando Aprovação do Cliente | WaitingCustomerApproval |
+| Aprovado pelo Cliente | CustomerApproved |
+| Rejeitado pelo Cliente | CustomerRejected |
 
 ### Unidade de medida canônica para insumos (`SupplyUnit`)
 | Domínio (PT) | Código (EN) |
@@ -167,7 +176,7 @@ Decisões vigentes:
 
 ## Regra Canônica de Governança do Orçamento
 - `Quote` é imutável por versão após geração.
-- Cada versão só pode transicionar de `Pending` para `Approved` ou `Rejected`.
+- Cada versão só pode transicionar de `WaitingCustomerApproval` para `CustomerApproved` ou `CustomerRejected`.
 - Mudança de escopo solicitada pelo cliente gera nova versão de orçamento no atendimento.
 
 ---
@@ -205,5 +214,5 @@ Decisões vigentes:
 
 ## Eventos de Integração
 O catálogo canônico de eventos de integração está centralizado em
-`docs/Domain/agregados.md`, na seção **Eventos de Integração Canônicos**.
+`docs/domain/agregados.md`, na seção **Eventos de Integração Canônicos**.
 Este documento mantém apenas o mapeamento de linguagem ubíqua.

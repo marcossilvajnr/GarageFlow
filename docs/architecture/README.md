@@ -7,7 +7,7 @@ Esta trilha descreve a arquitetura de referência de implementação do GarageFl
 - quais padrões técnicos são obrigatórios.
 
 ## Relação com outras trilhas
-- `docs/Domain`: fonte canônica de regras de negócio, invariantes e linguagem.
+- `docs/domain`: fonte canônica de regras de negócio, invariantes e linguagem.
 - `docs/Specs`: histórico versionado de evolução.
 
 Arquitetura não substitui regras de domínio; ela define como essas regras são implementadas.

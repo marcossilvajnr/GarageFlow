@@ -30,7 +30,7 @@ Provisionar infraestrutura local padronizada com Docker para executar a API Gara
 - Observabilidade avançada (OpenTelemetry, stack de métricas distribuídas).
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/Domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/Domain/regras-de-negocio.md)
+- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
 - [docs/architecture/architecture-overview.md](/Users/marcos/Projects/GarageFlow/docs/architecture/architecture-overview.md)
 - [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
 - [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)

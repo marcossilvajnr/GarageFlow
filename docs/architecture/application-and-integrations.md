@@ -48,7 +48,7 @@ Convenções de segurança na borda HTTP:
 
 ## Contratos Internos de Integração
 Os eventos de integração seguem o catálogo canônico definido em
-`docs/Domain/agregados.md`, na seção **Eventos de Integração Canônicos**.
+`docs/domain/agregados.md`, na seção **Eventos de Integração Canônicos**.
 
 Convenções:
 - Handlers de aplicação são responsáveis por orquestração entre módulos.

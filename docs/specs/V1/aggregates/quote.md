@@ -18,13 +18,13 @@ O orçamento calcula mão de obra, peças e insumos por serviço selecionado.
 | Items | `IReadOnlyList<QuoteItem>` | Sim | Pelo menos 1 item |
 | Version | `int` | Sim | Versão incremental dentro da OS |
 | TotalAmount | `decimal` | Sim | Soma dos subtotais dos itens |
-| Status | `QuoteStatus` | Sim | `Pending` -> `Approved` \| `Rejected` |
+| Status | `QuoteStatus` | Sim | `WaitingCustomerApproval` -> `CustomerApproved` \| `CustomerRejected` |
 | GeneratedAt | `DateTime` | Sim | Definido em `Generate()` |
 | ApprovedAt | `DateTime?` | Não | Definido em `Approve()` |
 | RejectedAt | `DateTime?` | Não | Definido em `Reject()` |
 
 ### Enum QuoteStatus
-`Pending | Approved | Rejected`
+`WaitingCustomerApproval | CustomerApproved | CustomerRejected`
 
 ## Tipo Interno — QuoteItem
 | Atributo | Tipo C# | Obrigatório | Regra |
@@ -41,7 +41,7 @@ O orçamento calcula mão de obra, peças e insumos por serviço selecionado.
 2. `TotalAmount` sempre igual à soma dos `Subtotal`
 3. após `Approved`, orçamento não é reaberto
 4. `ServiceOrderId` imutável
-5. após `Rejected`, itens e valores também permanecem imutáveis
+5. após `CustomerRejected`, itens e valores também permanecem imutáveis
 6. mudanças de escopo não editam versão existente; geram nova versão
 
 ## Métodos de Domínio
@@ -50,16 +50,16 @@ O orçamento calcula mão de obra, peças e insumos por serviço selecionado.
 - Pré-condição: `serviceOrderId` válido
 - Pré-condição: lista com pelo menos 1 item
 - Pré-condição: cada item com `ServiceId` válido e totais não negativos
-- Ação: cria orçamento em `Pending`, calcula `TotalAmount`
+- Ação: cria orçamento em `WaitingCustomerApproval`, calcula `TotalAmount`
 
 ### Approve()
-- Pré-condição: `Status == Pending`
-- Ação: define `Status = Approved` e `ApprovedAt`
+- Pré-condição: `Status == WaitingCustomerApproval`
+- Ação: define `Status = CustomerApproved` e `ApprovedAt`
 - Exceção: `DomainException("Orçamento já foi aprovado")`
 
 ### Reject()
-- Pré-condição: `Status == Pending`
-- Ação: define `Status = Rejected` e `RejectedAt`
+- Pré-condição: `Status == WaitingCustomerApproval`
+- Ação: define `Status = CustomerRejected` e `RejectedAt`
 - Exceção: `DomainException("Orçamento já foi finalizado")`
 
 ## Eventos de Domínio

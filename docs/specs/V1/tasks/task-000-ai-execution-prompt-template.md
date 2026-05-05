@@ -19,18 +19,18 @@ Instruções de execução:
 - Só então analise o código já existente para reaproveitar padrões.
 - Se houver conflito entre código existente e task/docs, prevalece:
   1. task alvo
-  2. documentação canônica (`docs/Domain/*` e `docs/architecture/*`)
+  2. documentação canônica (`docs/domain/*` e `docs/architecture/*`)
   3. código existente
 
 2) Leia integralmente estes documentos antes de codar:
 - docs/specs/V1/tasks/<TASK_FILE>.md
-- docs/Domain/regras-de-negocio.md
-- docs/Domain/value-objects.md
-- docs/Domain/linguagem-ubiqua.md
+- docs/domain/regras-de-negocio.md
+- docs/domain/value-objects.md
+- docs/domain/linguagem-ubiqua.md
 - docs/architecture/engineering-standards.md
 
 3) Considere como fonte canônica:
-- Regras de negócio: `docs/Domain/*`
+- Regras de negócio: `docs/domain/*`
 - Convenções de engenharia: `docs/architecture/*`
 - Escopo da entrega: `docs/specs/V1/tasks/<TASK_FILE>.md`
 

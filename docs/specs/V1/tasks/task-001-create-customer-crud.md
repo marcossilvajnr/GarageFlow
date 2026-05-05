@@ -27,10 +27,10 @@ Implementar CRUD ponta a ponta de `Customer` para validar a arquitetura de refer
 
 ## 3) Contexto Canônico Obrigatório
 Leitura obrigatória antes da implementação:
-- `docs/Domain/regras-de-negocio.md` (RN-021, RN-023)
-- `docs/Domain/linguagem-ubiqua.md`
-- `docs/Domain/agregados.md` (fonte canônica de eventos de integração)
-- `docs/Domain/value-objects.md`
+- `docs/domain/regras-de-negocio.md` (RN-021, RN-023)
+- `docs/domain/linguagem-ubiqua.md`
+- `docs/domain/agregados.md` (fonte canônica de eventos de integração)
+- `docs/domain/value-objects.md`
 - `docs/architecture/architecture-overview.md`
 - `docs/architecture/application-and-integrations.md`
 - `docs/architecture/engineering-standards.md`
@@ -213,7 +213,7 @@ Regra de estrutura mandatória:
 
 ## 11) Checklist de Execução para IA
 - [ ] Ler todos os documentos canônicos listados nesta task.
-- [ ] Não alterar regra de negócio sem atualização canônica em `docs/Domain`.
+- [ ] Não alterar regra de negócio sem atualização canônica em `docs/domain`.
 - [ ] Implementar verticalmente: Domain -> Application -> Infrastructure -> API -> Tests.
 - [ ] Garantir mensagens de erro em português.
 - [ ] Garantir `409` para conflito de unicidade.

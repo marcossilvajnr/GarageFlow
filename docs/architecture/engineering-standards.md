@@ -99,7 +99,7 @@ Cobertura:
 ## Evolução Segura
 - Contratos REST devem evoluir de forma retrocompatível.
 - Eventos internos devem manter payload estável e adicionar campos de forma não disruptiva.
-- Mudanças de regra sempre começam em `docs/Domain` e depois refletem nesta trilha.
+- Mudanças de regra sempre começam em `docs/domain` e depois refletem nesta trilha.
 
 ## Governança de Tasks
 - Toda nova task em `docs/Specs/V1/tasks` deve declarar explicitamente onde ficam:

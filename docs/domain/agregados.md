@@ -64,7 +64,8 @@ Todos os agregados seguem:
   - `Deactivate()` aplica remoção lógica (`IsActive = false`).
 
 ### ServiceOrder
-- Fluxo: `Received -> InDiagnostic -> WaitingApproval -> InExecution -> Finished -> Delivered`
+- Fluxo principal: `Received -> InDiagnostic -> WaitingApproval -> Approved -> InExecution -> Finished -> Delivered`
+- Fluxo alternativo de decisão: `WaitingApproval -> Rejected`
 - Gate de finalização: `Finish()` só com `CompletedServices == TotalServices`.
 - Fonte única de evento de finalização: `ServiceOrderFinishedEvent` emitido em `Finish()`.
 - Eventos do ciclo de diagnóstico e orçamento no boundary público (`DiagnosticStartedEvent`, `DiagnosticCompletedEvent`, `QuoteGeneratedEvent`, `QuoteApprovedEvent`) são publicados oficialmente por `ServiceOrder`.
@@ -109,7 +110,7 @@ Todos os agregados seguem:
   - `TotalAmount` (Quote) = soma dos `Subtotal` de todos os itens
 - Regra de imutabilidade:
   - uma versão de orçamento não permite alteração de itens nem de valores após geração
-  - transições permitidas por versão: `Pending -> Approved` ou `Pending -> Rejected`
+  - transições permitidas por versão: `WaitingCustomerApproval -> CustomerApproved` ou `WaitingCustomerApproval -> CustomerRejected`
   - mudança solicitada pelo cliente gera nova versão e preserva histórico das anteriores
 
 ### ExecutionOrder

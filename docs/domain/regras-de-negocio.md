@@ -18,7 +18,10 @@ Estas regras são invariantes e não podem ser violadas.
 A OS só pode avançar na sequência definida, sem pular ou reverter status.
 
 Sequência obrigatória:
-`Received -> InDiagnostic -> WaitingApproval -> InExecution -> Finished -> Delivered`
+`Received -> InDiagnostic -> WaitingApproval -> Approved -> InExecution -> Finished -> Delivered`
+
+Fluxo alternativo de decisão:
+`WaitingApproval -> Rejected`
 
 ### RN-004 — Finalização da OS
 A OS só pode ir para `Finished` quando:
@@ -65,8 +68,8 @@ Qualquer solicitação de mudança do cliente deve retornar ao atendimento para 
 ### RN-031 — Orçamento Imutável por Versão
 Após gerado, o orçamento não pode ter itens ou valores alterados.
 As únicas transições permitidas para uma versão são:
-- `Pending -> Approved`
-- `Pending -> Rejected`
+- `WaitingCustomerApproval -> CustomerApproved`
+- `WaitingCustomerApproval -> CustomerRejected`
 Mudanças de escopo geram nova versão de orçamento, preservando histórico.
 
 ---

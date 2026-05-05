@@ -3,13 +3,13 @@
 ## Objetivo
 Este guia organiza a documentação em 3 trilhas oficiais:
 
-1. `docs/Domain`: fonte canônica do domínio.
+1. `docs/domain`: fonte canônica do domínio.
 2. `docs/architecture`: arquitetura de referência e padrões de engenharia.
 3. `docs/Specs`: histórico evolutivo versionado por pasta (`V1`, `V2`, ...).
 
 Cada trilha tem propósito próprio e complementar.
 
-## 1) Trilha Canônica de Domínio (`docs/Domain`)
+## 1) Trilha Canônica de Domínio (`docs/domain`)
 Representa o estado atual das regras de negócio e da linguagem ubíqua.
 
 Arquivos-base:
@@ -21,7 +21,7 @@ Arquivos-base:
 - `value-objects.md`
 
 Política:
-- Sempre que o domínio mudar, atualizar primeiro `docs/Domain`.
+- Sempre que o domínio mudar, atualizar primeiro `docs/domain`.
 - O conteúdo deve ser autossuficiente para regras e contratos de domínio.
 - A rastreabilidade histórica é feita por Git.
 
@@ -49,11 +49,11 @@ Convenções:
 - criação de versão é manual.
 
 ## Fluxo Recomendado de Uso
-1. Ler `docs/Domain` para entender contratos de negócio vigentes.
+1. Ler `docs/domain` para entender contratos de negócio vigentes.
 2. Ler `docs/architecture` para entender implementação e integração.
 3. Consultar `docs/Specs` quando necessário para histórico evolutivo.
 
 ## Regras de Governança
-- `docs/Domain` permanece a referência canônica das regras de negócio.
+- `docs/domain` permanece a referência canônica das regras de negócio.
 - `docs/architecture` não redefine regra de domínio; apenas operacionaliza implementação.
 - `docs/Specs` é secundário em relação ao estado canônico e arquitetural vigente.

@@ -22,9 +22,9 @@ Descrever em uma frase o resultado funcional esperado.
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/Domain/regras-de-negocio.md`
-- `docs/Domain/linguagem-ubiqua.md`
-- `docs/Domain/agregados.md` (fonte canônica de eventos de integração)
+- `docs/domain/regras-de-negocio.md`
+- `docs/domain/linguagem-ubiqua.md`
+- `docs/domain/agregados.md` (fonte canônica de eventos de integração)
 - `docs/architecture/architecture-overview.md`
 - `docs/architecture/application-and-integrations.md`
 - `docs/architecture/engineering-standards.md`
@@ -48,7 +48,7 @@ Matriz de erro obrigatória por endpoint:
 
 ### 5.2 Contratos internos
 - Commands/Queries: `<nomes>`
-- Eventos (se aplicável): referenciar apenas `docs/Domain/agregados.md`.
+- Eventos (se aplicável): referenciar apenas `docs/domain/agregados.md`.
 - Repositórios/portas: `<interfaces>`
 
 ### 5.3 Erros de domínio
