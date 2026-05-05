@@ -7,7 +7,6 @@ using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
-using GarageFlow.Domain.Supplies;
 using GarageFlow.Tests.Application.ServiceOrders;
 using GarageFlow.Tests.Application.Stock;
 using DomainStock = GarageFlow.Domain.Stock.Stock;
@@ -236,7 +235,7 @@ public sealed class ExecutionOrderHandlersTests
     // --- CompleteExecutionOrderHandler ---
 
     private static async Task<(FakeExecutionOrderRepository, FakeServiceOrderRepository, FakeSeparationOrderRepository, FakeStockRepository, Guid executionOrderId)>
-        SeedExecutionInProgressWithSeparationAndStock(decimal stockQuantity = 10m)
+        SeedExecutionInProgressWithSeparationAndStock()
     {
         var repo = new FakeExecutionOrderRepository();
         var soRepo = new FakeServiceOrderRepository();
@@ -254,7 +253,7 @@ public sealed class ExecutionOrderHandlersTests
         await new StartExecutionOrderHandler(repo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
 
         var partId = Guid.NewGuid();
-        var stock = DomainStock.Create(partId, StockItemType.Part, stockQuantity, 0m);
+        var stock = DomainStock.Create(partId, StockItemType.Part, 10m, 0m);
         stock.Reserve(1m);
         await stockRepo.AddAsync(stock);
 
@@ -272,9 +271,9 @@ public sealed class ExecutionOrderHandlersTests
     [Fact]
     public async Task CompleteExecutionOrder_WhenInExecution_ChangesStatusToCompleted()
     {
-        var (repo, soRepo, separationRepo, stockRepo, executionOrderId) = await SeedExecutionInProgressWithSeparationAndStock();
+        var (repo, soRepo, separationRepo, _, executionOrderId) = await SeedExecutionInProgressWithSeparationAndStock();
 
-        var completeHandler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo, stockRepo);
+        var completeHandler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo);
         var result = await completeHandler.HandleAsync(new CompleteExecutionOrderCommand(executionOrderId));
 
         result.Status.Should().Be(ExecutionOrderStatus.Completed);
@@ -284,20 +283,23 @@ public sealed class ExecutionOrderHandlersTests
     }
 
     [Fact]
-    public async Task CompleteExecutionOrder_WhenInExecution_ConsumesReservedStock()
+    public async Task CompleteExecutionOrder_DoesNotAlterStockBalance()
     {
-        var (repo, soRepo, separationRepo, stockRepo, executionOrderId) = await SeedExecutionInProgressWithSeparationAndStock(stockQuantity: 10m);
+        var (repo, soRepo, separationRepo, stockRepo, executionOrderId) = await SeedExecutionInProgressWithSeparationAndStock();
 
         var separation = await separationRepo.GetByExecutionOrderIdAsync(executionOrderId);
-        var stockBefore = (await stockRepo.GetByItemAsync(separation!.Parts[0].PartId, StockItemType.Part))!;
-        var reservedBefore = stockBefore.ReservedQuantity;
-        var totalBefore = stockBefore.TotalQuantity;
+        var stock = (await stockRepo.GetByItemAsync(separation!.Parts[0].PartId, StockItemType.Part))!;
+        var reservedBefore = stock.ReservedQuantity;
+        var totalBefore = stock.TotalQuantity;
+        var availableBefore = stock.AvailableQuantity;
 
-        var completeHandler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo, stockRepo);
+        var completeHandler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo);
         await completeHandler.HandleAsync(new CompleteExecutionOrderCommand(executionOrderId));
 
-        stockBefore.ReservedQuantity.Should().Be(reservedBefore - 1m);
-        stockBefore.TotalQuantity.Should().Be(totalBefore - 1m);
+        // A baixa definitiva ocorre em ConfirmStockistWithdrawal — execução não altera saldo.
+        stock.ReservedQuantity.Should().Be(reservedBefore);
+        stock.TotalQuantity.Should().Be(totalBefore);
+        stock.AvailableQuantity.Should().Be(availableBefore);
     }
 
     [Fact]
@@ -306,24 +308,18 @@ public sealed class ExecutionOrderHandlersTests
         var repo = new FakeExecutionOrderRepository();
         var soRepo = new FakeServiceOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
-        var stockRepo = new FakeStockRepository();
 
         var created = await new CreateExecutionOrderHandler(repo).HandleAsync(ValidCreateCommand());
 
-        var partId = Guid.NewGuid();
-        var stock = DomainStock.Create(partId, StockItemType.Part, 10m, 0m);
-        stock.Reserve(1m);
-        await stockRepo.AddAsync(stock);
-
         var separation = SeparationOrder.Create(
             created.Id,
-            [SeparationPartItem.Create(partId, "Filtro de óleo", 1)],
+            [SeparationPartItem.Create(Guid.NewGuid(), "Filtro de óleo", 1)],
             []);
         typeof(SeparationOrder).GetProperty(nameof(SeparationOrder.Status))!
             .SetValue(separation, SeparationOrderStatus.Completed);
         await separationRepo.AddAsync(separation);
 
-        var completeHandler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo, stockRepo);
+        var completeHandler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo);
         var act = async () => await completeHandler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
 
         await act.Should().ThrowAsync<InvalidExecutionOrderStatusTransitionException>();
@@ -335,8 +331,7 @@ public sealed class ExecutionOrderHandlersTests
         var repo = new FakeExecutionOrderRepository();
         var soRepo = new FakeServiceOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
-        var stockRepo = new FakeStockRepository();
-        var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo, stockRepo);
+        var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo);
 
         var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(Guid.NewGuid()));
 
@@ -349,75 +344,15 @@ public sealed class ExecutionOrderHandlersTests
         var repo = new FakeExecutionOrderRepository();
         var soRepo = new FakeServiceOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
-        var stockRepo = new FakeStockRepository();
 
         var created = await new CreateExecutionOrderHandler(repo).HandleAsync(ValidCreateCommand());
         await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
         await new StartExecutionOrderHandler(repo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
 
-        var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo, stockRepo);
+        var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo);
         var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
 
         await act.Should().ThrowAsync<EntityNotFoundException>();
-    }
-
-    [Fact]
-    public async Task CompleteExecutionOrder_WhenStockNotFound_ThrowsEntityNotFoundException()
-    {
-        var repo = new FakeExecutionOrderRepository();
-        var soRepo = new FakeServiceOrderRepository();
-        var separationRepo = new FakeSeparationOrderRepository();
-        var stockRepo = new FakeStockRepository();
-
-        var created = await new CreateExecutionOrderHandler(repo).HandleAsync(ValidCreateCommand());
-        await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
-        await new StartExecutionOrderHandler(repo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
-
-        var partId = Guid.NewGuid();
-        var separation = SeparationOrder.Create(
-            created.Id,
-            [SeparationPartItem.Create(partId, "Filtro de óleo", 1)],
-            []);
-        typeof(SeparationOrder).GetProperty(nameof(SeparationOrder.Status))!
-            .SetValue(separation, SeparationOrderStatus.Completed);
-        await separationRepo.AddAsync(separation);
-        // No stock added for this partId
-
-        var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo, stockRepo);
-        var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
-
-        await act.Should().ThrowAsync<EntityNotFoundException>();
-    }
-
-    [Fact]
-    public async Task CompleteExecutionOrder_WhenStockReservedInsufficient_ThrowsStockQuantityConflictException()
-    {
-        var repo = new FakeExecutionOrderRepository();
-        var soRepo = new FakeServiceOrderRepository();
-        var separationRepo = new FakeSeparationOrderRepository();
-        var stockRepo = new FakeStockRepository();
-
-        var created = await new CreateExecutionOrderHandler(repo).HandleAsync(ValidCreateCommand());
-        await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
-        await new StartExecutionOrderHandler(repo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
-
-        var partId = Guid.NewGuid();
-        // Stock has quantity but no reserved amount
-        var stock = DomainStock.Create(partId, StockItemType.Part, 10m, 0m);
-        await stockRepo.AddAsync(stock);
-
-        var separation = SeparationOrder.Create(
-            created.Id,
-            [SeparationPartItem.Create(partId, "Filtro de óleo", 1)],
-            []);
-        typeof(SeparationOrder).GetProperty(nameof(SeparationOrder.Status))!
-            .SetValue(separation, SeparationOrderStatus.Completed);
-        await separationRepo.AddAsync(separation);
-
-        var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo, stockRepo);
-        var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
-
-        await act.Should().ThrowAsync<StockQuantityConflictException>();
     }
 
     [Fact]
@@ -426,67 +361,20 @@ public sealed class ExecutionOrderHandlersTests
         var repo = new FakeExecutionOrderRepository();
         var soRepo = new FakeServiceOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
-        var stockRepo = new FakeStockRepository();
 
         var created = await new CreateExecutionOrderHandler(repo).HandleAsync(ValidCreateCommand());
         await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
         await new StartExecutionOrderHandler(repo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
 
-        var partId = Guid.NewGuid();
-        var stock = DomainStock.Create(partId, StockItemType.Part, 10m, 0m);
-        stock.Reserve(1m);
-        await stockRepo.AddAsync(stock);
-
         var separation = SeparationOrder.Create(
             created.Id,
-            [SeparationPartItem.Create(partId, "Filtro de óleo", 1)],
+            [SeparationPartItem.Create(Guid.NewGuid(), "Filtro de óleo", 1)],
             []);
         await separationRepo.AddAsync(separation); // Pending
 
-        var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo, stockRepo);
+        var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo);
         var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
 
         await act.Should().ThrowAsync<SeparationOrderCustodyPreconditionException>();
-    }
-
-    [Fact]
-    public async Task CompleteExecutionOrder_WhenInExecution_ConsumesReservedSupplyStock()
-    {
-        var repo = new FakeExecutionOrderRepository();
-        var soRepo = new FakeServiceOrderRepository();
-        var separationRepo = new FakeSeparationOrderRepository();
-        var stockRepo = new FakeStockRepository();
-
-        var serviceOrderId = Guid.NewGuid();
-        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
-        typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Id))!.SetValue(so, serviceOrderId);
-        typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Status))!.SetValue(so, ServiceOrderStatus.InExecution);
-        await soRepo.AddAsync(so);
-
-        var created = await new CreateExecutionOrderHandler(repo).HandleAsync(new CreateExecutionOrderCommand(serviceOrderId, Guid.NewGuid()));
-        await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
-        await new StartExecutionOrderHandler(repo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
-
-        var supplyId = Guid.NewGuid();
-        var stock = DomainStock.Create(supplyId, StockItemType.Supply, 10m, 0m);
-        stock.Reserve(2m);
-        await stockRepo.AddAsync(stock);
-
-        var separation = SeparationOrder.Create(
-            created.Id,
-            [],
-            [SeparationSupplyItem.Create(supplyId, "Óleo 5W30", 2m, SupplyUnit.Liter)]);
-        typeof(SeparationOrder).GetProperty(nameof(SeparationOrder.Status))!
-            .SetValue(separation, SeparationOrderStatus.Completed);
-        await separationRepo.AddAsync(separation);
-
-        var reservedBefore = stock.ReservedQuantity;
-        var totalBefore = stock.TotalQuantity;
-
-        var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo, stockRepo);
-        await handler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
-
-        stock.ReservedQuantity.Should().Be(reservedBefore - 2m);
-        stock.TotalQuantity.Should().Be(totalBefore - 2m);
     }
 }

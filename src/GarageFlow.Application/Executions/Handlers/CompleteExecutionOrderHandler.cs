@@ -11,8 +11,7 @@ namespace GarageFlow.Application.Executions.Handlers;
 public sealed class CompleteExecutionOrderHandler(
     IExecutionOrderRepository executionOrderRepository,
     IServiceOrderRepository serviceOrderRepository,
-    ISeparationOrderRepository separationOrderRepository,
-    IStockRepository stockRepository)
+    ISeparationOrderRepository separationOrderRepository)
 {
     public async Task<ExecutionOrderDto> HandleAsync(CompleteExecutionOrderCommand command, CancellationToken cancellationToken = default)
     {
@@ -26,25 +25,8 @@ public sealed class CompleteExecutionOrderHandler(
         if (separationOrder.Status != SeparationOrderStatus.Completed)
             throw new SeparationOrderCustodyPreconditionException(DomainErrorMessages.SeparationOrderNotCompletedForExecution);
 
-        foreach (var part in separationOrder.Parts)
-        {
-            var stock = await stockRepository.GetByItemAsync(part.PartId, StockItemType.Part, cancellationToken);
-            if (stock is null)
-                throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(StockItemType.Part, part.PartId));
-
-            stock.Consume(part.Quantity, referenceId: executionOrder.Id);
-            stockRepository.Update(stock);
-        }
-
-        foreach (var supply in separationOrder.Supplies)
-        {
-            var stock = await stockRepository.GetByItemAsync(supply.SupplyId, StockItemType.Supply, cancellationToken);
-            if (stock is null)
-                throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(StockItemType.Supply, supply.SupplyId));
-
-            stock.Consume(supply.Quantity, referenceId: executionOrder.Id);
-            stockRepository.Update(stock);
-        }
+        // A baixa definitiva de estoque ocorre exclusivamente em ConfirmStockistWithdrawal.
+        // O fluxo de execução não consome estoque — apenas verifica que a separação foi concluída.
 
         executionOrder.CompleteExecution();
 

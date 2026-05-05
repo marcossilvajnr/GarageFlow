@@ -67,7 +67,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         await AdvanceToInExecution(execRepo, second.Id);
         await SeedSeparationAndStock(separationRepo, stockRepo, first.Id);
 
-        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo, stockRepo);
+        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo);
         await handler.HandleAsync(new CompleteExecutionOrderCommand(first.Id));
 
         var reloadedSo = await soRepo.GetByIdAsync(so.Id);
@@ -92,7 +92,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         await AdvanceToInExecution(execRepo, created.Id);
         await SeedSeparationAndStock(separationRepo, stockRepo, created.Id);
 
-        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo, stockRepo);
+        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo);
         await handler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
 
         var reloadedSo = await soRepo.GetByIdAsync(so.Id);
@@ -118,7 +118,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         await SeedSeparationAndStock(separationRepo, stockRepo, first.Id);
         await SeedSeparationAndStock(separationRepo, stockRepo, second.Id);
 
-        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo, stockRepo);
+        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo);
 
         // Complete first — SO should remain InExecution
         await handler.HandleAsync(new CompleteExecutionOrderCommand(first.Id));
@@ -148,7 +148,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         await new StartExecutionOrderHandler(execRepo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
         await SeedSeparationAndStock(separationRepo, stockRepo, created.Id);
 
-        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo, stockRepo);
+        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo);
         var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
 
         await act.Should().ThrowAsync<EntityNotFoundException>();
@@ -162,8 +162,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         var execRepo = new FakeExecutionOrderRepository();
         var soRepo = new FakeServiceOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
-        var stockRepo = new FakeStockRepository();
-        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo, stockRepo);
+        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo);
 
         var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(Guid.NewGuid()));
 
@@ -184,7 +183,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         var created = await createHandler.HandleAsync(new CreateExecutionOrderCommand(Guid.NewGuid(), Guid.NewGuid()));
         await SeedSeparationAndStock(separationRepo, stockRepo, created.Id);
 
-        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo, stockRepo);
+        var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo);
         var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
 
         await act.Should().ThrowAsync<InvalidExecutionOrderStatusTransitionException>();

@@ -131,10 +131,10 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
         return serviceOrder.Id;
     }
 
-    // --- Stock consumption on execution complete ---
+    // --- Stock is NOT consumed on execution complete (baixa ocorre em ConfirmStockistWithdrawal) ---
 
     [Fact]
-    public async Task CompleteExecution_WithReservedStock_Returns200AndReducesStockBalance()
+    public async Task CompleteExecution_WithSeparationCompleted_Returns200AndDoesNotAlterStockBalance()
     {
         var execution = await CreateAndStartExecution();
         var partId = await CreatePartWithStock(initialQuantity: 10m);
@@ -152,8 +152,9 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
         var stockAfter = (await (await _client.GetAsync($"/stock/Part/{partId}"))
             .Content.ReadFromJsonAsync<StockPositionResponse>(JsonOptions))!;
 
-        stockAfter.TotalQuantity.Should().Be(stockBefore.TotalQuantity - 1m);
-        stockAfter.ReservedQuantity.Should().Be(stockBefore.ReservedQuantity - 1m);
+        // A baixa definitiva ocorre em ConfirmStockistWithdrawal, não em CompleteExecution.
+        stockAfter.TotalQuantity.Should().Be(stockBefore.TotalQuantity);
+        stockAfter.ReservedQuantity.Should().Be(stockBefore.ReservedQuantity);
         stockAfter.AvailableQuantity.Should().Be(stockBefore.AvailableQuantity);
     }
 
@@ -169,11 +170,12 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
     }
 
     [Fact]
-    public async Task CompleteExecution_WhenStockNotFound_Returns404()
+    public async Task CompleteExecution_WithSeparationCompleted_Returns200RegardlessOfStockPresence()
     {
         var execution = await CreateAndStartExecution();
 
-        // Create a separation for a partId that has no stock entry
+        // Create a separation for a partId that has no stock entry — CompleteExecution should succeed
+        // because it no longer accesses stock; only ConfirmStockistWithdrawal does.
         var orphanPartId = Guid.NewGuid();
         var createSepResp = await _client.PostAsJsonAsync("/separation-orders",
             new CreateSeparationOrderRequest(
@@ -183,11 +185,10 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
         createSepResp.EnsureSuccessStatusCode();
         var separation = (await createSepResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
         await MarkSeparationAsCompleted(separation.Id);
-        // No stock entry for orphanPartId → handler will throw EntityNotFoundException
 
         var response = await _client.PostAsync($"/execution-orders/{execution.Id}/complete", null);
 
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -211,7 +212,7 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
     }
 
     [Fact]
-    public async Task CompleteExecution_WithReservedSupplyStock_Returns200AndReducesStockBalance()
+    public async Task CompleteExecution_WithReservedSupplyStock_Returns200AndDoesNotAlterStockBalance()
     {
         var execution = await CreateAndStartExecution();
         var supplyId = await CreateSupplyWithStock(initialQuantity: 10m);
@@ -226,8 +227,9 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
         var stockAfter = (await (await _client.GetAsync($"/stock/Supply/{supplyId}"))
             .Content.ReadFromJsonAsync<StockPositionResponse>(JsonOptions))!;
 
-        stockAfter.TotalQuantity.Should().Be(stockBefore.TotalQuantity - 2m);
-        stockAfter.ReservedQuantity.Should().Be(stockBefore.ReservedQuantity - 2m);
+        // A baixa definitiva ocorre em ConfirmStockistWithdrawal, não em CompleteExecution.
+        stockAfter.TotalQuantity.Should().Be(stockBefore.TotalQuantity);
+        stockAfter.ReservedQuantity.Should().Be(stockBefore.ReservedQuantity);
         stockAfter.AvailableQuantity.Should().Be(stockBefore.AvailableQuantity);
     }
 }
