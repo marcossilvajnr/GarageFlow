@@ -325,7 +325,7 @@ public sealed class SeparationOrderHandlersTests
         var dto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
         await new ReserveSeparationOrderHandler(repo, stockRepo).HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
 
-        var result = await new ConfirmSeparationStockistWithdrawalHandler(repo)
+        var result = await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo)
             .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
 
         result.Status.Should().Be(SeparationOrderStatus.Separated);
@@ -334,13 +334,87 @@ public sealed class SeparationOrderHandlersTests
     }
 
     [Fact]
+    public async Task ConfirmStockistWithdrawal_WhenWaitingPickup_ConsumesStockReservation()
+    {
+        var repo = new FakeSeparationOrderRepository();
+        var (command, stockRepo) = await BuildCommandWithStockAsync(stockQuantity: 50m);
+        var dto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
+        await new ReserveSeparationOrderHandler(repo, stockRepo).HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
+
+        await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo)
+            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
+
+        var partId = command.Parts[0].PartId;
+        var stock = await stockRepo.GetByItemAsync(partId, StockItemType.Part);
+        stock!.ReservedQuantity.Should().Be(0m);
+        stock.TotalQuantity.Should().Be(48m);
+        stock.AvailableQuantity.Should().Be(48m);
+    }
+
+    [Fact]
+    public async Task ConfirmStockistWithdrawal_WhenPartStockNotFound_ThrowsEntityNotFoundException()
+    {
+        var repo = new FakeSeparationOrderRepository();
+        var (command, _) = await BuildCommandWithStockAsync();
+        var dto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
+        var emptyStockRepo = new FakeStockRepository();
+        // Reserve directly in domain without stock ops to reach WaitingPickup with empty stock repo
+        var separation = await repo.GetByIdAsync(dto.Id);
+        separation!.Reserve();
+
+        var act = async () => await new ConfirmSeparationStockistWithdrawalHandler(repo, emptyStockRepo)
+            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
+
+    [Fact]
+    public async Task ConfirmStockistWithdrawal_WhenInsufficientReservedStock_ThrowsStockQuantityConflictException()
+    {
+        var repo = new FakeSeparationOrderRepository();
+        var (command, stockRepo) = await BuildCommandWithStockAsync(stockQuantity: 10m);
+        var dto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
+        await new ReserveSeparationOrderHandler(repo, stockRepo).HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
+
+        // Simulate operational adjustment that reduces reserved qty below separation requirement
+        var partId = command.Parts[0].PartId;
+        var stock = await stockRepo.GetByItemAsync(partId, StockItemType.Part);
+        stock!.Release(1m); // ReservedQty drops to 1, separation needs 2
+
+        var act = async () => await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo)
+            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
+
+        await act.Should().ThrowAsync<StockQuantityConflictException>();
+    }
+
+    [Fact]
+    public async Task ConfirmStockistWithdrawal_WhenInsufficientReservedStock_DoesNotChangeSeparationStatus()
+    {
+        var repo = new FakeSeparationOrderRepository();
+        var (command, stockRepo) = await BuildCommandWithStockAsync(stockQuantity: 10m);
+        var dto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
+        await new ReserveSeparationOrderHandler(repo, stockRepo).HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
+
+        var partId = command.Parts[0].PartId;
+        var stock = await stockRepo.GetByItemAsync(partId, StockItemType.Part);
+        stock!.Release(1m);
+
+        try { await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo).HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid())); }
+        catch (StockQuantityConflictException) { }
+
+        var separation = await repo.GetByIdAsync(dto.Id);
+        separation!.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
+    }
+
+    [Fact]
     public async Task ConfirmStockistWithdrawal_WhenNotWaitingPickup_ThrowsInvalidSeparationOrderStatusTransitionException()
     {
         var repo = new FakeSeparationOrderRepository();
+        var stockRepo = new FakeStockRepository();
         var createHandler = new CreateSeparationOrderHandler(repo);
         var dto = await createHandler.HandleAsync(ValidCreateCommand());
 
-        var act = async () => await new ConfirmSeparationStockistWithdrawalHandler(repo)
+        var act = async () => await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo)
             .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
 
         await act.Should().ThrowAsync<InvalidSeparationOrderStatusTransitionException>();
@@ -356,7 +430,7 @@ public sealed class SeparationOrderHandlersTests
         var createDto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
         await new ReserveSeparationOrderHandler(repo, stockRepo)
             .HandleAsync(new ReserveSeparationOrderCommand(createDto.Id));
-        await new ConfirmSeparationStockistWithdrawalHandler(repo)
+        await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo)
             .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(createDto.Id, Guid.NewGuid()));
 
         var result = await new ReturnSeparationOrderTotalHandler(repo, stockRepo)
@@ -409,7 +483,7 @@ public sealed class SeparationOrderHandlersTests
         var dto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
 
         await new ReserveSeparationOrderHandler(repo, stockRepo).HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
-        await new ConfirmSeparationStockistWithdrawalHandler(repo)
+        await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo)
             .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
 
         var result = await new ConfirmSeparationMechanicReceiptHandler(repo, executionRepo)
@@ -457,7 +531,7 @@ public sealed class SeparationOrderHandlersTests
         var dto = await new CreateSeparationOrderHandler(repo).HandleAsync(command);
 
         await new ReserveSeparationOrderHandler(repo, stockRepo).HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
-        await new ConfirmSeparationStockistWithdrawalHandler(repo)
+        await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo)
             .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
 
         var act = async () => await new ConfirmSeparationMechanicReceiptHandler(repo, executionRepo)

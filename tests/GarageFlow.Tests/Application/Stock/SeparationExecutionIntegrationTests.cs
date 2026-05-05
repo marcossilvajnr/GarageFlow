@@ -34,7 +34,7 @@ public sealed class SeparationExecutionIntegrationTests
 
         await new ReserveSeparationOrderHandler(separationRepo, stockRepo)
             .HandleAsync(new ReserveSeparationOrderCommand(separation.Id));
-        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo)
+        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo, stockRepo)
             .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(separation.Id, Guid.NewGuid()));
 
         var handler = new ConfirmSeparationMechanicReceiptHandler(separationRepo, executionRepo);
@@ -64,7 +64,7 @@ public sealed class SeparationExecutionIntegrationTests
 
         await new ReserveSeparationOrderHandler(separationRepo, stockRepo)
             .HandleAsync(new ReserveSeparationOrderCommand(separation.Id));
-        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo)
+        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo, stockRepo)
             .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(separation.Id, Guid.NewGuid()));
 
         var handler = new ConfirmSeparationMechanicReceiptHandler(separationRepo, executionRepo);

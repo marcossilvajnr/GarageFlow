@@ -255,6 +255,10 @@ public static class SeparationOrdersEndpoints
             var dto = await handler.HandleAsync(command, cancellationToken);
             return Results.Ok(MapToResponse(dto));
         }
+        catch (StockQuantityConflictException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito de estoque", Detail = ex.Message, Status = 409 });
+        }
         catch (SeparationOrderCustodyPreconditionException ex)
         {
             return Results.Conflict(new ProblemDetails { Title = "Pré-condição de custódia não atendida", Detail = ex.Message, Status = 409 });

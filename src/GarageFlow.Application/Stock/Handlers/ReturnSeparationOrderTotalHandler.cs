@@ -24,7 +24,7 @@ public sealed class ReturnSeparationOrderTotalHandler(
             if (stock is null)
                 throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(StockItemType.Part, part.PartId));
 
-            stock.Release(part.Quantity, referenceId: separationOrder.Id);
+            stock.Entry(part.Quantity, referenceId: separationOrder.Id);
         }
 
         foreach (var supply in separationOrder.Supplies)
@@ -33,7 +33,7 @@ public sealed class ReturnSeparationOrderTotalHandler(
             if (stock is null)
                 throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(StockItemType.Supply, supply.SupplyId));
 
-            stock.Release(supply.Quantity, referenceId: separationOrder.Id);
+            stock.Entry(supply.Quantity, referenceId: separationOrder.Id);
         }
 
         separationOrder.ReturnTotalBeforeMechanicReceipt();

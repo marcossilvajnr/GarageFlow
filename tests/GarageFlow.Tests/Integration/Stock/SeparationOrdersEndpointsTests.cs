@@ -278,6 +278,49 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     }
 
     [Fact]
+    public async Task ConfirmStockistWithdrawal_WhenWaitingPickup_ConsumesStockBalance()
+    {
+        var req = await ValidCreateRequestAsync();
+        var created = await CreateSeparationOrder(req);
+        var partId = req.Parts![0].PartId;
+
+        // Check initial reserved state
+        var beforeReserve = await _client.GetAsync($"/stock/Part/{partId}");
+        var beforeReserveBody = await beforeReserve.Content.ReadFromJsonAsync<StockPositionResponse>(JsonOptions);
+
+        await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
+
+        var request = new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid());
+        await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
+
+        var stockResponse = await _client.GetAsync($"/stock/Part/{partId}");
+        stockResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var stockBody = await stockResponse.Content.ReadFromJsonAsync<StockPositionResponse>(JsonOptions);
+        stockBody!.ReservedQuantity.Should().Be(0m);
+        stockBody.TotalQuantity.Should().Be(beforeReserveBody!.TotalQuantity - 2m);
+        stockBody.AvailableQuantity.Should().Be(beforeReserveBody.AvailableQuantity - 2m);
+    }
+
+    [Fact]
+    public async Task ConfirmStockistWithdrawal_WhenStockReservationInsufficient_Returns409()
+    {
+        var req = await ValidCreateRequestAsync();
+        var created = await CreateSeparationOrder(req);
+        var partId = req.Parts![0].PartId;
+
+        await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
+
+        // Manually release part of the reservation to simulate insufficient reserved stock
+        await _client.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste operacional de teste", null));
+
+        var request = new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid());
+        var response = await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
     public async Task ConfirmStockistWithdrawal_WhenNotWaitingPickup_Returns409()
     {
         var created = await CreateSeparationOrder();
