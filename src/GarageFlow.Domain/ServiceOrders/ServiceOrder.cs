@@ -196,4 +196,13 @@ public sealed class ServiceOrder
         Status = ServiceOrderStatus.Rejected;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void Finish()
+    {
+        if (Status != ServiceOrderStatus.InExecution)
+            throw new InvalidServiceOrderStatusTransitionException(DomainErrorMessages.ServiceOrderCannotFinish);
+
+        Status = ServiceOrderStatus.Finished;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

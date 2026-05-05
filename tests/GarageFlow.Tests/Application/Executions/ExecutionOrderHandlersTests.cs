@@ -5,6 +5,8 @@ using GarageFlow.Application.Executions.Handlers;
 using GarageFlow.Application.Executions.Queries;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Executions;
+using GarageFlow.Domain.ServiceOrders;
+using GarageFlow.Tests.Application.ServiceOrders;
 
 namespace GarageFlow.Tests.Application.Executions;
 
@@ -233,12 +235,20 @@ public sealed class ExecutionOrderHandlersTests
     public async Task CompleteExecutionOrder_WhenInExecution_ChangesStatusToCompleted()
     {
         var repo = new FakeExecutionOrderRepository();
+        var soRepo = new FakeServiceOrderRepository();
+
+        var serviceOrderId = Guid.NewGuid();
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Id))!.SetValue(so, serviceOrderId);
+        typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Status))!.SetValue(so, ServiceOrderStatus.InExecution);
+        await soRepo.AddAsync(so);
+
         var createHandler = new CreateExecutionOrderHandler(repo);
-        var created = await createHandler.HandleAsync(ValidCreateCommand());
+        var created = await createHandler.HandleAsync(new CreateExecutionOrderCommand(serviceOrderId, Guid.NewGuid()));
         await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
         await new StartExecutionOrderHandler(repo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
 
-        var completeHandler = new CompleteExecutionOrderHandler(repo);
+        var completeHandler = new CompleteExecutionOrderHandler(repo, soRepo);
         var result = await completeHandler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
 
         result.Status.Should().Be(ExecutionOrderStatus.Completed);
@@ -254,7 +264,8 @@ public sealed class ExecutionOrderHandlersTests
         var createHandler = new CreateExecutionOrderHandler(repo);
         var created = await createHandler.HandleAsync(ValidCreateCommand());
 
-        var completeHandler = new CompleteExecutionOrderHandler(repo);
+        var soRepo = new FakeServiceOrderRepository();
+        var completeHandler = new CompleteExecutionOrderHandler(repo, soRepo);
         var act = async () => await completeHandler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
 
         await act.Should().ThrowAsync<InvalidExecutionOrderStatusTransitionException>();
@@ -264,7 +275,8 @@ public sealed class ExecutionOrderHandlersTests
     public async Task CompleteExecutionOrder_WhenNotExists_ThrowsEntityNotFoundException()
     {
         var repo = new FakeExecutionOrderRepository();
-        var handler = new CompleteExecutionOrderHandler(repo);
+        var soRepo = new FakeServiceOrderRepository();
+        var handler = new CompleteExecutionOrderHandler(repo, soRepo);
 
         var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(Guid.NewGuid()));
 

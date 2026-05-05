@@ -4,7 +4,10 @@ using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Domain.Executions;
+using GarageFlow.Domain.ServiceOrders;
+using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Tests.Integration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GarageFlow.Tests.Integration.Executions;
 
@@ -17,6 +20,19 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     {
         PropertyNameCaseInsensitive = true
     };
+
+    private async Task<Guid> SeedServiceOrderInExecution()
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        typeof(ServiceOrder)
+            .GetProperty(nameof(ServiceOrder.Status))!
+            .SetValue(so, ServiceOrderStatus.InExecution);
+        db.ServiceOrders.Add(so);
+        await db.SaveChangesAsync();
+        return so.Id;
+    }
 
     private static CreateExecutionOrderRequest ValidCreateRequest(
         Guid? serviceOrderId = null,
@@ -204,7 +220,8 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     [Fact]
     public async Task CompleteExecution_WhenInExecution_Returns200WithCompleted()
     {
-        var created = await CreateExecutionOrder();
+        var serviceOrderId = await SeedServiceOrderInExecution();
+        var created = await CreateExecutionOrder(new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid()));
         await _client.PostAsync($"/execution-orders/{created.Id}/mark-ready", null);
         await _client.PostAsJsonAsync($"/execution-orders/{created.Id}/start", new StartExecutionOrderRequest(Guid.NewGuid()));
 

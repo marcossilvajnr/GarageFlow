@@ -1,0 +1,151 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using FluentAssertions;
+using GarageFlow.Api.DTOs.Executions;
+using GarageFlow.Api.DTOs.ServiceOrders;
+using GarageFlow.Domain.Executions;
+using GarageFlow.Domain.ServiceOrders;
+using GarageFlow.Infrastructure.Persistence;
+using GarageFlow.Tests.Integration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace GarageFlow.Tests.Integration.Executions;
+
+public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebApplicationFactory factory)
+    : IClassFixture<GarageFlowWebApplicationFactory>
+{
+    private readonly HttpClient _client = factory.CreateClient();
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    /// <summary>
+    /// Seeds a ServiceOrder in InExecution status directly into the SQLite test database.
+    /// This bypasses the full API flow since StartExecutionFlow is not yet a standalone endpoint.
+    /// </summary>
+    private async Task<Guid> SeedServiceOrderInExecution()
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
+
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        typeof(ServiceOrder)
+            .GetProperty(nameof(ServiceOrder.Status))!
+            .SetValue(so, ServiceOrderStatus.InExecution);
+
+        db.ServiceOrders.Add(so);
+        await db.SaveChangesAsync();
+
+        return so.Id;
+    }
+
+    private async Task<ExecutionOrderResponse> CreateExecution(Guid serviceOrderId)
+    {
+        var request = new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid());
+        var response = await _client.PostAsJsonAsync("/execution-orders", request);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
+    }
+
+    private async Task<ExecutionOrderResponse> AdvanceToInExecution(Guid executionOrderId)
+    {
+        await _client.PostAsync($"/execution-orders/{executionOrderId}/mark-ready", null);
+        var startRequest = new StartExecutionOrderRequest(Guid.NewGuid());
+        var response = await _client.PostAsJsonAsync($"/execution-orders/{executionOrderId}/start", startRequest);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
+    }
+
+    // --- POST /execution-orders/{id}/complete com execuções pendentes mantém OS em andamento ---
+
+    [Fact]
+    public async Task CompleteExecution_WhenSiblingExecutionsPending_ServiceOrderRemainsInExecution()
+    {
+        var serviceOrderId = await SeedServiceOrderInExecution();
+
+        var first = await CreateExecution(serviceOrderId);
+        var second = await CreateExecution(serviceOrderId);
+
+        await AdvanceToInExecution(first.Id);
+        await AdvanceToInExecution(second.Id);
+
+        // Complete only the first execution
+        var completeResponse = await _client.PostAsync($"/execution-orders/{first.Id}/complete", null);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var soResponse = await _client.GetAsync($"/service-orders/{serviceOrderId}");
+        soResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var so = await soResponse.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        so!.Status.Should().Be(ServiceOrderStatus.InExecution);
+    }
+
+    // --- POST /execution-orders/{id}/complete com última execução leva OS ao status final ---
+
+    [Fact]
+    public async Task CompleteExecution_WhenLastExecution_ServiceOrderBecomesFinished()
+    {
+        var serviceOrderId = await SeedServiceOrderInExecution();
+
+        var execution = await CreateExecution(serviceOrderId);
+        await AdvanceToInExecution(execution.Id);
+
+        var completeResponse = await _client.PostAsync($"/execution-orders/{execution.Id}/complete", null);
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var soResponse = await _client.GetAsync($"/service-orders/{serviceOrderId}");
+        soResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var so = await soResponse.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        so!.Status.Should().Be(ServiceOrderStatus.Finished);
+    }
+
+    [Fact]
+    public async Task CompleteExecution_WhenAllSiblingsCompleted_LastOneFinishesServiceOrder()
+    {
+        var serviceOrderId = await SeedServiceOrderInExecution();
+
+        var first = await CreateExecution(serviceOrderId);
+        var second = await CreateExecution(serviceOrderId);
+
+        await AdvanceToInExecution(first.Id);
+        await AdvanceToInExecution(second.Id);
+
+        // Complete first — SO stays InExecution
+        await _client.PostAsync($"/execution-orders/{first.Id}/complete", null);
+        var soAfterFirst = await (await _client.GetAsync($"/service-orders/{serviceOrderId}"))
+            .Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        soAfterFirst!.Status.Should().Be(ServiceOrderStatus.InExecution);
+
+        // Complete second — SO transitions to Finished
+        var lastCompleteResponse = await _client.PostAsync($"/execution-orders/{second.Id}/complete", null);
+        lastCompleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var soAfterLast = await (await _client.GetAsync($"/service-orders/{serviceOrderId}"))
+            .Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        soAfterLast!.Status.Should().Be(ServiceOrderStatus.Finished);
+    }
+
+    // --- Erros: 404 para execução inexistente ---
+
+    [Fact]
+    public async Task CompleteExecution_WhenExecutionNotFound_Returns404()
+    {
+        var response = await _client.PostAsync($"/execution-orders/{Guid.NewGuid()}/complete", null);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    // --- Erros: 409 para transição inválida ---
+
+    [Fact]
+    public async Task CompleteExecution_WhenNotInExecution_Returns409()
+    {
+        var request = new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid());
+        var created = await (await _client.PostAsJsonAsync("/execution-orders", request))
+            .Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
+
+        var response = await _client.PostAsync($"/execution-orders/{created!.Id}/complete", null);
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+}

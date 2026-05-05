@@ -233,4 +233,7 @@ public static class DomainErrorMessages
 
     // PurchaseOrder not found (handlers - context-specific)
     public static string PurchaseOrderNotFound(Guid id) => $"Ordem de Compra '{id}' não encontrada";
+
+    // ServiceOrder status transitions (context-specific)
+    public const string ServiceOrderCannotFinish = "A Ordem de Serviço não está Em Execução e não pode ser finalizada";
 }
