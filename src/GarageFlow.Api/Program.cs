@@ -55,6 +55,7 @@ app.MapServiceEndpoints();
 app.MapPartEndpoints();
 app.MapSupplyEndpoints();
 app.MapServiceOrderEndpoints();
+app.MapStockEndpoints();
 app.MapSeparationOrderEndpoints();
 app.MapExecutionOrderEndpoints();
 app.MapPurchaseOrderEndpoints();

@@ -86,6 +86,13 @@ public static class DependencyInjection
         services.AddScoped<ResumeSeparationOrderAfterPurchaseHandler>();
         services.AddScoped<ConfirmSeparationStockistWithdrawalHandler>();
         services.AddScoped<ConfirmSeparationMechanicReceiptHandler>();
+        services.AddScoped<CreateStockEntryHandler>();
+        services.AddScoped<ReserveStockHandler>();
+        services.AddScoped<ReleaseStockReservationHandler>();
+        services.AddScoped<ConsumeStockHandler>();
+        services.AddScoped<AdjustStockHandler>();
+        services.AddScoped<GetStockPositionHandler>();
+        services.AddScoped<ListStockOperationsHandler>();
 
         services.AddScoped<CreateExecutionOrderHandler>();
         services.AddScoped<GetExecutionOrderByIdHandler>();

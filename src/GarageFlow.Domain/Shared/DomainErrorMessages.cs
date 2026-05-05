@@ -1,3 +1,5 @@
+using GarageFlow.Domain.Stock;
+
 namespace GarageFlow.Domain.Shared;
 
 /// <summary>
@@ -205,6 +207,27 @@ public static class DomainErrorMessages
 
     // SeparationOrder not found (handlers - context-specific)
     public static string SeparationOrderNotFound(Guid id) => $"Ordem de Separação '{id}' não encontrada";
+
+    // Stock aggregate (context-specific)
+    public const string InvalidStockItemId = "Id do item de estoque inválido";
+    public const string InvalidStockInitialQuantity = "Quantidade inicial do estoque inválida";
+    public const string InvalidStockMinimumQuantity = "Quantidade mínima do estoque inválida";
+    public const string InvalidStockOperationQuantity = "Quantidade da operação de estoque deve ser maior que zero";
+    public const string InvalidStockAdjustmentQuantity = "Ajuste de estoque não pode ser zero";
+    public const string StockAdjustmentReasonRequired = "Motivo do ajuste de estoque é obrigatório";
+    public const string InvalidStockOperationReason = "Motivo da operação de estoque inválido";
+    public const string InsufficientStockAvailability = "Estoque disponível insuficiente";
+    public const string StockReservedQuantityInsufficient = "Quantidade reservada insuficiente no estoque";
+    public const string StockSupplyCannotBeReleased = "Insumo não pode ser devolvido ao estoque";
+    public const string StockAdjustmentWouldBreakInvariant = "Ajuste de estoque deixaria quantidades inválidas";
+    public const string InvalidStockTotalQuantity = "Quantidade total do estoque inválida";
+    public const string InvalidStockReservedQuantity = "Quantidade reservada do estoque inválida";
+    public const string InvalidStockAvailableQuantity = "Quantidade disponível do estoque inválida";
+    public const string DuplicateStockItem = "Estoque já cadastrado para o item informado";
+
+    // Stock not found (handlers - context-specific)
+    public static string StockNotFound(StockItemType itemType, Guid itemId) =>
+        $"Estoque para '{itemType}' com id '{itemId}' não encontrado";
 
     // ExecutionOrder aggregate (context-specific)
     public const string InvalidExecutionOrderServiceOrderId = "OS é obrigatória";

@@ -36,6 +36,7 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
     public DbSet<Supply> Supplies => Set<Supply>();
     public DbSet<ServiceOrder> ServiceOrders => Set<ServiceOrder>();
     public DbSet<SeparationOrder> SeparationOrders => Set<SeparationOrder>();
+    public DbSet<Stock> Stocks => Set<Stock>();
     public DbSet<ExecutionOrder> ExecutionOrders => Set<ExecutionOrder>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
 
@@ -50,6 +51,7 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
         modelBuilder.ApplyConfiguration(new SupplyConfiguration());
         modelBuilder.ApplyConfiguration(new ServiceOrderConfiguration());
         modelBuilder.ApplyConfiguration(new SeparationOrderConfiguration());
+        modelBuilder.ApplyConfiguration(new StockConfiguration());
         modelBuilder.ApplyConfiguration(new ExecutionOrderConfiguration());
         modelBuilder.ApplyConfiguration(new PurchaseOrderConfiguration());
     }
