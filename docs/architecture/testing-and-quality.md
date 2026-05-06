@@ -27,6 +27,11 @@ Definir a estratégia corporativa e atemporal de testes e qualidade do GarageFlo
 2. OS com falta de estoque, compra e retomada da separação.
 3. OS com cancelamento no último estágio permitido.
 
+Todos os fluxos críticos E2E executam com JWT real:
+- login via `POST /auth/login`;
+- uso de token em endpoints protegidos;
+- validação explícita de `401` (sem token) e `403` (role sem permissão) em cenário de autorização.
+
 ## Princípios de Qualidade de Testes
 - determinismo: cada cenário define dados e pré-condições explícitas;
 - rastreabilidade: IDs de agregados-chave devem ser observáveis nas evidências;
@@ -50,6 +55,16 @@ Para cada fluxo crítico, evidenciar no mínimo:
 - transições de estado esperadas;
 - estado final consistente de `ServiceOrder`, `SeparationOrder`, `ExecutionOrder` e `PurchaseOrder` (quando aplicável);
 - identificadores rastreáveis das entidades-chave.
+
+Checklist mínimo de evidência JWT:
+- autenticação válida:
+  - `POST /auth/login` retorna `200` com token.
+- não autenticado:
+  - endpoint protegido retorna `401`.
+- autenticado sem permissão:
+  - endpoint protegido retorna `403`.
+- autenticado com permissão:
+  - endpoint protegido retorna `2xx` no fluxo esperado.
 
 Meios válidos de observação:
 - execução de testes automatizados;

@@ -28,16 +28,17 @@
   - `sub` (identificador do usuário)
   - `role` (papel de autorização)
   - `name` (nome de exibição)
-  - `jti` (identificador único do token)
-  - `iat` e `exp` (controle temporal)
+  - `unique_name` (nome único para interoperabilidade JWT)
+  - `nbf` e `exp` (controle temporal)
 - Autorização por papéis:
-  - `Attendant`
+  - `FrontDesk`
   - `Mechanic`
   - `Stockist`
   - `Administrative`
 - Endpoints administrativos devem exigir autenticação e papel adequado.
 - Endpoints de negócio devem ser protegidos por política explícita; acesso anônimo só é permitido para rotas públicas definidas por contrato.
 - Não é permitido implementar algoritmo criptográfico próprio para senha ou assinatura de token.
+- Em Swagger, o token deve ser informado sem prefixo manual `Bearer`, pois o esquema `http bearer` já aplica o formato no header.
 
 ## Governança de Erros e Invariantes
 - Decisões de transporte (ex.: status HTTP) não devem depender de parsing textual de mensagens.

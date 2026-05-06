@@ -43,6 +43,27 @@ docker compose ps
   - `{seu_accessToken}`
 - Chame um endpoint protegido de listagem sem ID (ex.: `GET /employees?page=1&pageSize=10`).
 
+Exemplo de resposta esperada do `POST /auth/login`:
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tokenType": "Bearer",
+  "expiresIn": 3600,
+  "role": "Administrative"
+}
+```
+
+Matriz rápida de acesso por papel (endpoints críticos):
+- `POST /service-orders` e `GET /employees`:
+  - `FrontDesk`, `Administrative`
+- `POST /service-orders/{id}/diagnostic/start`:
+  - `Mechanic`, `Administrative`
+- `POST /separation-orders/{id}/confirm-stockist-withdrawal`:
+  - `Stockist`, `Administrative`
+- `POST /stock/releases`:
+  - apenas `Administrative`
+
 Exemplo equivalente via `curl`:
 
 ```bash
@@ -95,6 +116,15 @@ Rodar suíte completa:
 ```bash
 dotnet test
 ```
+
+Checklist mínimo de evidência para banca:
+- `POST /auth/login` retornando `200` com token JWT.
+- Chamada protegida sem token retornando `401`.
+- Chamada protegida com role sem permissão retornando `403`.
+- Fluxos E2E críticos passando com JWT real:
+  - `dotnet test --filter "FullyQualifiedName~E2E"`
+- Suíte completa verde:
+  - `dotnet test`
 
 ## Comandos Úteis
 Logs da API:

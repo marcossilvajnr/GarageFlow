@@ -46,6 +46,32 @@ Convenções de segurança na borda HTTP:
 - autorização é aplicada na API por políticas/roles e nunca por parsing textual de mensagens.
 - handlers de aplicação recebem identidade já autenticada (claims) e aplicam regras de autorização por caso de uso quando necessário.
 
+## Contrato de Autenticação
+- `POST /auth/login`
+- request:
+  - `username` (string)
+  - `password` (string)
+- response:
+  - `accessToken` (JWT)
+  - `tokenType` (`Bearer`)
+  - `expiresIn` (segundos)
+  - `role` (papel do usuário)
+
+Fluxo:
+- credenciais são validadas contra base local de usuários de auth.
+- senha é verificada por hash.
+- token JWT é emitido com claims de identidade e papel.
+
+## Matriz de Políticas (RBAC)
+- `Administrative`:
+  - acesso administrativo completo, incluindo rotas de ajuste manual sensível.
+- `FrontDeskOrAdministrative`:
+  - atendimento e gestão de OS na trilha comercial.
+- `MechanicOrAdministrative`:
+  - operações de diagnóstico e execução.
+- `StockistOrAdministrative`:
+  - operações de separação, estoque e compras.
+
 ## Contratos Internos de Integração
 Os eventos de integração seguem o catálogo canônico definido em
 `docs/domain/agregados.md`, na seção **Eventos de Integração Canônicos**.

@@ -33,6 +33,13 @@ Definir a esteira de Integração Contínua do GarageFlow para geração de evid
   - `artifacts/test-breakdown/test-breakdown.json`
   - `artifacts/test-breakdown/test-breakdown.md`
 
+## Evidência JWT e RBAC na CI
+Itens mínimos para trilha de autenticação/autorização:
+- suíte de testes verde com cenários de autenticação;
+- evidência de E2E crítico com JWT real;
+- validação de rotas protegidas com comportamento `401/403` conforme ausência de token e falta de papel;
+- rastreabilidade em resumo executivo da execução.
+
 ## Critério de Uso
 - A esteira manual é o baseline atual por custo-benefício.
 - Automações adicionais (ex.: `push`/`pull_request`) podem ser adotadas em fase posterior.
