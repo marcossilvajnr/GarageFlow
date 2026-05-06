@@ -18,6 +18,7 @@ public static class SeparationOrdersEndpoints
         group.MapPost("/", CreateSeparationOrder)
             .WithName("CreateSeparationOrder")
             .WithSummary("Cria uma nova Ordem de Separação.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<SeparationOrderResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
@@ -36,6 +37,7 @@ public static class SeparationOrdersEndpoints
         group.MapPost("/{id:guid}/reserve", ReserveSeparationOrder)
             .WithName("ReserveSeparationOrder")
             .WithSummary("Reserva os itens da Ordem de Separação.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<SeparationOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -43,6 +45,7 @@ public static class SeparationOrdersEndpoints
         group.MapPost("/{id:guid}/return-total", ReturnSeparationOrderTotal)
             .WithName("ReturnSeparationOrderTotal")
             .WithSummary("Realiza devolução total dos itens da Ordem de Separação antes do recebimento do mecânico.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<SeparationOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -50,6 +53,7 @@ public static class SeparationOrdersEndpoints
         group.MapPost("/{id:guid}/wait-purchase", WaitSeparationOrderPurchase)
             .WithName("WaitSeparationOrderPurchase")
             .WithSummary("Coloca a Ordem de Separação em aguardo de compra.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<SeparationOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -57,6 +61,7 @@ public static class SeparationOrdersEndpoints
         group.MapPost("/{id:guid}/resume-after-purchase", ResumeSeparationOrderAfterPurchase)
             .WithName("ResumeSeparationOrderAfterPurchase")
             .WithSummary("Retoma a Ordem de Separação após compra concluída.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<SeparationOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -64,6 +69,7 @@ public static class SeparationOrdersEndpoints
         group.MapPost("/{id:guid}/confirm-stockist-withdrawal", ConfirmStockistWithdrawal)
             .WithName("ConfirmSeparationStockistWithdrawal")
             .WithSummary("Confirma retirada física pelo estoquista.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<SeparationOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
@@ -72,6 +78,7 @@ public static class SeparationOrdersEndpoints
         group.MapPost("/{id:guid}/confirm-mechanic-receipt", ConfirmMechanicReceipt)
             .WithName("ConfirmSeparationMechanicReceipt")
             .WithSummary("Confirma recebimento pelo mecânico.")
+            .RequireAuthorization("MechanicOrAdministrative")
             .Produces<SeparationOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);

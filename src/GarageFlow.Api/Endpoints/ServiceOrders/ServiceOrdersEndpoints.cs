@@ -18,6 +18,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/", CreateServiceOrder)
             .WithName("CreateServiceOrder")
             .WithSummary("Cria uma nova Ordem de Serviço.")
+            .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
@@ -37,6 +38,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/{id:guid}/services", AddServiceToServiceOrder)
             .WithName("AddServiceToServiceOrder")
             .WithSummary("Adiciona um serviço à Ordem de Serviço (FrontDesk).")
+            .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
@@ -45,6 +47,7 @@ public static class ServiceOrdersEndpoints
         group.MapDelete("/{id:guid}/services/{serviceId:guid}", RemoveServiceFromServiceOrder)
             .WithName("RemoveServiceFromServiceOrder")
             .WithSummary("Remove um serviço da Ordem de Serviço (FrontDesk).")
+            .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
@@ -52,6 +55,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/{id:guid}/diagnostic/start", StartDiagnostic)
             .WithName("StartDiagnostic")
             .WithSummary("Inicia o diagnóstico da Ordem de Serviço.")
+            .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
@@ -60,6 +64,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/{id:guid}/diagnostic/services", AddDiagnosticService)
             .WithName("AddDiagnosticService")
             .WithSummary("Adiciona um serviço ao diagnóstico da Ordem de Serviço.")
+            .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
@@ -68,6 +73,7 @@ public static class ServiceOrdersEndpoints
         group.MapDelete("/{id:guid}/diagnostic/services/{serviceId:guid}", RemoveDiagnosticService)
             .WithName("RemoveDiagnosticService")
             .WithSummary("Remove um serviço do diagnóstico da Ordem de Serviço.")
+            .RequireAuthorization("MechanicOrAdministrative")
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -75,6 +81,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/{id:guid}/diagnostic/complete", CompleteDiagnostic)
             .WithName("CompleteDiagnostic")
             .WithSummary("Conclui o diagnóstico da Ordem de Serviço.")
+            .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
@@ -83,6 +90,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/{id:guid}/diagnostic/consolidate-services", ConsolidateDiagnosticServices)
             .WithName("ConsolidateDiagnosticServices")
             .WithSummary("Consolida os serviços do diagnóstico concluído na Ordem de Serviço.")
+            .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -90,6 +98,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/{id:guid}/quote/generate", GenerateQuote)
             .WithName("GenerateQuote")
             .WithSummary("Gera o orçamento da Ordem de Serviço a partir dos serviços consolidados.")
+            .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<QuoteResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -103,6 +112,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/{id:guid}/quote/accept", AcceptQuote)
             .WithName("AcceptQuote")
             .WithSummary("Aceita o orçamento da Ordem de Serviço.")
+            .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<QuoteResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -110,6 +120,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/{id:guid}/quote/reject", RejectQuote)
             .WithName("RejectQuote")
             .WithSummary("Rejeita o orçamento da Ordem de Serviço.")
+            .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<QuoteResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
@@ -118,6 +129,7 @@ public static class ServiceOrdersEndpoints
         group.MapPost("/{id:guid}/deliver", DeliverServiceOrder)
             .WithName("DeliverServiceOrder")
             .WithSummary("Conclui a entrega da Ordem de Serviço.")
+            .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);

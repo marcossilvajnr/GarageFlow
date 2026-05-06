@@ -17,13 +17,21 @@ public sealed class TestAuthHandler(
     internal const string SchemeName = "TestAuth";
     internal const string RoleHeader = "X-Test-Role";
     internal const string SubHeader = "X-Test-Sub";
+    internal const string ForceAnonymousHeader = "X-Test-Anonymous";
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (!Request.Headers.TryGetValue(RoleHeader, out var roleValues))
+        if (Request.Headers.TryGetValue(ForceAnonymousHeader, out var anonymousHeaderValue)
+            && bool.TryParse(anonymousHeaderValue.ToString(), out var forceAnonymous)
+            && forceAnonymous)
+        {
             return Task.FromResult(AuthenticateResult.NoResult());
+        }
 
-        var role = roleValues.ToString();
+        var role = Request.Headers.TryGetValue(RoleHeader, out var roleValues)
+            ? roleValues.ToString()
+            : "Administrative";
+
         var sub = Request.Headers.TryGetValue(SubHeader, out var subValues)
             ? subValues.ToString()
             : "test-user";

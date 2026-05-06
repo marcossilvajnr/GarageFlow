@@ -19,6 +19,7 @@ public static class ExecutionOrdersEndpoints
         group.MapPost("/", CreateExecutionOrder)
             .WithName("CreateExecutionOrder")
             .WithSummary("Cria uma nova Ordem de Execução.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<ExecutionOrderResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
@@ -37,12 +38,14 @@ public static class ExecutionOrdersEndpoints
         group.MapPost("/{id:guid}/mark-ready", MarkExecutionOrderReady)
             .WithName("MarkExecutionOrderReady")
             .WithSummary("Marca a Ordem de Execução como pronta para início.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapPost("/{id:guid}/start", StartExecutionOrder)
             .WithName("StartExecutionOrder")
             .WithSummary("Inicia a execução da Ordem de Execução.")
+            .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
@@ -51,6 +54,7 @@ public static class ExecutionOrdersEndpoints
         group.MapPost("/{id:guid}/complete", CompleteExecutionOrder)
             .WithName("CompleteExecutionOrder")
             .WithSummary("Conclui a Ordem de Execução.")
+            .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);

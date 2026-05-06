@@ -150,6 +150,7 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
     [Fact]
     public async Task GetEmployees_WithoutToken_Returns401()
     {
+        _client.DefaultRequestHeaders.Add(TestAuthHandler.ForceAnonymousHeader, "true");
         var response = await _client.GetAsync("/employees?page=1&pageSize=10");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }

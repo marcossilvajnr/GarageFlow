@@ -18,6 +18,7 @@ public static class PurchaseOrdersEndpoints
         group.MapPost("/", CreatePurchaseOrder)
             .WithName("CreatePurchaseOrder")
             .WithSummary("Cria uma nova Ordem de Compra.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<PurchaseOrderResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
@@ -36,6 +37,7 @@ public static class PurchaseOrdersEndpoints
         group.MapPost("/{id:guid}/assign-supplier", AssignSupplier)
             .WithName("AssignPurchaseOrderSupplier")
             .WithSummary("Atribui fornecedor à Ordem de Compra.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
@@ -44,6 +46,7 @@ public static class PurchaseOrdersEndpoints
         group.MapPost("/{id:guid}/start", StartPurchaseOrder)
             .WithName("StartPurchaseOrder")
             .WithSummary("Inicia a Ordem de Compra.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
@@ -52,6 +55,7 @@ public static class PurchaseOrdersEndpoints
         group.MapPost("/{id:guid}/complete", CompletePurchaseOrder)
             .WithName("CompletePurchaseOrder")
             .WithSummary("Conclui a Ordem de Compra.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
