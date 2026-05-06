@@ -18,8 +18,9 @@ Documentar oficialmente os fluxos E2E críticos que demonstram o sistema funcion
 
 ### Out
 - Implementação de código de produção.
-- Implementação dos testes E2E (fica para tasks 042-044).
-- Setup de infraestrutura E2E em banco real (fica para task-041).
+- Implementação dos testes E2E (fica para tasks 043-045).
+- Setup de infraestrutura E2E em banco real (fica para task-042).
+- Observabilidade global de fluxos e transições (fica para task-041).
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
@@ -56,7 +57,7 @@ Antes de implementar, ler obrigatoriamente:
 ## 8) Critérios de Pronto
 - [x] Documento publicado com os 3 fluxos completos.
 - [x] Critérios de aceite por fluxo definidos.
-- [x] Mapeamento para tasks 041-044 explícito.
+- [x] Mapeamento para tasks 041-045 explícito.
 
 ## 9) Estratégia de Testes
 - [x] Não aplicável (task documental).
@@ -77,4 +78,4 @@ Antes de implementar, ler obrigatoriamente:
   - Fluxo B: OS com falta de estoque + compra + retomada.
   - Fluxo C: cancelamento no último estágio permitido.
 - Mapeamento explícito para implementação:
-  - `task-041` (setup real DB), `task-042`, `task-043`, `task-044`.
+  - `task-041` (observabilidade), `task-042` (setup real DB), `task-043`, `task-044`, `task-045`.

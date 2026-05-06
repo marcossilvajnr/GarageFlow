@@ -9,6 +9,7 @@ using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Suppliers;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Domain.Vehicles;
+using GarageFlow.Infrastructure.Observability;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -31,8 +32,12 @@ public static class DependencyInjection
                 $"Connection string '{ConnectionStringName}' was not found. " +
                 $"Set the '{ConnectionStringEnvironmentVariable}' environment variable.");
 
-        services.AddDbContext<GarageFlowDbContext>(options =>
-            options.UseNpgsql(connectionString));
+        services.AddScoped<PersistenceObservabilitySaveChangesInterceptor>();
+
+        services.AddDbContext<GarageFlowDbContext>((serviceProvider, options) =>
+            options
+                .UseNpgsql(connectionString)
+                .AddInterceptors(serviceProvider.GetRequiredService<PersistenceObservabilitySaveChangesInterceptor>()));
 
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IVehicleRepository, VehicleRepository>();

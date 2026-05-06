@@ -1,11 +1,11 @@
-# Task-041 — Setup E2E Real DB Infrastructure
+# Task-042 — Setup E2E Real DB Infrastructure
 
 ## 0) Metadata
-- `task_id`: `task-041`
+- `task_id`: `task-042`
 - `slug`: `setup-e2e-real-db-infrastructure`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-039-document-e2e-critical-flow-coverage.md`
+- `depends_on`: `task-041-apply-end-to-end-observability-and-state-transition-logging.md`
 
 ## 1) Objetivo
 Adaptar a suíte E2E para execução contra banco PostgreSQL real, mantendo previsibilidade de dados por cenário.

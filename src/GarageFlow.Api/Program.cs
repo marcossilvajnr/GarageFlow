@@ -14,6 +14,7 @@ using GarageFlow.Api.Endpoints.Vehicles;
 using GarageFlow.Application;
 using GarageFlow.Infrastructure;
 using GarageFlow.Infrastructure.Persistence;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -90,6 +91,41 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    var correlationId = context.Request.Headers.TryGetValue("X-Correlation-ID", out var headerValue)
+        && !string.IsNullOrWhiteSpace(headerValue)
+        ? headerValue.ToString()
+        : context.TraceIdentifier;
+
+    context.Response.Headers["X-Correlation-ID"] = correlationId;
+
+    var actorId = context.User?.Identity?.IsAuthenticated == true
+        ? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? context.User.FindFirst("sub")?.Value
+        : null;
+
+    using var scope = app.Logger.BeginScope(new Dictionary<string, object?>
+    {
+        ["CorrelationId"] = correlationId,
+        ["ActorId"] = actorId
+    });
+
+    app.Logger.LogInformation(
+        "request_started method={Method} path={Path} correlationId={CorrelationId}",
+        context.Request.Method,
+        context.Request.Path.Value,
+        correlationId);
+
+    await next();
+
+    app.Logger.LogInformation(
+        "request_completed method={Method} path={Path} statusCode={StatusCode} correlationId={CorrelationId}",
+        context.Request.Method,
+        context.Request.Path.Value,
+        context.Response.StatusCode,
+        correlationId);
+});
 app.UseAuthorization();
 app.MapHealthEndpoints();
 app.MapCustomerEndpoints();
