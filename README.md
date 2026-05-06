@@ -1,102 +1,98 @@
 # GarageFlow
 
-Backend em .NET para gestão de oficina, com arquitetura em camadas e documentação canônica em `docs/`.
+Backend .NET para gestão de oficina mecânica, com foco em Ordem de Serviço, estoque e execução de ponta a ponta.
 
 ## Documentação
 - Domínio canônico: `docs/Domain`
-- Arquitetura de referência: `docs/architecture`
-- Trilhas evolutivas: `docs/specs`
+- Arquitetura (operação, qualidade e testes): `docs/architecture`
+- Histórico evolutivo por tasks: `docs/specs`
 
 ## Pré-requisitos
-- Docker + Docker Compose
-- .NET SDK 10.0 (para execução local sem Docker e comandos EF)
+- Docker Desktop instalado e em execução
 
-## Execução com Docker
-1. Criar arquivo de ambiente:
-   - `cp .env.example .env`
-   - editar `.env` com credenciais reais locais (nunca versionar)
-2. Subir ambiente:
-   - `docker compose up -d --build`
-3. Verificar serviços:
-   - `docker compose ps`
-4. Acessar Swagger:
-   - `http://localhost:8080/swagger`
-   - `http://localhost:8080/swagger/v1/swagger.json`
-5. Logs da API (se necessário):
-   - `docker compose logs -f api`
-6. Derrubar ambiente:
-   - `docker compose down`
-
-## Migrations manuais (quando aplicável)
-Se precisar aplicar migrations manualmente, use:
+## Passo a Passo Rápido (Professor/Banca)
+1. Entre na pasta do projeto.
+2. Suba o ambiente (sem configuração prévia):
 
 ```bash
-dotnet ef database update \
-  --project src/GarageFlow.Infrastructure/GarageFlow.Infrastructure.csproj \
-  --startup-project src/GarageFlow.Api/GarageFlow.Api.csproj
+docker compose up -d --build
 ```
 
-Se não tiver o CLI do EF:
+3. Verifique se tudo subiu:
 
 ```bash
-dotnet tool install --global dotnet-ef
+docker compose ps
 ```
 
-## Automacao de banco no startup
-- A API agora aplica migrations automaticamente ao iniciar.
-- Se o schema estiver faltando (ex.: `relation "service_orders" does not exist`), basta reiniciar a API.
-- Para desabilitar esse comportamento (ex.: ambiente de teste), use:
+4. Abra a API:
+- Swagger UI: `http://localhost:8080/swagger`
+- Swagger JSON: `http://localhost:8080/swagger/v1/swagger.json`
+
+Observação:
+- No fluxo Docker, a `ConnectionStrings__GarageFlow` é montada automaticamente pelo `docker-compose.yml` com `Host=postgres`.
+- Não é necessário exportar `ConnectionStrings__GarageFlow` no shell para rodar com Docker.
+
+## Validar que Funcionou
+Teste de saúde da API:
 
 ```bash
-export Database__AutoMigrateOnStartup=false
+curl http://localhost:8080/health
 ```
 
-## Operacoes de banco via API (somente Development)
-Endpoints disponiveis no Swagger quando rodando em `Development`:
-- `POST /dev/database/migrate` -> aplica migrations pendentes
-- `POST /dev/database/clean` -> remove o banco (destrutivo)
-- `POST /dev/database/reset` -> remove e recria o banco com migrations
-
-Para operacoes destrutivas (`clean` e `reset`), envie:
-
-```json
-{ "confirm": true }
-```
-
-## Execução local sem Docker
-1. Garantir PostgreSQL ativo e credenciais válidas.
-2. Definir connection string:
+Rodar testes unitários (Domain + Application):
 
 ```bash
-export ConnectionStrings__GarageFlow="Host=localhost;Port=5432;Database=garageflow;Username=<seu_usuario>;Password=<sua_senha>"
+dotnet test --filter "FullyQualifiedName~Domain|FullyQualifiedName~Application"
 ```
 
-3. Executar API:
+Rodar testes de integração:
 
 ```bash
-dotnet run --project src/GarageFlow.Api/GarageFlow.Api.csproj
+dotnet test --filter "FullyQualifiedName~Integration"
 ```
 
-4. Acessar Swagger:
-   - `http://localhost:5007/swagger`
+Rodar testes E2E:
 
-## Build e testes
 ```bash
-dotnet build
+dotnet test --filter "FullyQualifiedName~E2E"
+```
+
+Rodar suíte completa:
+
+```bash
 dotnet test
 ```
 
-## Pipeline Manual de Qualidade e Segurança
-Workflow:
-- `.github/workflows/manual-quality-gate.yml`
+## Comandos Úteis
+Logs da API:
 
-Execução:
-1. GitHub -> `Actions` -> `Manual Quality Gate`
-2. `Run workflow`
+```bash
+docker compose logs -f api
+```
 
-Evidências geradas:
-- dashboard executivo visual no `Summary` do workflow;
-- relatório visual de testes no run do GitHub Actions;
-- cobertura de testes (`coverage-summary.md` + `coverage-html.tar.gz`);
-- vulnerabilidades de dependências (`security-report.json` + `security-report.md`);
-- contagem de testes por tipo (`test-breakdown.json` + `test-breakdown.md`).
+Parar ambiente:
+
+```bash
+docker compose down
+```
+
+Reset total (remove containers, rede e volume do banco):
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+## Troubleshooting Rápido
+Porta `8080` ou `5432` ocupada:
+- pare serviços locais que estejam usando essas portas;
+- rode novamente `docker compose up -d --build`.
+
+API não sobe após build:
+- verificar logs com `docker compose logs -f api`.
+
+Banco inconsistente:
+- executar reset total (`docker compose down -v` + `docker compose up -d --build`).
+
+## Observação Acadêmica
+As credenciais acima são intencionalmente simples para facilitar reprodução da banca em ambiente local.

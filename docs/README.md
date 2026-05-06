@@ -39,6 +39,8 @@ Leitura inicial recomendada:
 2. `docs/architecture/architecture-overview.md`
 3. `docs/architecture/application-and-integrations.md`
 4. `docs/architecture/engineering-standards.md`
+5. `docs/architecture/operations-and-quality.md`
+6. `docs/architecture/testing-and-quality.md`
 
 ## 3) Trilha Evolutiva (`docs/Specs`)
 Registra instruções e snapshots versionados por pasta.

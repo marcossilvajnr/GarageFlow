@@ -17,6 +17,8 @@ Arquitetura não substitui regras de domínio; ela define como essas regras são
 2. `application-and-integrations.md`
 3. `engineering-standards.md`
 4. `operations-and-quality.md`
+5. `testing-and-quality.md`
+6. `ci.md`
 
 ## Resultado esperado após leitura
 Um novo desenvolvedor deve conseguir:
@@ -24,4 +26,4 @@ Um novo desenvolvedor deve conseguir:
 - localizar cada bounded context no código;
 - implementar fluxos críticos sem quebrar invariantes de domínio;
 - seguir padrões mínimos de persistência, segurança e testes;
-- operar o ambiente local com Docker e executar a esteira manual de qualidade/segurança.
+- operar o ambiente local com Docker e executar a esteira de CI manual.
