@@ -125,7 +125,7 @@ public sealed class SeparationExecutionIntegrationTests
             .HandleAsync(new ConfirmSeparationMechanicReceiptCommand(separation.Id));
 
         // Avançar execução para InExecution
-        await new StartExecutionOrderHandler(executionRepo)
+        await new StartExecutionOrderHandler(executionRepo, soRepo)
             .HandleAsync(new StartExecutionOrderCommand(execution.Id, Guid.NewGuid()));
 
         var totalBeforeComplete = stock.TotalQuantity;

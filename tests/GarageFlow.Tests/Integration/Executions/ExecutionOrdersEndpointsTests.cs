@@ -37,6 +37,19 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
         return so.Id;
     }
 
+    private async Task<Guid> SeedServiceOrderApproved()
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        typeof(ServiceOrder)
+            .GetProperty(nameof(ServiceOrder.Status))!
+            .SetValue(so, ServiceOrderStatus.Approved);
+        db.ServiceOrders.Add(so);
+        await db.SaveChangesAsync();
+        return so.Id;
+    }
+
     private static CreateExecutionOrderRequest ValidCreateRequest(
         Guid? serviceOrderId = null,
         Guid? serviceId = null) =>
@@ -44,7 +57,12 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
 
     private async Task<ExecutionOrderResponse> CreateExecutionOrder(CreateExecutionOrderRequest? request = null)
     {
-        var req = request ?? ValidCreateRequest();
+        var req = request;
+        if (req is null)
+        {
+            var serviceOrderId = await SeedServiceOrderApproved();
+            req = ValidCreateRequest(serviceOrderId);
+        }
         var response = await _client.PostAsJsonAsync("/execution-orders", req);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;

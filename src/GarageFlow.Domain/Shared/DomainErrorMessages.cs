@@ -268,6 +268,7 @@ public static class DomainErrorMessages
     public static string PurchaseOrderNotFound(Guid id) => $"Ordem de Compra '{id}' não encontrada";
 
     // ServiceOrder status transitions (context-specific)
+    public const string ServiceOrderCannotStartExecution = "A Ordem de Serviço não está Aprovada para iniciar execução";
     public const string ServiceOrderCannotFinish = "A Ordem de Serviço não está Em Execução e não pode ser finalizada";
     public const string ServiceOrderServicesFrozenAfterDiagnostic = "Serviços da OS estão congelados após conclusão do diagnóstico";
 }

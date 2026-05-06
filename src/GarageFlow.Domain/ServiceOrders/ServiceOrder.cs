@@ -201,6 +201,18 @@ public sealed class ServiceOrder
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void StartExecutionFlow()
+    {
+        if (Status == ServiceOrderStatus.InExecution)
+            return;
+
+        if (Status != ServiceOrderStatus.Approved)
+            throw new InvalidServiceOrderStatusTransitionException(DomainErrorMessages.ServiceOrderCannotStartExecution);
+
+        Status = ServiceOrderStatus.InExecution;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Finish()
     {
         if (Status != ServiceOrderStatus.InExecution)

@@ -9,8 +9,11 @@ using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Suppliers;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Purchasing;
+using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
+using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Tests.Integration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GarageFlow.Tests.Integration.Purchasing;
 
@@ -92,11 +95,25 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
 
     private async Task<ExecutionOrderResponse> CreateExecutionOrder()
     {
+        var serviceOrderId = await SeedServiceOrderApproved();
         var response = await _client.PostAsJsonAsync(
             "/execution-orders",
-            new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid()));
+            new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid()));
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
+    }
+
+    private async Task<Guid> SeedServiceOrderApproved()
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        typeof(ServiceOrder)
+            .GetProperty(nameof(ServiceOrder.Status))!
+            .SetValue(so, ServiceOrderStatus.Approved);
+        db.ServiceOrders.Add(so);
+        await db.SaveChangesAsync();
+        return so.Id;
     }
 
     private async Task<Guid> CreatePart()
