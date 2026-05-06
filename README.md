@@ -27,8 +27,8 @@ Backend em .NET para gestão de oficina, com arquitetura em camadas e documenta�
 6. Derrubar ambiente:
    - `docker compose down`
 
-## Migrations (quando aplicável)
-A aplicação não cria schema automaticamente. Para aplicar migrations:
+## Migrations manuais (quando aplicável)
+Se precisar aplicar migrations manualmente, use:
 
 ```bash
 dotnet ef database update \
@@ -40,6 +40,27 @@ Se não tiver o CLI do EF:
 
 ```bash
 dotnet tool install --global dotnet-ef
+```
+
+## Automacao de banco no startup
+- A API agora aplica migrations automaticamente ao iniciar.
+- Se o schema estiver faltando (ex.: `relation "service_orders" does not exist`), basta reiniciar a API.
+- Para desabilitar esse comportamento (ex.: ambiente de teste), use:
+
+```bash
+export Database__AutoMigrateOnStartup=false
+```
+
+## Operacoes de banco via API (somente Development)
+Endpoints disponiveis no Swagger quando rodando em `Development`:
+- `POST /dev/database/migrate` -> aplica migrations pendentes
+- `POST /dev/database/clean` -> remove o banco (destrutivo)
+- `POST /dev/database/reset` -> remove e recria o banco com migrations
+
+Para operacoes destrutivas (`clean` e `reset`), envie:
+
+```json
+{ "confirm": true }
 ```
 
 ## Execução local sem Docker
