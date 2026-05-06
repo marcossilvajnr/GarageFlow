@@ -20,6 +20,13 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         PropertyNameCaseInsensitive = true
     };
 
+    private HttpClient CreateClientWithRole(string role)
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.RoleHeader, role);
+        return client;
+    }
+
     private async Task<Guid> CreatePart()
     {
         var request = new CreatePartRequest("Filtro Ar", $"P-{Guid.NewGuid():N}"[..10], $"SKU-{Guid.NewGuid():N}"[..12], "UN", 50m);
@@ -86,11 +93,12 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     [Fact]
     public async Task ReleaseStock_ForSupply_WithReason_Returns200()
     {
+        var adminClient = CreateClientWithRole("Administrative");
         var supplyId = await CreateSupply();
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(supplyId, StockItemType.Supply, 10m, 0m, null, null));
         await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(supplyId, StockItemType.Supply, 2m, null, null));
 
-        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(supplyId, StockItemType.Supply, 1m, "Ajuste manual", "operador.teste", null, null));
+        var response = await adminClient.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(supplyId, StockItemType.Supply, 1m, "Ajuste manual", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -98,11 +106,12 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     [Fact]
     public async Task ReleaseStock_WithoutReason_Returns400()
     {
+        var adminClient = CreateClientWithRole("Administrative");
         var partId = await CreatePart();
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
         await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
 
-        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, null, "operador.teste", null, null));
+        var response = await adminClient.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, null, "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -110,11 +119,12 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     [Fact]
     public async Task ReleaseStock_WithoutPerformedBy_Returns400()
     {
+        var adminClient = CreateClientWithRole("Administrative");
         var partId = await CreatePart();
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
         await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
 
-        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste manual", null, null, null));
+        var response = await adminClient.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste manual", null, null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -122,12 +132,13 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     [Fact]
     public async Task ReleaseStock_WithFullAuditTrail_PersistsAuditFieldsInOperationLog()
     {
+        var adminClient = CreateClientWithRole("Administrative");
         var partId = await CreatePart();
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 15m, 0m, null, null));
         await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 5m, null, null));
 
         var referenceId = Guid.NewGuid();
-        var releaseResponse = await _client.PostAsJsonAsync("/stock/releases",
+        var releaseResponse = await adminClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(partId, StockItemType.Part, 2m, "Cancelamento manual", "gestor.estoque", referenceId, "SeparationOrder"));
 
         releaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -146,11 +157,12 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     [Fact]
     public async Task ReleaseStock_WithExcessQuantity_Returns409()
     {
+        var adminClient = CreateClientWithRole("Administrative");
         var partId = await CreatePart();
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
         await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
 
-        var response = await _client.PostAsJsonAsync("/stock/releases",
+        var response = await adminClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(partId, StockItemType.Part, 5m, "Ajuste manual", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -159,10 +171,52 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     [Fact]
     public async Task ReleaseStock_WithUnknownItem_Returns404()
     {
-        var response = await _client.PostAsJsonAsync("/stock/releases",
+        var adminClient = CreateClientWithRole("Administrative");
+        var response = await adminClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(Guid.NewGuid(), StockItemType.Part, 1m, "Ajuste", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithoutToken_Returns401()
+    {
+        var partId = await CreatePart();
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+
+        var response = await _client.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste manual", "operador.teste", null, null));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithNonAdminRole_Returns403()
+    {
+        var stockistClient = CreateClientWithRole("Stockist");
+        var partId = await CreatePart();
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+
+        var response = await stockistClient.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste manual", "operador.teste", null, null));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithAdministrativeRole_Returns200()
+    {
+        var adminClient = CreateClientWithRole("Administrative");
+        var partId = await CreatePart();
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 3m, null, null));
+
+        var response = await adminClient.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(partId, StockItemType.Part, 2m, "Liberação administrativa", "admin.usuario", null, null));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -191,3 +245,4 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }
+

@@ -1,3 +1,4 @@
+using System.Text;
 using GarageFlow.Api.Endpoints;
 using GarageFlow.Api.Endpoints.Customers;
 using GarageFlow.Api.Endpoints.Employees;
@@ -12,6 +13,8 @@ using GarageFlow.Api.Endpoints.Supplies;
 using GarageFlow.Api.Endpoints.Vehicles;
 using GarageFlow.Application;
 using GarageFlow.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +35,34 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
+var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]!;
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+            ValidateLifetime = true,
+            RoleClaimType = "role"
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Administrative", policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireRole("Administrative"));
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -46,6 +77,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapHealthEndpoints();
 app.MapCustomerEndpoints();
 app.MapVehicleEndpoints();

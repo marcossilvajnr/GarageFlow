@@ -35,7 +35,10 @@ public static class StockEndpoints
         group.MapPost("/releases", ReleaseStockReservation)
             .WithName("ReleaseStockReservation")
             .WithSummary("Libera reserva de estoque.")
+            .RequireAuthorization("Administrative")
             .Produces<StockPositionResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);

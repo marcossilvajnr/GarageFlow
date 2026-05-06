@@ -1,5 +1,6 @@
 using GarageFlow.Infrastructure.Persistence;
 using Microsoft.Data.Sqlite;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +13,20 @@ namespace GarageFlow.Tests.Integration;
 
 public sealed class GarageFlowWebApplicationFactory : WebApplicationFactory<Program>
 {
+    internal const string TestJwtIssuer = "garageflow";
+    internal const string TestJwtAudience = "garageflow-api";
+    internal const string TestJwtSecretKey = "test-only-secret-key-32-bytes-long!";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:GarageFlow"] = "Host=localhost;Database=test;Username=test;Password=test"
+                ["ConnectionStrings:GarageFlow"] = "Host=localhost;Database=test;Username=test;Password=test",
+                ["Jwt:Issuer"] = TestJwtIssuer,
+                ["Jwt:Audience"] = TestJwtAudience,
+                ["Jwt:SecretKey"] = TestJwtSecretKey
             });
         });
 
@@ -35,6 +43,10 @@ public sealed class GarageFlowWebApplicationFactory : WebApplicationFactory<Prog
             services.AddSingleton(connection);
             services.AddDbContext<GarageFlowDbContext>(options =>
                 options.UseSqlite(connection));
+
+            // Replace authentication with the test scheme so tests don't need real JWT tokens.
+            services.AddAuthentication(TestAuthHandler.SchemeName)
+                .AddScheme<TestAuthSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
 
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();

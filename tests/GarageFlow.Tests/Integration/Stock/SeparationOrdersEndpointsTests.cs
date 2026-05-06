@@ -15,6 +15,12 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     : IClassFixture<GarageFlowWebApplicationFactory>
 {
     private readonly HttpClient _client = factory.CreateClient();
+    private HttpClient CreateClientWithRole(string role)
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.RoleHeader, role);
+        return client;
+    }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -311,7 +317,8 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
 
         // Manually release part of the reservation to simulate insufficient reserved stock
-        await _client.PostAsJsonAsync("/stock/releases",
+        var adminClient = CreateClientWithRole("Administrative");
+        await adminClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste operacional de teste", "sistema", null, null));
 
         var request = new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid());
