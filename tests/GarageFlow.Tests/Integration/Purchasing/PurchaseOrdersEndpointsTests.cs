@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Purchasing;
 using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Suppliers;
@@ -75,6 +76,23 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
         response.EnsureSuccessStatusCode();
         var supplier = (await response.Content.ReadFromJsonAsync<SupplierResponse>(JsonOptions))!;
         return supplier.Id;
+    }
+
+    private async Task<Guid> CreatePart()
+    {
+        var request = new CreatePartRequest("Filtro de óleo", $"P-{Guid.NewGuid():N}"[..10], $"SKU-{Guid.NewGuid():N}"[..12], "UN", 50m);
+        var response = await _client.PostAsJsonAsync("/parts", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<PartResponse>(JsonOptions);
+        return body!.Id;
+    }
+
+    private async Task CreateStockEntry(Guid itemId, StockItemType itemType, decimal initialQuantity)
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/stock/entries",
+            new CreateStockEntryRequest(itemId, itemType, initialQuantity, 0m, "Seed integração purchase-orders", null));
+        response.EnsureSuccessStatusCode();
     }
 
     // --- POST /purchase-orders ---
@@ -296,9 +314,12 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
 
     private async Task<SeparationOrderResponse> CreateSeparationOrderInWaitingPurchase()
     {
+        var partId = await CreatePart();
+        await CreateStockEntry(partId, StockItemType.Part, 100m);
+
         var createReq = new CreateSeparationOrderRequest(
             Guid.NewGuid(),
-            [new CreateSeparationPartItemRequest(Guid.NewGuid(), "Filtro de óleo", 1)],
+            [new CreateSeparationPartItemRequest(partId, "Filtro de óleo", 1)],
             []);
         var createResp = await _client.PostAsJsonAsync("/separation-orders", createReq);
         createResp.EnsureSuccessStatusCode();

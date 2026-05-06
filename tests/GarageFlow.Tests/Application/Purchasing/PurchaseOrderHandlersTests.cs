@@ -263,17 +263,32 @@ public sealed class PurchaseOrderHandlersTests
         return separationOrder;
     }
 
+    private static async Task SeedStockForSeparationAsync(FakeStockRepository stockRepo, SeparationOrder separationOrder)
+    {
+        foreach (var part in separationOrder.Parts)
+        {
+            await stockRepo.AddAsync(GarageFlow.Domain.Stock.Stock.Create(part.PartId, StockItemType.Part, 100m, 0m));
+        }
+
+        foreach (var supply in separationOrder.Supplies)
+        {
+            await stockRepo.AddAsync(GarageFlow.Domain.Stock.Stock.Create(supply.SupplyId, StockItemType.Supply, 100m, 0m));
+        }
+    }
+
     [Fact]
     public async Task Complete_WhenStarted_ReturnsCompletedStatus()
     {
         var purchaseRepo = new FakePurchaseOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
+        var stockRepo = new FakeStockRepository();
         var supplierRepo = new FakeSupplierRepository();
         var supplier = ValidSupplier();
         await supplierRepo.AddAsync(supplier);
 
         var separationOrder = SeparationOrderInWaitingPurchase();
         await separationRepo.AddAsync(separationOrder);
+        await SeedStockForSeparationAsync(stockRepo, separationOrder);
 
         var createHandler = new CreatePurchaseOrderHandler(purchaseRepo);
         var dto = await createHandler.HandleAsync(ValidCreateCommand([separationOrder.Id]));
@@ -284,7 +299,7 @@ public sealed class PurchaseOrderHandlersTests
         var startHandler = new StartPurchaseOrderHandler(purchaseRepo);
         await startHandler.HandleAsync(new StartPurchaseOrderCommand(dto.Id));
 
-        var completeHandler = new CompletePurchaseOrderHandler(purchaseRepo, separationRepo);
+        var completeHandler = new CompletePurchaseOrderHandler(purchaseRepo, separationRepo, stockRepo);
         var result = await completeHandler.HandleAsync(new CompletePurchaseOrderCommand(dto.Id));
 
         result.Status.Should().Be(PurchaseOrderStatus.Completed);
@@ -296,10 +311,11 @@ public sealed class PurchaseOrderHandlersTests
     {
         var purchaseRepo = new FakePurchaseOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
+        var stockRepo = new FakeStockRepository();
         var createHandler = new CreatePurchaseOrderHandler(purchaseRepo);
         var dto = await createHandler.HandleAsync(ValidCreateCommand());
 
-        var completeHandler = new CompletePurchaseOrderHandler(purchaseRepo, separationRepo);
+        var completeHandler = new CompletePurchaseOrderHandler(purchaseRepo, separationRepo, stockRepo);
         var act = async () => await completeHandler.HandleAsync(new CompletePurchaseOrderCommand(dto.Id));
 
         await act.Should().ThrowAsync<InvalidPurchaseOrderStatusTransitionException>()
@@ -311,7 +327,8 @@ public sealed class PurchaseOrderHandlersTests
     {
         var purchaseRepo = new FakePurchaseOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
-        var handler = new CompletePurchaseOrderHandler(purchaseRepo, separationRepo);
+        var stockRepo = new FakeStockRepository();
+        var handler = new CompletePurchaseOrderHandler(purchaseRepo, separationRepo, stockRepo);
 
         var act = async () => await handler.HandleAsync(new CompletePurchaseOrderCommand(Guid.NewGuid()));
 

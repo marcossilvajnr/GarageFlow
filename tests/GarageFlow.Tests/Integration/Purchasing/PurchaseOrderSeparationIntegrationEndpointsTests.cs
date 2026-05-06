@@ -2,9 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using GarageFlow.Api.DTOs.Executions;
+using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Purchasing;
 using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Suppliers;
+using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.Integration;
@@ -65,9 +68,18 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
 
     private async Task<SeparationOrderResponse> CreateSeparationOrderInWaitingPurchase()
     {
+        var execution = await CreateExecutionOrder();
+        return await CreateSeparationOrderInWaitingPurchase(execution.Id);
+    }
+
+    private async Task<SeparationOrderResponse> CreateSeparationOrderInWaitingPurchase(Guid executionOrderId)
+    {
+        var partId = await CreatePart();
+        await CreateStockEntry(partId, StockItemType.Part, 100m);
+
         var createReq = new CreateSeparationOrderRequest(
-            Guid.NewGuid(),
-            [new CreateSeparationPartItemRequest(Guid.NewGuid(), "Filtro de óleo", 1)],
+            executionOrderId,
+            [new CreateSeparationPartItemRequest(partId, "Filtro de óleo", 1)],
             []);
         var createResp = await _client.PostAsJsonAsync("/separation-orders", createReq);
         createResp.EnsureSuccessStatusCode();
@@ -76,6 +88,32 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var waitResp = await _client.PostAsync($"/separation-orders/{separation.Id}/wait-purchase", null);
         waitResp.EnsureSuccessStatusCode();
         return (await waitResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
+    }
+
+    private async Task<ExecutionOrderResponse> CreateExecutionOrder()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/execution-orders",
+            new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid()));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
+    }
+
+    private async Task<Guid> CreatePart()
+    {
+        var request = new CreatePartRequest("Filtro de óleo", $"P-{Guid.NewGuid():N}"[..10], $"SKU-{Guid.NewGuid():N}"[..12], "UN", 50m);
+        var response = await _client.PostAsJsonAsync("/parts", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<PartResponse>(JsonOptions);
+        return body!.Id;
+    }
+
+    private async Task CreateStockEntry(Guid itemId, StockItemType itemType, decimal initialQuantity)
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/stock/entries",
+            new CreateStockEntryRequest(itemId, itemType, initialQuantity, 0m, "Seed integração cadeia compra-separação-execução", null));
+        response.EnsureSuccessStatusCode();
     }
 
     private async Task<PurchaseOrderResponse> CreateStartedPurchaseOrder(Guid separationOrderId)
@@ -144,9 +182,12 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     [Fact]
     public async Task CompletePurchaseOrder_WhenSeparationInWrongState_Returns409()
     {
+        var partId = await CreatePart();
+        await CreateStockEntry(partId, StockItemType.Part, 100m);
+
         var createReq = new CreateSeparationOrderRequest(
             Guid.NewGuid(),
-            [new CreateSeparationPartItemRequest(Guid.NewGuid(), "Filtro de óleo", 1)],
+            [new CreateSeparationPartItemRequest(partId, "Filtro de óleo", 1)],
             []);
         var createResp = await _client.PostAsJsonAsync("/separation-orders", createReq);
         createResp.EnsureSuccessStatusCode();
@@ -187,5 +228,53 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var response = await _client.PostAsJsonAsync($"/purchase-orders/{Guid.NewGuid()}/complete", new { });
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task CompletePurchaseOrder_ChainToExecution_StartBeforeMechanicReceipt_Returns409()
+    {
+        var execution = await CreateExecutionOrder();
+        var separation = await CreateSeparationOrderInWaitingPurchase(execution.Id);
+        var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
+
+        var completePurchaseResponse = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        completePurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var startExecutionResponse = await _client.PostAsJsonAsync(
+            $"/execution-orders/{execution.Id}/start",
+            new StartExecutionOrderRequest(Guid.NewGuid()));
+
+        startExecutionResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task CompletePurchaseOrder_ChainToExecution_AfterCustodyExecutionBecomesReadyAndCanStart()
+    {
+        var execution = await CreateExecutionOrder();
+        var separation = await CreateSeparationOrderInWaitingPurchase(execution.Id);
+        var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
+
+        var completePurchaseResponse = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        completePurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var confirmStockistResponse = await _client.PostAsJsonAsync(
+            $"/separation-orders/{separation.Id}/confirm-stockist-withdrawal",
+            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+        confirmStockistResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var confirmMechanicResponse = await _client.PostAsync(
+            $"/separation-orders/{separation.Id}/confirm-mechanic-receipt",
+            null);
+        confirmMechanicResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var executionGetResponse = await _client.GetAsync($"/execution-orders/{execution.Id}");
+        executionGetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var executionBody = await executionGetResponse.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
+        executionBody!.Status.Should().Be(ExecutionOrderStatus.Ready);
+
+        var startExecutionResponse = await _client.PostAsJsonAsync(
+            $"/execution-orders/{execution.Id}/start",
+            new StartExecutionOrderRequest(Guid.NewGuid()));
+        startExecutionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
