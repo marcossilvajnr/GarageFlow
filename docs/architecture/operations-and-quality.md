@@ -55,21 +55,33 @@ Regras de evolução:
 - preservar rastreabilidade dos relatórios;
 - manter compatibilidade com os contratos públicos da API.
 
-## Cobertura E2E Crítica (Pre-JWT)
+## Estratégia de Testes E2E
 Objetivo:
-- demonstrar o sistema ponta a ponta com três fluxos de maior valor antes da fase de JWT.
+- validar fluxos ponta a ponta críticos do produto com foco em integridade de processo, aderência às máquinas de estado e consistência entre contratos HTTP e estado final dos agregados.
 
-Fluxos obrigatórios:
+Escopo de cobertura crítica:
 1. OS ponta a ponta com estoque suficiente.
 2. OS com falta de estoque, compra e retomada da separação.
 3. OS com cancelamento no último estágio permitido.
 
-Evidências mínimas por fluxo:
-- respostas HTTP esperadas por etapa crítica;
-- estado final consistente de `ServiceOrder`, `SeparationOrder`, `PurchaseOrder` (quando houver) e `ExecutionOrder`;
-- ids rastreáveis dos agregados principais no teste.
+Princípios:
+- determinismo: dados e pré-condições previsíveis por cenário;
+- rastreabilidade: cada execução deve manter identificadores de negócio auditáveis;
+- isolamento: cenários independentes, sem acoplamento implícito entre execuções;
+- legibilidade: passos, expectativa e resultado descritos de forma operacional.
 
-Estados-alvo por fluxo:
+Padrão de validação por cenário:
+- validação de resposta HTTP nas etapas críticas;
+- validação das transições de estado esperadas em cada processo envolvido;
+- validação de consistência final de processo (sem estados conflitantes entre agregados relacionados).
+
+Checklist corporativo de evidência por fluxo:
+- identificadores de entidades-chave: `ServiceOrder`, `SeparationOrder`, `ExecutionOrder`, `PurchaseOrder` (quando aplicável);
+- transições de estado esperadas por agregado crítico;
+- respostas HTTP esperadas nas etapas críticas;
+- condição final de consistência do processo.
+
+Referência de estados-alvo dos fluxos críticos:
 - Fluxo 1:
   - `ServiceOrder`: `Approved -> InExecution -> Finished`
   - `SeparationOrder`: `Pending -> WaitingPickup -> Separated -> Completed`
@@ -81,7 +93,11 @@ Estados-alvo por fluxo:
 - Fluxo 3:
   - cancelamento aceito no limite canônico e bloqueio de avanço inválido após cancelamento.
 
-Limites desta fase:
-- sem validação de token real JWT;
-- uso de autenticação de teste permitido;
-- foco em integridade de fluxo e máquina de estado.
+Critérios mínimos de aceitação de um fluxo E2E:
+- cenário executável ponta a ponta sem intervenção manual fora do processo definido;
+- validação explícita de HTTP e estados de negócio;
+- resultado reproduzível no ambiente de execução definido para testes.
+
+Forma de observação e evidência:
+- os cenários podem ser observados por testes automatizados e/ou inspeção de endpoints;
+- Swagger, execução de testes e outras ferramentas equivalentes são meios válidos de evidência, desde que preservem rastreabilidade e critérios de aceitação.
