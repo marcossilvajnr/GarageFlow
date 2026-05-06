@@ -3,11 +3,11 @@ using GarageFlow.Tests.Integration;
 
 namespace GarageFlow.Tests.E2E.Infrastructure;
 
-public sealed class E2ETestFixture : IClassFixture<GarageFlowWebApplicationFactory>
+public sealed class E2ETestFixture : IClassFixture<E2ERealDbWebApplicationFactory>
 {
-    private readonly GarageFlowWebApplicationFactory _factory;
+    private readonly E2ERealDbWebApplicationFactory _factory;
 
-    public E2ETestFixture(GarageFlowWebApplicationFactory factory)
+    public E2ETestFixture(E2ERealDbWebApplicationFactory factory)
     {
         _factory = factory;
     }

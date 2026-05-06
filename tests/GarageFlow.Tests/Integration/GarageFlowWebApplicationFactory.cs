@@ -26,7 +26,8 @@ public sealed class GarageFlowWebApplicationFactory : WebApplicationFactory<Prog
                 ["ConnectionStrings:GarageFlow"] = "Host=localhost;Database=test;Username=test;Password=test",
                 ["Jwt:Issuer"] = TestJwtIssuer,
                 ["Jwt:Audience"] = TestJwtAudience,
-                ["Jwt:SecretKey"] = TestJwtSecretKey
+                ["Jwt:SecretKey"] = TestJwtSecretKey,
+                ["Database:AutoMigrateOnStartup"] = "false"
             });
         });
 

@@ -4,15 +4,15 @@ using FluentAssertions;
 using GarageFlow.Api.DTOs.Customers;
 using GarageFlow.Tests.E2E.Builders;
 using GarageFlow.Tests.E2E.Infrastructure;
-using GarageFlow.Tests.Integration;
 
 namespace GarageFlow.Tests.E2E.Smoke;
 
-public sealed class E2ESmokeTests : E2ETestBase, IClassFixture<GarageFlowWebApplicationFactory>
+[Collection("E2E Real DB")]
+public sealed class E2ESmokeTests : E2ETestBase
 {
     private readonly HttpClient _client;
 
-    public E2ESmokeTests(GarageFlowWebApplicationFactory factory)
+    public E2ESmokeTests(E2ERealDbWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }
@@ -20,6 +20,8 @@ public sealed class E2ESmokeTests : E2ETestBase, IClassFixture<GarageFlowWebAppl
     [Fact]
     public async Task Smoke_CreateAndGetCustomer_ShouldWorkEndToEnd()
     {
+        await ResetRealDatabaseAsync(_client);
+
         var seed = new E2ESeedBuilder(_client);
         var customer = await seed.CreateCustomerAsync("529.982.247-25");
 

@@ -13,7 +13,9 @@ using GarageFlow.Api.Endpoints.Supplies;
 using GarageFlow.Api.Endpoints.Vehicles;
 using GarageFlow.Application;
 using GarageFlow.Infrastructure;
+using GarageFlow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -65,6 +67,15 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+var autoMigrateOnStartup = app.Configuration.GetValue("Database:AutoMigrateOnStartup", true);
+
+if (autoMigrateOnStartup)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -74,6 +85,7 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "GarageFlow API v1");
         options.RoutePrefix = "swagger";
     });
+    app.MapDevelopmentDatabaseEndpoints();
 }
 
 app.UseHttpsRedirection();
