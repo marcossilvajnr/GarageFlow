@@ -154,7 +154,7 @@ stateDiagram-v2
     [*] --> Received
     Received --> InDiagnostic : StartDiagnostic
     InDiagnostic --> WaitingApproval : CompleteDiagnostic
-    WaitingApproval --> Approved : ApproveQuote
+    WaitingApproval --> Approved : AcceptQuote
     WaitingApproval --> Rejected : RejectQuote
     Approved --> InExecution : StartExecutionFlow
     InExecution --> Finished : All services completed

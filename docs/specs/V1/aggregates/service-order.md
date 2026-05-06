@@ -84,7 +84,7 @@ stateDiagram-v2
     [*] --> Received
     Received --> InDiagnostic : StartDiagnostic()
     InDiagnostic --> WaitingApproval : CompleteDiagnostic()
-    WaitingApproval --> Approved : ApproveQuote()
+    WaitingApproval --> Approved : AcceptQuote()
     WaitingApproval --> Rejected : RejectQuote()
     Approved --> InExecution : StartExecutionFlow()
     InExecution --> Finished : Finish()
@@ -131,9 +131,9 @@ stateDiagram-v2
   - integração canônica: `DiagnosticCompletedEvent`
   - integração canônica: `QuoteGeneratedEvent`
 
-### ApproveQuote()
+### AcceptQuote()
 - pré-condição: `Status == WaitingApproval`
-- aprova orçamento, define `TotalServices`, zera `CompletedServices`, muda para `Approved`
+- aprova orçamento atual e muda para `Approved`
 - eventos:
   - integração canônica: `QuoteApprovedEvent`
 
@@ -142,19 +142,13 @@ stateDiagram-v2
 - ação: rejeita orçamento atual sem alterar itens/valores da versão rejeitada e muda status para `Rejected`
 - observação: nova mudança de escopo exige retorno ao atendimento e nova versão de orçamento
 
-### IncrementCompletedServices()
-- pré-condição: `Status == InExecution`
-- incrementa progresso e chama `Finish()` ao atingir total
-
 ### Finish()
-- pré-condição: `CompletedServices == TotalServices`
+- pré-condição: `Status == InExecution`
 - muda para `Finished`
 - evento de domínio interno: `ServiceOrderFinishedEvent`
 
 ### RegisterDelivery()
-- pré-condição: `Status == Finished`
-- muda para `Delivered`
-- evento de domínio interno: `VehicleDeliveredEvent`
+- observação: transição `Finished -> Delivered` permanece no canônico, mas método ainda não está implementado nesta fase do código.
 
 ## Classificação de Eventos
 - Eventos de integração canônicos deste agregado: `DiagnosticStartedEvent`, `DiagnosticCompletedEvent`, `QuoteGeneratedEvent`, `QuoteApprovedEvent`.
@@ -176,6 +170,6 @@ stateDiagram-v2
 - [ ] concluir diagnóstico sem serviços (erro)
 - [ ] gerar `ServiceItem` com snapshot de peças/insumos
 - [ ] gerar `Quote` com `LaborPrice` vindo de `Service.BasePrice`
-- [ ] aprovar orçamento
+- [ ] aceitar orçamento
 - [ ] rejeitar orçamento
-- [ ] finalizar só quando contador atingir total
+- [ ] finalizar em `InExecution`

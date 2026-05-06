@@ -140,7 +140,7 @@ Decisões vigentes:
 | Criar OS | Create() | ServiceOrder |
 | Iniciar Diagnóstico | StartDiagnostic() | ServiceOrder |
 | Concluir Diagnóstico | CompleteDiagnostic() | ServiceOrder |
-| Aprovar Orçamento | ApproveQuote() | ServiceOrder |
+| Aprovar Orçamento | AcceptQuote() | ServiceOrder |
 | Rejeitar Orçamento | RejectQuote() | ServiceOrder |
 | Finalizar OS | Finish() | ServiceOrder |
 | Registrar Entrega | RegisterDelivery() | ServiceOrder |

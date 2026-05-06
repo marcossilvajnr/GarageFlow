@@ -31,7 +31,7 @@ abaixo do mínimo configurado.
 | ReservedQuantity | `decimal` | Sim | Bloqueada para ordens em andamento; maior ou igual a zero |
 | MinimumQuantity | `decimal` | Sim | Gatilho de reposição; maior ou igual a zero |
 | CreatedAt | `DateTime` | Sim | Definido como `DateTime.UtcNow` no `Create()` |
-| UpdatedAt | `DateTime` | Sim | Atualizado em toda operação de mutação de estado |
+| UpdatedAt | `DateTime?` | Não | Nulo na criação; atualizado em toda operação de mutação de estado |
 
 > **Enum `StockItemType`:**
 > ```
@@ -50,7 +50,7 @@ abaixo do mínimo configurado.
 
 ### Create(Guid itemId, StockItemType itemType, decimal initialQuantity, decimal minimumQuantity)
 - Pré-condição: `itemId` não é `Guid.Empty`; `initialQuantity >= 0`; `minimumQuantity >= 0`
-- Ação: cria com `TotalQuantity = AvailableQuantity = initialQuantity`, `ReservedQuantity = 0`; define `CreatedAt` e `UpdatedAt = DateTime.UtcNow`
+- Ação: cria com `TotalQuantity = AvailableQuantity = initialQuantity`, `ReservedQuantity = 0`; define `CreatedAt`
 - Pós-condição: estoque inicializado com invariante satisfeito
 - Evento emitido: nenhum
 - Exceções:
@@ -65,31 +65,41 @@ abaixo do mínimo configurado.
 - Eventos emitidos: `PartsReservedEvent`; condicionalmente `InsufficientStockEvent`
 - Exceção: `DomainException("Estoque insuficiente")`
 
-### Decrease(decimal quantity)
+### Consume(decimal quantity)
 - Pré-condição: `quantity > 0`; `ReservedQuantity >= quantity`
 - Ação: `ReservedQuantity -= quantity`; `TotalQuantity -= quantity`; `UpdatedAt = DateTime.UtcNow`
   (`AvailableQuantity` não se altera pois a quantidade já estava reservada)
 - Pós-condição: baixa física do estoque; invariante satisfeito
 - Evento emitido: `StockUpdatedEvent`
-- Exceção: `DomainException("Quantidade reservada insuficiente")`
+- Exceção: `StockQuantityConflictException("Quantidade reservada insuficiente")`
 
-### Release(decimal quantity)
-- Pré-condição: `ItemType == Part` (insumo não pode ser devolvido após separação)
+### Release(decimal quantity, string reason, string performedBy, Guid? referenceId = null, string? referenceType = null)
 - Pré-condição: `quantity > 0`; `ReservedQuantity >= quantity`
+- Pré-condição: `reason` obrigatório; `performedBy` obrigatório
 - Ação: `ReservedQuantity -= quantity`; `AvailableQuantity += quantity`; `UpdatedAt = DateTime.UtcNow`
-- Pós-condição: peças devolvidas à disponibilidade; invariante satisfeito (RN-016)
+- Pós-condição: quantidade reservada devolvida à disponibilidade; invariante satisfeito (RN-016)
 - Evento emitido: `StockUpdatedEvent`
 - Exceções:
-  - `DomainException("Insumo não pode ser devolvido ao estoque")`
-  - `DomainException("Quantidade a liberar inválida")`
+  - `DomainException("Motivo da liberação é obrigatório")`
+  - `DomainException("Responsável pela liberação é obrigatório")`
+  - `StockQuantityConflictException("Quantidade reservada insuficiente")`
 
-### Replenish(decimal quantity)
+### Entry(decimal quantity, string? reason = null, Guid? referenceId = null)
 - Pré-condição: `quantity > 0`
 - Ação: `TotalQuantity += quantity`; `AvailableQuantity += quantity`; `UpdatedAt = DateTime.UtcNow`
-  (reposição aumenta o físico e o disponível; `ReservedQuantity` não se altera)
-- Pós-condição: estoque reposto; invariante satisfeito
+- Pós-condição: estoque incrementado; invariante satisfeito
 - Evento emitido: `StockUpdatedEvent`
-- Exceção: `DomainException("Quantidade de reposição inválida")`
+- Exceção: `DomainException("Quantidade da operação inválida")`
+
+### Adjust(decimal quantityDelta, string reason, Guid? referenceId = null)
+- Pré-condição: `quantityDelta != 0`; `reason` obrigatório
+- Ação: ajusta `TotalQuantity` pelo delta informado e recalcula disponibilidade
+- Pós-condição: invariante preservado
+- Evento emitido: `StockUpdatedEvent`
+- Exceções:
+  - `DomainException("Quantidade de ajuste inválida")`
+  - `DomainException("Motivo do ajuste é obrigatório")`
+  - `StockQuantityConflictException("Ajuste de estoque quebra invariante")`
 
 ## Eventos de Domínio
 | Evento C# | Quando é emitido |
@@ -102,7 +112,7 @@ abaixo do mínimo configurado.
 - [RN-012]: Verificação automática de estoque ao criar Ordem de Separação
 - [RN-014]: `AvailableQuantity` nunca pode ser menor que zero
 - [RN-015]: Três quantidades distintas: `TotalQuantity`, `AvailableQuantity`, `ReservedQuantity`
-- [RN-016]: Três operações de estoque: Reservar (`Reserve`), Baixar (`Decrease`), Liberar (`Release`) apenas para `Part`
+- [RN-016]: Operações de estoque incluem Reservar (`Reserve`), Consumir (`Consume`), Liberar (`Release`), Entrada (`Entry`) e Ajuste (`Adjust`)
 - [RN-017]: `InsufficientStockEvent` desencadeia geração automática de Ordem de Compra
 
 ## Implementação C#
@@ -121,12 +131,12 @@ abaixo do mínimo configurado.
 - [ ] `Reserve(quantity)` com `AvailableQuantity` suficiente deve decrementar disponível, incrementar reservado e emitir `PartsReservedEvent`
 - [ ] `Reserve(quantity)` com `AvailableQuantity` insuficiente deve lançar `DomainException("Estoque insuficiente")`
 - [ ] `Reserve(quantity)` que leve `AvailableQuantity` abaixo de `MinimumQuantity` deve emitir `PartsReservedEvent` e `InsufficientStockEvent`
-- [ ] `Decrease(quantity)` após reserva válida deve decrementar reservado e total, manter disponível e emitir `StockUpdatedEvent`
-- [ ] `Decrease(quantity)` com `ReservedQuantity` insuficiente deve lançar `DomainException("Quantidade reservada insuficiente")`
-- [ ] `Release(quantity)` deve devolver quantidade à disponível e emitir `StockUpdatedEvent`
-- [ ] `Release(quantity)` com `ItemType == Supply` deve lançar `DomainException("Insumo não pode ser devolvido ao estoque")`
-- [ ] `Release(quantity)` maior que `ReservedQuantity` deve lançar `DomainException("Quantidade a liberar inválida")`
-- [ ] `Replenish(quantity)` deve incrementar total e disponível e emitir `StockUpdatedEvent`
-- [ ] `Replenish(0)` deve lançar `DomainException("Quantidade de reposição inválida")`
+- [ ] `Consume(quantity)` após reserva válida deve decrementar reservado e total, manter disponível e emitir `StockUpdatedEvent`
+- [ ] `Consume(quantity)` com `ReservedQuantity` insuficiente deve lançar `StockQuantityConflictException`
+- [ ] `Release(quantity, reason, performedBy)` deve devolver quantidade à disponível e emitir `StockUpdatedEvent`
+- [ ] `Release(quantity, reason, performedBy)` com `reason` vazio deve lançar `DomainException`
+- [ ] `Release(quantity, reason, performedBy)` maior que `ReservedQuantity` deve lançar `StockQuantityConflictException`
+- [ ] `Entry(quantity)` deve incrementar total e disponível e emitir `StockUpdatedEvent`
+- [ ] `Adjust(quantityDelta, reason)` deve manter invariante e emitir `StockUpdatedEvent`
 - [ ] `AvailableQuantity` nunca deve ser negativo após qualquer operação (invariante)
 - [ ] `UpdatedAt` deve ser atualizado em toda operação de mutação
