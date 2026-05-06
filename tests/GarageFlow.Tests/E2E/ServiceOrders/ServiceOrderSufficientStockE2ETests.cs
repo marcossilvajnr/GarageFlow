@@ -36,6 +36,25 @@ public sealed class ServiceOrderSufficientStockE2ETests : E2ETestBase
     public async Task HappyPath_ServiceOrderWithSufficientStock_ShouldReachCanonicalFinalStates()
     {
         await ResetRealDatabaseAsync(_client);
+        ClearAuthentication(_client);
+
+        var unauthorizedResponse = await _client.GetAsync("/employees?page=1&pageSize=10");
+        unauthorizedResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
+        await AuthenticateAsAsync(_client, E2ERole.Mechanic);
+        var forbiddenResponse = await _client.PostAsJsonAsync(
+            "/stock/releases",
+            new ReleaseStockReservationRequest(
+                Guid.NewGuid(),
+                StockItemType.Part,
+                1m,
+                "Tentativa sem permissão",
+                "mechanic.e2e",
+                null,
+                null));
+        forbiddenResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        await AuthenticateAsAsync(_client, E2ERole.Administrative);
 
         var customer = await CreateCustomerAsync();
         var vehicle = await CreateVehicleAsync(customer.Id);

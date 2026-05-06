@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using GarageFlow.Infrastructure.Persistence;
-using GarageFlow.Tests.Integration;
 
 namespace GarageFlow.Tests.E2E.Infrastructure;
 
@@ -36,9 +34,6 @@ public sealed class E2ERealDbWebApplicationFactory : WebApplicationFactory<Progr
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:GarageFlow"] = connectionString,
-                ["Jwt:Issuer"] = "garageflow",
-                ["Jwt:Audience"] = "garageflow-api",
-                ["Jwt:SecretKey"] = "test-only-secret-key-32-bytes-long!",
                 ["Database:AutoMigrateOnStartup"] = "true"
             });
         });
@@ -52,10 +47,6 @@ public sealed class E2ERealDbWebApplicationFactory : WebApplicationFactory<Progr
 
             services.AddDbContext<GarageFlowDbContext>(options =>
                 options.UseNpgsql(connectionString));
-
-            // Replace authentication with test scheme so E2E can call protected endpoints without real JWT.
-            services.AddAuthentication(TestAuthHandler.SchemeName)
-                .AddScheme<TestAuthSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
         });
 
         builder.UseEnvironment("Development");

@@ -32,6 +32,7 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
     public async Task CustomerCancellation_AtLatestAllowedStage_ShouldRejectQuoteAndBlockForwardProgress()
     {
         await ResetRealDatabaseAsync(_client);
+        await AuthenticateAsAsync(_client, E2ERole.Administrative);
 
         var customer = await CreateCustomerAsync();
         var vehicle = await CreateVehicleAsync(customer.Id);

@@ -1,4 +1,5 @@
 using GarageFlow.Infrastructure.Persistence;
+using GarageFlow.Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace GarageFlow.Api.Endpoints;
@@ -33,9 +34,11 @@ public static class DevelopmentDatabaseEndpoints
 
     private static async Task<IResult> MigrateDatabase(
         GarageFlowDbContext dbContext,
+        IAuthUserSeedService authUserSeedService,
         CancellationToken cancellationToken)
     {
         await dbContext.Database.MigrateAsync(cancellationToken);
+        await authUserSeedService.EnsureSeedAsync(cancellationToken);
         return Results.Ok(new
         {
             message = "Migrations aplicadas com sucesso.",
@@ -64,6 +67,7 @@ public static class DevelopmentDatabaseEndpoints
     private static async Task<IResult> ResetDatabase(
         ConfirmDestructiveOperationRequest request,
         GarageFlowDbContext dbContext,
+        IAuthUserSeedService authUserSeedService,
         CancellationToken cancellationToken)
     {
         if (!request.Confirm)
@@ -74,6 +78,7 @@ public static class DevelopmentDatabaseEndpoints
 
         await dbContext.Database.EnsureDeletedAsync(cancellationToken);
         await dbContext.Database.MigrateAsync(cancellationToken);
+        await authUserSeedService.EnsureSeedAsync(cancellationToken);
 
         return Results.Ok(new
         {
