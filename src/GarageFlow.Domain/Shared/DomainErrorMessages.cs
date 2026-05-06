@@ -272,4 +272,8 @@ public static class DomainErrorMessages
     public const string ServiceOrderCannotFinish = "A Ordem de Serviço não está Em Execução e não pode ser finalizada";
     public const string ServiceOrderCannotDeliver = "A Ordem de Serviço não está Finalizada e não pode ser entregue";
     public const string ServiceOrderServicesFrozenAfterDiagnostic = "Serviços da OS estão congelados após conclusão do diagnóstico";
+
+    // Authentication (context-specific)
+    public const string AuthInvalidLoginPayload = "Usuário e senha são obrigatórios";
+    public const string AuthInvalidCredentials = "Credenciais inválidas";
 }

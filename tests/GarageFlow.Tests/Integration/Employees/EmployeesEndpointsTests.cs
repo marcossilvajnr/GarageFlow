@@ -18,6 +18,13 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
         PropertyNameCaseInsensitive = true
     };
 
+    private HttpClient CreateClientWithRole(string role)
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.RoleHeader, role);
+        return client;
+    }
+
     private static CreateEmployeeRequest ValidRequest(string document = "529.982.247-25") => new(
         "Maria Silva",
         GarageFlow.Domain.Customers.CustomerDocumentType.Cpf,
@@ -62,9 +69,10 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
     [Fact]
     public async Task GetEmployees_Returns200WithPagination()
     {
+        var authClient = CreateClientWithRole("Administrative");
         await CreateEmployee("987.654.321-00");
 
-        var response = await _client.GetAsync("/employees?page=1&pageSize=10");
+        var response = await authClient.GetAsync("/employees?page=1&pageSize=10");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<PagedEmployeeResponse>(JsonOptions);
@@ -120,7 +128,8 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
     [Fact]
     public async Task GetEmployees_InvalidPage_Returns400()
     {
-        var response = await _client.GetAsync("/employees?page=0&pageSize=10");
+        var authClient = CreateClientWithRole("Administrative");
+        var response = await authClient.GetAsync("/employees?page=0&pageSize=10");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var body = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>(JsonOptions);
@@ -130,11 +139,19 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
     [Fact]
     public async Task GetEmployees_InvalidPageSize_Returns400()
     {
-        var response = await _client.GetAsync("/employees?page=1&pageSize=-1");
+        var authClient = CreateClientWithRole("Administrative");
+        var response = await authClient.GetAsync("/employees?page=1&pageSize=-1");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var body = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>(JsonOptions);
         body!.Status.Should().Be(400);
+    }
+
+    [Fact]
+    public async Task GetEmployees_WithoutToken_Returns401()
+    {
+        var response = await _client.GetAsync("/employees?page=1&pageSize=10");
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]

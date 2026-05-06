@@ -68,7 +68,10 @@ public static class StockEndpoints
         group.MapGet("/{itemType}/{itemId:guid}/operations", ListStockOperations)
             .WithName("ListStockOperations")
             .WithSummary("Lista extrato de operações de estoque por item.")
+            .RequireAuthorization()
             .Produces<PagedStockOperationsResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 

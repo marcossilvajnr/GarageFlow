@@ -28,6 +28,39 @@ docker compose ps
 - Swagger UI: `http://localhost:8080/swagger`
 - Swagger JSON: `http://localhost:8080/swagger/v1/swagger.json`
 
+5. Teste autenticação JWT no Swagger:
+- Faça `POST /auth/login` com um usuário de desenvolvimento, por exemplo:
+  - Body JSON:
+
+```json
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+- Copie o valor de `accessToken` da resposta.
+- Clique em `Authorize` no Swagger e cole:
+  - `{seu_accessToken}`
+- Chame um endpoint protegido de listagem sem ID (ex.: `GET /employees?page=1&pageSize=10`).
+
+Exemplo equivalente via `curl`:
+
+```bash
+# 1) Login e captura do token JWT
+TOKEN=$(curl -s -X POST 'http://localhost:8080/auth/login' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "username": "admin",
+    "password": "admin123"
+  }' | jq -r '.accessToken')
+
+# 2) Chamada autenticada no endpoint protegido de listagem
+curl -X GET 'http://localhost:8080/employees?page=1&pageSize=10' \
+  -H "accept: application/json" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 Observação:
 - No fluxo Docker, a `ConnectionStrings__GarageFlow` é montada automaticamente pelo `docker-compose.yml` com `Host=postgres`.
 - Não é necessário exportar `ConnectionStrings__GarageFlow` no shell para rodar com Docker.

@@ -9,7 +9,9 @@ using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Suppliers;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Domain.Vehicles;
+using GarageFlow.Infrastructure.Auth;
 using GarageFlow.Infrastructure.Persistence.Configurations;
+using GarageFlow.Infrastructure.Persistence.Configurations.Auth;
 using GarageFlow.Infrastructure.Persistence.Configurations.Customers;
 using GarageFlow.Infrastructure.Persistence.Configurations.Employees;
 using GarageFlow.Infrastructure.Persistence.Configurations.Executions;
@@ -39,6 +41,7 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
     public DbSet<Stock> Stocks => Set<Stock>();
     public DbSet<ExecutionOrder> ExecutionOrders => Set<ExecutionOrder>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+    internal DbSet<AuthUser> AuthUsers => Set<AuthUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,5 +57,6 @@ public sealed class GarageFlowDbContext(DbContextOptions<GarageFlowDbContext> op
         modelBuilder.ApplyConfiguration(new StockConfiguration());
         modelBuilder.ApplyConfiguration(new ExecutionOrderConfiguration());
         modelBuilder.ApplyConfiguration(new PurchaseOrderConfiguration());
+        modelBuilder.ApplyConfiguration(new AuthUserConfiguration());
     }
 }

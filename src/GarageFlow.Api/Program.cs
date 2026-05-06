@@ -1,5 +1,6 @@
 using System.Text;
 using GarageFlow.Api.Endpoints;
+using GarageFlow.Api.Endpoints.Auth;
 using GarageFlow.Api.Endpoints.Customers;
 using GarageFlow.Api.Endpoints.Employees;
 using GarageFlow.Api.Endpoints.Executions;
@@ -11,8 +12,10 @@ using GarageFlow.Api.Endpoints.Stock;
 using GarageFlow.Api.Endpoints.Suppliers;
 using GarageFlow.Api.Endpoints.Supplies;
 using GarageFlow.Api.Endpoints.Vehicles;
+using GarageFlow.Api.Swagger;
 using GarageFlow.Application;
 using GarageFlow.Infrastructure;
+using GarageFlow.Infrastructure.Auth;
 using GarageFlow.Infrastructure.Persistence;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -34,6 +37,18 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "API base do projeto GarageFlow para desenvolvimento e validacao tecnica."
     });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Informe o token JWT no formato: {token}"
+    });
+
+    options.OperationFilter<AuthorizeOperationFilter>();
 });
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -55,6 +70,7 @@ builder.Services
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
             ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
             RoleClaimType = "role"
         };
     });
@@ -75,6 +91,12 @@ if (autoMigrateOnStartup)
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
     await dbContext.Database.MigrateAsync();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var authSeedService = scope.ServiceProvider.GetRequiredService<IAuthUserSeedService>();
+    await authSeedService.EnsureSeedAsync();
 }
 
 if (app.Environment.IsDevelopment())
@@ -128,6 +150,7 @@ app.Use(async (context, next) =>
 });
 app.UseAuthorization();
 app.MapHealthEndpoints();
+app.MapAuthEndpoints();
 app.MapCustomerEndpoints();
 app.MapVehicleEndpoints();
 app.MapSupplierEndpoints();

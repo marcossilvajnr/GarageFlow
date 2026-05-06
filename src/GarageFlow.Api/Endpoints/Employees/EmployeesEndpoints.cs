@@ -29,7 +29,10 @@ public static class EmployeesEndpoints
         group.MapGet("/", ListEmployees)
             .WithName("ListEmployees")
             .WithSummary("Lista funcionários com paginação.")
-            .Produces<PagedEmployeeResponse>(StatusCodes.Status200OK);
+            .RequireAuthorization()
+            .Produces<PagedEmployeeResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
 
         group.MapPut("/{id:guid}", UpdateEmployee)
             .WithName("UpdateEmployee")

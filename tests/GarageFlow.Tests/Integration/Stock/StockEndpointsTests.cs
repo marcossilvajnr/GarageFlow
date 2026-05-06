@@ -193,7 +193,8 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
 
         releaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var opsResponse = await _client.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
+        var opsClient = CreateClientWithRole("Administrative");
+        var opsResponse = await opsClient.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
         opsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await opsResponse.Content.ReadFromJsonAsync<PagedStockOperationsResponse>(JsonOptions);
 
@@ -277,7 +278,8 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         var reserveResponse = await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, "Reserva", null));
         reserveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var response = await _client.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
+        var adminClient = CreateClientWithRole("Administrative");
+        var response = await adminClient.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<PagedStockOperationsResponse>(JsonOptions);
@@ -293,6 +295,17 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
             new CreateStockEntryRequest(Guid.NewGuid(), StockItemType.Part, 10m, 0m, null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task ListStockOperations_WithoutToken_Returns401()
+    {
+        var partId = await CreatePart();
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 8m, 0m, "Entrada", null));
+
+        var response = await _client.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     // ---------------------------------------------------------------------------

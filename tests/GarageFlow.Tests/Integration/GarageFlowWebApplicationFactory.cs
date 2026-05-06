@@ -27,6 +27,11 @@ public sealed class GarageFlowWebApplicationFactory : WebApplicationFactory<Prog
                 ["Jwt:Issuer"] = TestJwtIssuer,
                 ["Jwt:Audience"] = TestJwtAudience,
                 ["Jwt:SecretKey"] = TestJwtSecretKey,
+                ["Jwt:ExpirationInMinutes"] = "60",
+                ["Auth:SeedUsers:0:Username"] = "admin",
+                ["Auth:SeedUsers:0:Password"] = "admin123",
+                ["Auth:SeedUsers:0:DisplayName"] = "Administrador Teste",
+                ["Auth:SeedUsers:0:Role"] = "Administrative",
                 ["Database:AutoMigrateOnStartup"] = "false"
             });
         });
