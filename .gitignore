@@ -31,7 +31,13 @@ coverage/
 *.coverage
 *.coveragexml
 *.cobertura.xml
+coverage.xml
 CoverageReport/
+
+## SonarQube artifacts
+.sonarqube/
+sonarqube-issues-summary.json
+sonar-qube-issues-sumary.json
 
 ## Publish
 publish/
@@ -41,6 +47,7 @@ secrets.json
 appsettings.Local.json
 .env
 .env.*
+!.env.example
 
 ## Database
 *.db

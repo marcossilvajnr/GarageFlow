@@ -2,5 +2,10 @@
   "dotnet.defaultSolution": "GarageFlow.slnx",
   "files.associations": {
     "*.http": "http"
-  }
+  },
+  "sonarlint.connectedMode.project": {
+    "connectionId": "http-localhost-9000-",
+    "projectKey": "GarageFlow"
+  },
+  "sonarlint.pathToNodeExecutable": "/opt/homebrew/bin/node"
 }
