@@ -217,6 +217,9 @@ public static class DomainErrorMessages
     public const string InvalidStockMinimumQuantity = "Quantidade mínima do estoque inválida";
     public const string InvalidStockOperationQuantity = "Quantidade da operação de estoque deve ser maior que zero";
     public const string StockReleaseReasonRequired = "Motivo da liberação de estoque é obrigatório";
+    public const string StockReleasePerformedByRequired = "Responsável pela liberação de estoque é obrigatório";
+    public const string InvalidStockPerformedBy = "Responsável pela operação de estoque inválido";
+    public const string InvalidStockReferenceType = "Tipo de referência da operação de estoque inválido";
     public const string InvalidStockAdjustmentQuantity = "Ajuste de estoque não pode ser zero";
     public const string StockAdjustmentReasonRequired = "Motivo do ajuste de estoque é obrigatório";
     public const string InvalidStockOperationReason = "Motivo da operação de estoque inválido";

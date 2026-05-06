@@ -7,4 +7,6 @@ public sealed record ReleaseStockReservationCommand(
     StockItemType ItemType,
     decimal Quantity,
     string? Reason,
-    Guid? ReferenceId);
+    string? PerformedBy,
+    Guid? ReferenceId,
+    string? ReferenceType);

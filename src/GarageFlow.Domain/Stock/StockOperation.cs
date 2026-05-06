@@ -10,6 +10,8 @@ public sealed class StockOperation
     public decimal Quantity { get; private set; }
     public string? Reason { get; private set; }
     public Guid? ReferenceId { get; private set; }
+    public string? ReferenceType { get; private set; }
+    public string? PerformedBy { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
     private StockOperation() { }
@@ -18,7 +20,9 @@ public sealed class StockOperation
         StockOperationType type,
         decimal quantity,
         string? reason,
-        Guid? referenceId)
+        Guid? referenceId,
+        string? performedBy = null,
+        string? referenceType = null)
     {
         if (type == StockOperationType.Adjust)
         {
@@ -38,12 +42,29 @@ public sealed class StockOperation
         if (normalizedReason is { Length: > StockConstants.MaxReasonLength })
             throw new DomainException(DomainErrorMessages.InvalidStockOperationReason);
 
+        var normalizedPerformedBy = string.IsNullOrWhiteSpace(performedBy)
+            ? null
+            : performedBy.Trim();
+
+        if (normalizedPerformedBy is { Length: > StockConstants.MaxPerformedByLength })
+            throw new DomainException(DomainErrorMessages.InvalidStockPerformedBy);
+
+        var normalizedReferenceType = string.IsNullOrWhiteSpace(referenceType)
+            ? null
+            : referenceType.Trim();
+
+        if (normalizedReferenceType is { Length: > StockConstants.MaxReferenceTypeLength })
+            throw new DomainException(DomainErrorMessages.InvalidStockReferenceType);
+
         return new StockOperation
         {
+            Id = Guid.NewGuid(),
             Type = type,
             Quantity = quantity,
             Reason = normalizedReason,
             ReferenceId = referenceId,
+            ReferenceType = normalizedReferenceType,
+            PerformedBy = normalizedPerformedBy,
             CreatedAt = DateTime.UtcNow
         };
     }

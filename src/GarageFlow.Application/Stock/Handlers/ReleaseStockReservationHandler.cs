@@ -15,9 +15,6 @@ public sealed class ReleaseStockReservationHandler(
 {
     public async Task<StockPositionDto> HandleAsync(ReleaseStockReservationCommand command, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(command.Reason))
-            throw new DomainException(DomainErrorMessages.StockReleaseReasonRequired);
-
         await StockItemExistenceValidator.EnsureExistsAsync(
             command.ItemId,
             command.ItemType,
@@ -29,7 +26,12 @@ public sealed class ReleaseStockReservationHandler(
         if (stock is null)
             throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(command.ItemType, command.ItemId));
 
-        stock.Release(command.Quantity, command.Reason, command.ReferenceId);
+        stock.Release(
+            command.Quantity,
+            command.Reason ?? string.Empty,
+            command.PerformedBy ?? string.Empty,
+            command.ReferenceId,
+            command.ReferenceType);
 
         await stockRepository.SaveChangesAsync(cancellationToken);
         return StockMapper.ToPositionDto(stock);

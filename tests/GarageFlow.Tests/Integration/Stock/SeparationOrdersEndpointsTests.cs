@@ -312,7 +312,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
         // Manually release part of the reservation to simulate insufficient reserved stock
         await _client.PostAsJsonAsync("/stock/releases",
-            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste operacional de teste", null));
+            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste operacional de teste", "sistema", null, null));
 
         var request = new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid());
         var response = await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);

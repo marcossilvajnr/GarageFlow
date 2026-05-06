@@ -25,5 +25,7 @@ internal static class StockMapper
             operation.Quantity,
             operation.Reason,
             operation.ReferenceId,
+            operation.ReferenceType,
+            operation.PerformedBy,
             operation.CreatedAt);
 }

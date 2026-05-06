@@ -58,7 +58,7 @@ public sealed class StockTests
         var stock = global::GarageFlow.Domain.Stock.Stock.Create(Guid.NewGuid(), StockItemType.Supply, 10m, 0m);
         stock.Reserve(2m);
 
-        stock.Release(1m);
+        stock.Release(1m, "Ajuste manual", "admin");
 
         stock.TotalQuantity.Should().Be(10m);
         stock.ReservedQuantity.Should().Be(1m);

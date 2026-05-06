@@ -34,11 +34,13 @@ internal sealed class StockConfiguration : IEntityTypeConfiguration<DomainStock>
             b.WithOwner().HasForeignKey("stock_id");
 
             b.HasKey(so => so.Id);
-            b.Property(so => so.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            b.Property(so => so.Id).HasColumnName("id").ValueGeneratedNever();
             b.Property(so => so.Type).HasColumnName("type").HasConversion<int>().IsRequired();
             b.Property(so => so.Quantity).HasColumnName("quantity").HasColumnType("numeric(18,4)").IsRequired();
             b.Property(so => so.Reason).HasColumnName("reason").HasMaxLength(StockConstants.MaxReasonLength);
             b.Property(so => so.ReferenceId).HasColumnName("reference_id");
+            b.Property(so => so.ReferenceType).HasColumnName("reference_type").HasMaxLength(StockConstants.MaxReferenceTypeLength);
+            b.Property(so => so.PerformedBy).HasColumnName("performed_by").HasMaxLength(StockConstants.MaxPerformedByLength);
             b.Property(so => so.CreatedAt).HasColumnName("created_at").IsRequired();
 
             b.HasIndex("stock_id", nameof(DomainStockOperation.CreatedAt))

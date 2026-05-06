@@ -139,7 +139,14 @@ public static class StockEndpoints
         try
         {
             var dto = await handler.HandleAsync(
-                new ReleaseStockReservationCommand(request.ItemId, request.ItemType, request.Quantity, request.Reason, request.ReferenceId),
+                new ReleaseStockReservationCommand(
+                    request.ItemId,
+                    request.ItemType,
+                    request.Quantity,
+                    request.Reason,
+                    request.PerformedBy,
+                    request.ReferenceId,
+                    request.ReferenceType),
                 cancellationToken);
 
             return Results.Ok(ToPositionResponse(dto));
@@ -277,5 +284,5 @@ public static class StockEndpoints
             dto.UpdatedAt);
 
     private static StockOperationResponse ToOperationResponse(StockOperationDto dto) =>
-        new(dto.Id, dto.Type, dto.Quantity, dto.Reason, dto.ReferenceId, dto.CreatedAt);
+        new(dto.Id, dto.Type, dto.Quantity, dto.Reason, dto.ReferenceId, dto.ReferenceType, dto.PerformedBy, dto.CreatedAt);
 }

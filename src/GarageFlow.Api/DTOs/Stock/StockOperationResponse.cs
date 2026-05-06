@@ -8,4 +8,6 @@ public sealed record StockOperationResponse(
     decimal Quantity,
     string? Reason,
     Guid? ReferenceId,
+    string? ReferenceType,
+    string? PerformedBy,
     DateTime CreatedAt);

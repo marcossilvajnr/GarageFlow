@@ -66,7 +66,7 @@ public sealed class StockHandlersTests
         await reserveHandler.HandleAsync(new ReserveStockCommand(supply.Id, StockItemType.Supply, 5m, null, null));
 
         var releaseHandler = new ReleaseStockReservationHandler(stockRepo, partRepo, supplyRepo);
-        var result = await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(supply.Id, StockItemType.Supply, 1m, "Ajuste manual", null));
+        var result = await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(supply.Id, StockItemType.Supply, 1m, "Ajuste manual", "operador.teste", null, null));
 
         result.ReservedQuantity.Should().Be(4m);
         result.AvailableQuantity.Should().Be(16m);
@@ -89,9 +89,63 @@ public sealed class StockHandlersTests
         await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, StockItemType.Part, 2m, null, null));
 
         var releaseHandler = new ReleaseStockReservationHandler(stockRepo, partRepo, supplyRepo);
-        var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(part.Id, StockItemType.Part, 1m, null, null));
+        var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(part.Id, StockItemType.Part, 1m, null, "operador.teste", null, null));
 
         await act.Should().ThrowAsync<DomainException>();
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithoutPerformedBy_ShouldThrowDomainException()
+    {
+        var stockRepo = new FakeStockRepository();
+        var partRepo = new FakePartRepository();
+        var supplyRepo = new FakeSupplyRepository();
+
+        var part = Part.Create("Pastilha", "P-ST-005", "SKU-ST-005", "UN", 40m);
+        await partRepo.AddAsync(part);
+
+        var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
+        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, 5m, 0m, null, null));
+
+        var reserveHandler = new ReserveStockHandler(stockRepo, partRepo, supplyRepo);
+        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, StockItemType.Part, 2m, null, null));
+
+        var releaseHandler = new ReleaseStockReservationHandler(stockRepo, partRepo, supplyRepo);
+        var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(part.Id, StockItemType.Part, 1m, "Ajuste manual", null, null, null));
+
+        await act.Should().ThrowAsync<DomainException>();
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithAuditTrail_ShouldPersistAllAuditFields()
+    {
+        var stockRepo = new FakeStockRepository();
+        var partRepo = new FakePartRepository();
+        var supplyRepo = new FakeSupplyRepository();
+
+        var part = Part.Create("Correia B", "P-ST-006", "SKU-ST-006", "UN", 50m);
+        await partRepo.AddAsync(part);
+
+        var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
+        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, 10m, 0m, null, null));
+
+        var reserveHandler = new ReserveStockHandler(stockRepo, partRepo, supplyRepo);
+        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, StockItemType.Part, 3m, null, null));
+
+        var referenceId = Guid.NewGuid();
+        var releaseHandler = new ReleaseStockReservationHandler(stockRepo, partRepo, supplyRepo);
+        await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(
+            part.Id, StockItemType.Part, 2m, "Cancelamento manual", "gestor.estoque", referenceId, "SeparationOrder"));
+
+        var stock = await stockRepo.GetByItemAsync(part.Id, StockItemType.Part);
+        var releaseOp = stock!.Operations.Last();
+
+        releaseOp.Type.Should().Be(StockOperationType.Release);
+        releaseOp.PerformedBy.Should().Be("gestor.estoque");
+        releaseOp.Reason.Should().Be("Cancelamento manual");
+        releaseOp.ReferenceId.Should().Be(referenceId);
+        releaseOp.ReferenceType.Should().Be("SeparationOrder");
+        releaseOp.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
     [Fact]

@@ -75,15 +75,21 @@ public sealed class Stock
         _operations.Add(operation);
     }
 
-    public void Release(decimal quantity, string? reason = null, Guid? referenceId = null)
+    public void Release(decimal quantity, string reason, string performedBy, Guid? referenceId = null, string? referenceType = null)
     {
         if (quantity <= 0)
             throw new DomainException(DomainErrorMessages.InvalidStockOperationQuantity);
 
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new DomainException(DomainErrorMessages.StockReleaseReasonRequired);
+
+        if (string.IsNullOrWhiteSpace(performedBy))
+            throw new DomainException(DomainErrorMessages.StockReleasePerformedByRequired);
+
         if (ReservedQuantity < quantity)
             throw new StockQuantityConflictException(DomainErrorMessages.StockReservedQuantityInsufficient);
 
-        var operation = StockOperation.Create(StockOperationType.Release, quantity, reason, referenceId);
+        var operation = StockOperation.Create(StockOperationType.Release, quantity, reason, referenceId, performedBy, referenceType);
 
         ReservedQuantity -= quantity;
         RecalculateAndValidateInvariant();

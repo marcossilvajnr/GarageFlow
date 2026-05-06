@@ -379,7 +379,7 @@ public sealed class SeparationOrderHandlersTests
         // Simulate operational adjustment that reduces reserved qty below separation requirement
         var partId = command.Parts[0].PartId;
         var stock = await stockRepo.GetByItemAsync(partId, StockItemType.Part);
-        stock!.Release(1m); // ReservedQty drops to 1, separation needs 2
+        stock!.Release(1m, "Ajuste operacional de teste", "sistema"); // ReservedQty drops to 1, separation needs 2
 
         var act = async () => await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo)
             .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid()));
@@ -397,7 +397,7 @@ public sealed class SeparationOrderHandlersTests
 
         var partId = command.Parts[0].PartId;
         var stock = await stockRepo.GetByItemAsync(partId, StockItemType.Part);
-        stock!.Release(1m);
+        stock!.Release(1m, "Ajuste operacional de teste", "sistema");
 
         try { await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo).HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, Guid.NewGuid())); }
         catch (StockQuantityConflictException) { }

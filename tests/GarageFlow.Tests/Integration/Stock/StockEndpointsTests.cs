@@ -90,7 +90,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(supplyId, StockItemType.Supply, 10m, 0m, null, null));
         await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(supplyId, StockItemType.Supply, 2m, null, null));
 
-        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(supplyId, StockItemType.Supply, 1m, "Ajuste manual", null));
+        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(supplyId, StockItemType.Supply, 1m, "Ajuste manual", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -102,9 +102,67 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
         await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
 
-        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, null, null));
+        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, null, "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithoutPerformedBy_Returns400()
+    {
+        var partId = await CreatePart();
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+
+        var response = await _client.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste manual", null, null, null));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithFullAuditTrail_PersistsAuditFieldsInOperationLog()
+    {
+        var partId = await CreatePart();
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 15m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 5m, null, null));
+
+        var referenceId = Guid.NewGuid();
+        var releaseResponse = await _client.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(partId, StockItemType.Part, 2m, "Cancelamento manual", "gestor.estoque", referenceId, "SeparationOrder"));
+
+        releaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var opsResponse = await _client.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
+        opsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await opsResponse.Content.ReadFromJsonAsync<PagedStockOperationsResponse>(JsonOptions);
+
+        var releaseOp = body!.Items.Single(o => o.Type == StockOperationType.Release);
+        releaseOp.PerformedBy.Should().Be("gestor.estoque");
+        releaseOp.Reason.Should().Be("Cancelamento manual");
+        releaseOp.ReferenceId.Should().Be(referenceId);
+        releaseOp.ReferenceType.Should().Be("SeparationOrder");
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithExcessQuantity_Returns409()
+    {
+        var partId = await CreatePart();
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+
+        var response = await _client.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(partId, StockItemType.Part, 5m, "Ajuste manual", "operador.teste", null, null));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_WithUnknownItem_Returns404()
+    {
+        var response = await _client.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(Guid.NewGuid(), StockItemType.Part, 1m, "Ajuste", "operador.teste", null, null));
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
