@@ -269,4 +269,5 @@ public static class DomainErrorMessages
 
     // ServiceOrder status transitions (context-specific)
     public const string ServiceOrderCannotFinish = "A Ordem de Serviço não está Em Execução e não pode ser finalizada";
+    public const string ServiceOrderServicesFrozenAfterDiagnostic = "Serviços da OS estão congelados após conclusão do diagnóstico";
 }

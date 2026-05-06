@@ -41,6 +41,8 @@ public sealed class ServiceOrder
 
     public void AddService(Guid serviceId, Guid actorId, ServiceSource source)
     {
+        EnsureServicesNotFrozenAfterDiagnostic();
+
         if (serviceId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.InvalidServiceOrderServiceId);
 
@@ -64,6 +66,8 @@ public sealed class ServiceOrder
 
     public void RemoveService(Guid serviceId, Guid actorId, ServiceSource source, string reason)
     {
+        EnsureServicesNotFrozenAfterDiagnostic();
+
         if (serviceId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.InvalidServiceOrderServiceId);
 
@@ -204,5 +208,12 @@ public sealed class ServiceOrder
 
         Status = ServiceOrderStatus.Finished;
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    private void EnsureServicesNotFrozenAfterDiagnostic()
+    {
+        if (Diagnostic?.Status == DiagnosticStatus.Completed)
+            throw new InvalidServiceOrderStatusTransitionException(
+                DomainErrorMessages.ServiceOrderServicesFrozenAfterDiagnostic);
     }
 }

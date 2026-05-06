@@ -327,6 +327,30 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
+    [Fact]
+    public async Task PostServiceOrderService_AfterDiagnosticCompleted_Returns409()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+        var diagnosticService = await CreateService("SVC-035-001", "Serviço Diagnóstico 001");
+        var frontDeskService = await CreateService("SVC-035-002", "Serviço FrontDesk 002");
+
+        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await _client.PostAsJsonAsync(
+            $"/service-orders/{serviceOrder.Id}/diagnostic/services",
+            new AddDiagnosticServiceRequest(diagnosticService.Id));
+        await _client.PostAsJsonAsync(
+            $"/service-orders/{serviceOrder.Id}/diagnostic/complete",
+            new CompleteDiagnosticRequest("Diagnóstico concluído"));
+
+        var response = await _client.PostAsJsonAsync(
+            $"/service-orders/{serviceOrder.Id}/services",
+            new AddServiceToServiceOrderRequest(frontDeskService.Id, Guid.NewGuid()));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
     // Task-012: RemoveService integration tests
 
     [Fact]
@@ -420,6 +444,37 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task DeleteServiceOrderService_AfterDiagnosticCompleted_Returns409()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+        var frontDeskService = await CreateService("SVC-035-003", "Serviço FrontDesk 003");
+        var diagnosticService = await CreateService("SVC-035-004", "Serviço Diagnóstico 004");
+
+        await _client.PostAsJsonAsync(
+            $"/service-orders/{serviceOrder.Id}/services",
+            new AddServiceToServiceOrderRequest(frontDeskService.Id, Guid.NewGuid()));
+
+        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await _client.PostAsJsonAsync(
+            $"/service-orders/{serviceOrder.Id}/diagnostic/services",
+            new AddDiagnosticServiceRequest(diagnosticService.Id));
+        await _client.PostAsJsonAsync(
+            $"/service-orders/{serviceOrder.Id}/diagnostic/complete",
+            new CompleteDiagnosticRequest("Diagnóstico concluído"));
+
+        var response = await _client.SendAsync(new HttpRequestMessage(
+            HttpMethod.Delete,
+            $"/service-orders/{serviceOrder.Id}/services/{frontDeskService.Id}")
+        {
+            Content = JsonContent.Create(new RemoveServiceFromServiceOrderRequest(Guid.NewGuid(), "Ajuste solicitado"))
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]

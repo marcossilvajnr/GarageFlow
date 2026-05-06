@@ -180,4 +180,36 @@ public sealed class ServiceOrderServicesTests
         act.Should().NotThrow();
         serviceOrder.Services.Count(s => s.IsActive).Should().Be(1);
     }
+
+    [Fact]
+    public void AddService_AfterDiagnosticCompleted_ThrowsInvalidServiceOrderStatusTransitionException()
+    {
+        var serviceOrder = ValidServiceOrder();
+        serviceOrder.StartDiagnostic(Guid.NewGuid());
+        serviceOrder.AddDiagnosticService(Guid.NewGuid());
+        serviceOrder.CompleteDiagnostic("Diagnóstico concluído");
+
+        var act = () => serviceOrder.AddService(Guid.NewGuid(), Guid.NewGuid(), ServiceSource.FrontDesk);
+
+        act.Should()
+            .Throw<InvalidServiceOrderStatusTransitionException>()
+            .WithMessage("Serviços da OS estão congelados após conclusão do diagnóstico");
+    }
+
+    [Fact]
+    public void RemoveService_AfterDiagnosticCompleted_ThrowsInvalidServiceOrderStatusTransitionException()
+    {
+        var serviceOrder = ValidServiceOrder();
+        var serviceId = Guid.NewGuid();
+        serviceOrder.AddService(serviceId, Guid.NewGuid(), ServiceSource.FrontDesk);
+        serviceOrder.StartDiagnostic(Guid.NewGuid());
+        serviceOrder.AddDiagnosticService(Guid.NewGuid());
+        serviceOrder.CompleteDiagnostic("Diagnóstico concluído");
+
+        var act = () => serviceOrder.RemoveService(serviceId, Guid.NewGuid(), ServiceSource.FrontDesk, "Mudança de escopo");
+
+        act.Should()
+            .Throw<InvalidServiceOrderStatusTransitionException>()
+            .WithMessage("Serviços da OS estão congelados após conclusão do diagnóstico");
+    }
 }

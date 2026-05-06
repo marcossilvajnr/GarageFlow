@@ -198,6 +198,10 @@ public static class ServiceOrdersEndpoints
         {
             return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
         }
+        catch (InvalidServiceOrderStatusTransitionException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
+        }
         catch (EntityNotFoundException ex)
         {
             return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
@@ -220,6 +224,10 @@ public static class ServiceOrdersEndpoints
             var command = new RemoveServiceFromServiceOrderCommand(id, serviceId, request.ActorId, request.Reason);
             await handler.HandleAsync(command, cancellationToken);
             return Results.NoContent();
+        }
+        catch (InvalidServiceOrderStatusTransitionException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
         }
         catch (EntityNotFoundException ex)
         {
