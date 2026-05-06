@@ -561,7 +561,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     }
 
     [Fact]
-    public async Task PostDiagnosticStart_WhenAlreadyStarted_Returns409()
+    public async Task PostDiagnosticStart_WhenAlreadyStarted_Returns400()
     {
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
@@ -572,7 +572,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
             $"/service-orders/{serviceOrder.Id}/diagnostic/start",
             new StartDiagnosticRequest(Guid.NewGuid()));
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -621,7 +621,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     }
 
     [Fact]
-    public async Task PostDiagnosticServices_WhenDiagnosticNotStarted_Returns409()
+    public async Task PostDiagnosticServices_WhenDiagnosticNotStarted_Returns400()
     {
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
@@ -632,7 +632,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
             $"/service-orders/{serviceOrder.Id}/diagnostic/services",
             new AddDiagnosticServiceRequest(service.Id));
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -683,7 +683,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     }
 
     [Fact]
-    public async Task DeleteDiagnosticService_WhenDiagnosticNotStarted_Returns409()
+    public async Task DeleteDiagnosticService_WhenDiagnosticNotStarted_Returns400()
     {
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
@@ -692,7 +692,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var response = await _client.DeleteAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/services/{Guid.NewGuid()}");
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -757,7 +757,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     }
 
     [Fact]
-    public async Task PostDiagnosticComplete_WhenDiagnosticNotStarted_Returns409()
+    public async Task PostDiagnosticComplete_WhenDiagnosticNotStarted_Returns400()
     {
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
@@ -767,7 +767,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
             $"/service-orders/{serviceOrder.Id}/diagnostic/complete",
             new CompleteDiagnosticRequest("Diagnóstico."));
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -803,7 +803,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     }
 
     [Fact]
-    public async Task PostDiagnosticComplete_WhenAlreadyCompleted_Returns409()
+    public async Task PostDiagnosticComplete_WhenAlreadyCompleted_Returns400()
     {
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
@@ -817,7 +817,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
             $"/service-orders/{serviceOrder.Id}/diagnostic/complete",
             new CompleteDiagnosticRequest("Segunda tentativa."));
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -1120,7 +1120,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     }
 
     [Fact]
-    public async Task PostQuoteAccept_WhenAlreadyDecided_Returns409()
+    public async Task PostQuoteAccept_WhenAlreadyDecided_Returns400()
     {
         var so = await SetupOrderWithConsolidatedServices();
         await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
@@ -1128,7 +1128,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         var response = await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -1183,7 +1183,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     }
 
     [Fact]
-    public async Task PostQuoteReject_WhenAlreadyDecided_Returns409()
+    public async Task PostQuoteReject_WhenAlreadyDecided_Returns400()
     {
         var so = await SetupOrderWithConsolidatedServices();
         await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
@@ -1193,7 +1193,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var response = await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
             new RejectQuoteRequest("Segunda rejeição"));
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -1258,7 +1258,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     }
 
     [Fact]
-    public async Task PostQuoteAccept_WhenAlreadyRejected_Returns409()
+    public async Task PostQuoteAccept_WhenAlreadyRejected_Returns400()
     {
         var so = await SetupOrderWithConsolidatedServices();
         await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
@@ -1267,11 +1267,11 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         var response = await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
-    public async Task PostQuoteReject_WhenAlreadyAccepted_Returns409()
+    public async Task PostQuoteReject_WhenAlreadyAccepted_Returns400()
     {
         var so = await SetupOrderWithConsolidatedServices();
         await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
@@ -1280,6 +1280,6 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var response = await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
             new RejectQuoteRequest("Arrependimento"));
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 }

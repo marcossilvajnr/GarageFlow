@@ -253,7 +253,7 @@ public static class ServiceOrdersEndpoints
         }
         catch (DiagnosticAlreadyStartedException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (EntityNotFoundException ex)
         {
@@ -279,7 +279,7 @@ public static class ServiceOrdersEndpoints
         }
         catch (DiagnosticNotInProgressException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (DuplicateDiagnosticServiceException ex)
         {
@@ -309,7 +309,7 @@ public static class ServiceOrdersEndpoints
         }
         catch (DiagnosticNotInProgressException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (DiagnosticLastServiceException ex)
         {
@@ -335,7 +335,7 @@ public static class ServiceOrdersEndpoints
         }
         catch (DiagnosticNotInProgressException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (DiagnosticNoServicesException ex)
         {
@@ -438,7 +438,7 @@ public static class ServiceOrdersEndpoints
         }
         catch (QuoteAlreadyDecidedException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (QuoteNotFoundException ex)
         {
@@ -464,7 +464,7 @@ public static class ServiceOrdersEndpoints
         }
         catch (QuoteAlreadyDecidedException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (QuoteNotFoundException ex)
         {

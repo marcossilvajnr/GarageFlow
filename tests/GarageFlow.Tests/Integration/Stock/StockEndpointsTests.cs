@@ -340,7 +340,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     }
 
     [Fact]
-    public async Task ReturnSeparationOrderTotal_AfterMechanicReceipt_Returns409()
+    public async Task ReturnSeparationOrderTotal_AfterMechanicReceipt_Returns400()
     {
         // RN-032: operational return must be blocked after ConfirmMechanicReceipt
         var (separationOrderId, _) = await CreateCompletedSeparationOrderAsync();
@@ -348,7 +348,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         var response = await _client.PostAsJsonAsync(
             $"/separation-orders/{separationOrderId}/return-total", new { });
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]

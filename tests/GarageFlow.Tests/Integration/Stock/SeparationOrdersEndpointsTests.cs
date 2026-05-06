@@ -380,13 +380,13 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     }
 
     [Fact]
-    public async Task ReturnTotal_WhenNotEligible_Returns409()
+    public async Task ReturnTotal_WhenNotEligible_Returns400()
     {
         var created = await CreateSeparationOrder();
 
         var response = await _client.PostAsync($"/separation-orders/{created.Id}/return-total", null);
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]

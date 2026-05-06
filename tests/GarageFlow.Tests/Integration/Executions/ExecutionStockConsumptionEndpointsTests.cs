@@ -192,7 +192,7 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
     }
 
     [Fact]
-    public async Task CompleteExecution_WhenStockReservedInsufficient_Returns409()
+    public async Task CompleteExecution_WhenStockReservedInsufficient_Returns400()
     {
         var execution = await CreateAndStartExecution();
         var partId = await CreatePartWithStock(initialQuantity: 10m);
@@ -208,7 +208,7 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
 
         var response = await _client.PostAsync($"/execution-orders/{execution.Id}/complete", null);
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]

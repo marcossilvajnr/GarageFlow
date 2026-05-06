@@ -176,7 +176,7 @@ public static class ExecutionOrdersEndpoints
         }
         catch (SeparationOrderCustodyPreconditionException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Pré-condição de separação não atendida", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (InvalidExecutionOrderStatusTransitionException ex)
         {

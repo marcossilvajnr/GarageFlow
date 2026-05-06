@@ -203,7 +203,7 @@ public static class SeparationOrdersEndpoints
         }
         catch (SeparationOrderCustodyPreconditionException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Pré-condição de custódia não atendida", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (StockQuantityConflictException ex)
         {
@@ -261,7 +261,7 @@ public static class SeparationOrdersEndpoints
         }
         catch (SeparationOrderCustodyPreconditionException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Pré-condição de custódia não atendida", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (InvalidSeparationOrderStatusTransitionException ex)
         {
@@ -289,7 +289,7 @@ public static class SeparationOrdersEndpoints
         }
         catch (SeparationOrderCustodyPreconditionException ex)
         {
-            return Results.Conflict(new ProblemDetails { Title = "Pré-condição de custódia não atendida", Detail = ex.Message, Status = 409 });
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
         }
         catch (InvalidSeparationOrderStatusTransitionException ex)
         {
