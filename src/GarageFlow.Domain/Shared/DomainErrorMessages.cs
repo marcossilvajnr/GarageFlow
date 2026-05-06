@@ -270,5 +270,6 @@ public static class DomainErrorMessages
     // ServiceOrder status transitions (context-specific)
     public const string ServiceOrderCannotStartExecution = "A Ordem de Serviço não está Aprovada para iniciar execução";
     public const string ServiceOrderCannotFinish = "A Ordem de Serviço não está Em Execução e não pode ser finalizada";
+    public const string ServiceOrderCannotDeliver = "A Ordem de Serviço não está Finalizada e não pode ser entregue";
     public const string ServiceOrderServicesFrozenAfterDiagnostic = "Serviços da OS estão congelados após conclusão do diagnóstico";
 }

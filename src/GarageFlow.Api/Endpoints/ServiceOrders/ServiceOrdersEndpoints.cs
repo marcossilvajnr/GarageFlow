@@ -115,6 +115,13 @@ public static class ServiceOrdersEndpoints
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
+        group.MapPost("/{id:guid}/deliver", DeliverServiceOrder)
+            .WithName("DeliverServiceOrder")
+            .WithSummary("Conclui a entrega da Ordem de Serviço.")
+            .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
+
         return endpoints;
     }
 
@@ -477,6 +484,26 @@ public static class ServiceOrdersEndpoints
         catch (DomainException ex)
         {
             return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
+    }
+
+    private static async Task<IResult> DeliverServiceOrder(
+        Guid id,
+        DeliverServiceOrderHandler handler,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var dto = await handler.HandleAsync(new DeliverServiceOrderCommand(id), cancellationToken);
+            return Results.Ok(MapToResponse(dto));
+        }
+        catch (InvalidServiceOrderStatusTransitionException ex)
+        {
+            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
         }
     }
 

@@ -76,6 +76,7 @@ public static class DependencyInjection
         services.AddScoped<GenerateQuoteHandler>();
         services.AddScoped<AcceptQuoteHandler>();
         services.AddScoped<RejectQuoteHandler>();
+        services.AddScoped<DeliverServiceOrderHandler>();
         services.AddScoped<GetServiceOrderQuoteHandler>();
 
         services.AddScoped<CreateSeparationOrderHandler>();

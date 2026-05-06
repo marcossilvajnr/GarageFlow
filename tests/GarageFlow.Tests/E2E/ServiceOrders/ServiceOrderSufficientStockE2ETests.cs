@@ -163,6 +163,11 @@ public sealed class ServiceOrderSufficientStockE2ETests : E2ETestBase
         var serviceOrderInExecution = await GetServiceOrderAsync(serviceOrder.Id);
         serviceOrderInExecution.Status.Should().Be(ServiceOrderStatus.InExecution);
 
+        var deliverBeforeFinishResponse = await _client.PostAsync(
+            $"/service-orders/{serviceOrder.Id}/deliver",
+            null);
+        deliverBeforeFinishResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
         var completeExecutionResponse = await _client.PostAsync(
             $"/execution-orders/{executionOrder.Id}/complete",
             null);
@@ -170,8 +175,15 @@ public sealed class ServiceOrderSufficientStockE2ETests : E2ETestBase
         var completedExecutionOrder = await ReadAsync<ExecutionOrderResponse>(completeExecutionResponse);
         completedExecutionOrder.Status.Should().Be(ExecutionOrderStatus.Completed);
 
-        var finalServiceOrder = await GetServiceOrderAsync(serviceOrder.Id);
-        finalServiceOrder.Status.Should().Be(ServiceOrderStatus.Finished);
+        var finishedServiceOrder = await GetServiceOrderAsync(serviceOrder.Id);
+        finishedServiceOrder.Status.Should().Be(ServiceOrderStatus.Finished);
+
+        var deliverResponse = await _client.PostAsync(
+            $"/service-orders/{serviceOrder.Id}/deliver",
+            null);
+        deliverResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var deliveredServiceOrder = await ReadAsync<ServiceOrderResponse>(deliverResponse);
+        deliveredServiceOrder.Status.Should().Be(ServiceOrderStatus.Delivered);
 
         var finalSeparationResponse = await _client.GetAsync($"/separation-orders/{separationOrder.Id}");
         finalSeparationResponse.StatusCode.Should().Be(HttpStatusCode.OK);

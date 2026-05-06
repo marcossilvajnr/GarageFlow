@@ -251,6 +251,26 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task PostServiceOrderDeliver_WithNonExistentServiceOrder_Returns404()
+    {
+        var response = await _client.PostAsync($"/service-orders/{Guid.NewGuid()}/deliver", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PostServiceOrderDeliver_WhenServiceOrderNotFinished_Returns409()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+
+        var response = await _client.PostAsync($"/service-orders/{serviceOrder.Id}/deliver", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
     // Task-012: AddService integration tests
 
     [Fact]

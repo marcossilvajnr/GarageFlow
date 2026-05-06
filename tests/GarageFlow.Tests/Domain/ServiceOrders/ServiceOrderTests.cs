@@ -69,4 +69,27 @@ public sealed class ServiceOrderTests
         var setter = typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.VehicleId))!.SetMethod;
         (setter is null || !setter.IsPublic).Should().BeTrue("VehicleId deve ter setter privado ou nulo");
     }
+
+    [Fact]
+    public void Deliver_WhenStatusIsNotFinished_ThrowsInvalidServiceOrderStatusTransitionException()
+    {
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+
+        var act = () => serviceOrder.Deliver();
+
+        act.Should().Throw<InvalidServiceOrderStatusTransitionException>()
+            .WithMessage("A Ordem de Serviço não está Finalizada e não pode ser entregue");
+    }
+
+    [Fact]
+    public void Deliver_WhenStatusIsFinished_ChangesStatusToDelivered()
+    {
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Status))!
+            .SetValue(serviceOrder, ServiceOrderStatus.Finished);
+
+        serviceOrder.Deliver();
+
+        serviceOrder.Status.Should().Be(ServiceOrderStatus.Delivered);
+    }
 }

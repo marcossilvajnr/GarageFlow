@@ -222,6 +222,15 @@ public sealed class ServiceOrder
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void Deliver()
+    {
+        if (Status != ServiceOrderStatus.Finished)
+            throw new InvalidServiceOrderStatusTransitionException(DomainErrorMessages.ServiceOrderCannotDeliver);
+
+        Status = ServiceOrderStatus.Delivered;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     private void EnsureServicesNotFrozenAfterDiagnostic()
     {
         if (Diagnostic?.Status == DiagnosticStatus.Completed)
