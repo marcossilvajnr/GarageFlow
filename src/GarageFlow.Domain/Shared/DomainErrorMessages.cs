@@ -225,12 +225,15 @@ public static class DomainErrorMessages
     public const string InvalidStockOperationReason = "Motivo da operação de estoque inválido";
     public const string InsufficientStockAvailability = "Estoque disponível insuficiente";
     public const string StockReservedQuantityInsufficient = "Quantidade reservada insuficiente no estoque";
-    public const string StockSupplyCannotBeReleased = "Insumo não pode ser devolvido ao estoque";
     public const string StockAdjustmentWouldBreakInvariant = "Ajuste de estoque deixaria quantidades inválidas";
     public const string InvalidStockTotalQuantity = "Quantidade total do estoque inválida";
     public const string InvalidStockReservedQuantity = "Quantidade reservada do estoque inválida";
     public const string InvalidStockAvailableQuantity = "Quantidade disponível do estoque inválida";
     public const string DuplicateStockItem = "Estoque já cadastrado para o item informado";
+
+    // Stock release post-custody (context-specific — RN-033 / task-033)
+    public const string StockExceptionalReleaseReferenceIdRequired = "Referência operacional obrigatória para ajuste excepcional pós-custódia";
+    public const string StockExceptionalReleaseReferenceTypeRequired = "Tipo de referência obrigatório para ajuste excepcional pós-custódia";
 
     // Stock not found (handlers - context-specific)
     public static string StockNotFound(StockItemType itemType, Guid itemId) =>

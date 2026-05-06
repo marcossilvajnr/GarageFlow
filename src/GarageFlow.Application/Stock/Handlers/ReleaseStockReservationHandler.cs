@@ -11,7 +11,8 @@ namespace GarageFlow.Application.Stock.Handlers;
 public sealed class ReleaseStockReservationHandler(
     IStockRepository stockRepository,
     IPartRepository partRepository,
-    ISupplyRepository supplyRepository)
+    ISupplyRepository supplyRepository,
+    ISeparationOrderRepository separationOrderRepository)
 {
     public async Task<StockPositionDto> HandleAsync(ReleaseStockReservationCommand command, CancellationToken cancellationToken = default)
     {
@@ -25,6 +26,27 @@ public sealed class ReleaseStockReservationHandler(
         var stock = await stockRepository.GetByItemAsync(command.ItemId, command.ItemType, cancellationToken);
         if (stock is null)
             throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(command.ItemType, command.ItemId));
+
+        // RN-033 / task-033: detect post-custody state and enforce mandatory reference fields.
+        // Post-custody = at least one completed SeparationOrder exists for this stock item.
+        var isPostCustody = await separationOrderRepository
+            .HasCompletedOrderForItemAsync(command.ItemId, command.ItemType, cancellationToken);
+
+        if (isPostCustody)
+        {
+            if (command.ReferenceId is null)
+                throw new DomainException(DomainErrorMessages.StockExceptionalReleaseReferenceIdRequired);
+
+            if (string.IsNullOrWhiteSpace(command.ReferenceType))
+                throw new DomainException(DomainErrorMessages.StockExceptionalReleaseReferenceTypeRequired);
+
+            if (!string.Equals(command.ReferenceType, "SeparationOrder", StringComparison.OrdinalIgnoreCase))
+                throw new DomainException(DomainErrorMessages.InvalidStockReferenceType);
+
+            var referencedOrder = await separationOrderRepository.GetByIdAsync(command.ReferenceId.Value, cancellationToken);
+            if (referencedOrder is null)
+                throw new EntityNotFoundException(DomainErrorMessages.SeparationOrderNotFound(command.ReferenceId.Value));
+        }
 
         stock.Release(
             command.Quantity,

@@ -17,6 +17,18 @@ internal sealed class SeparationOrderRepository(GarageFlowDbContext dbContext) :
             .Include(so => so.Supplies)
             .FirstOrDefaultAsync(so => so.ExecutionOrderId == executionOrderId, cancellationToken);
 
+    public async Task<bool> HasCompletedOrderForItemAsync(Guid itemId, StockItemType itemType, CancellationToken cancellationToken = default)
+    {
+        if (itemType == StockItemType.Part)
+            return await dbContext.SeparationOrders
+                .Where(so => so.Status == SeparationOrderStatus.Completed)
+                .AnyAsync(so => so.Parts.Any(p => p.PartId == itemId), cancellationToken);
+
+        return await dbContext.SeparationOrders
+            .Where(so => so.Status == SeparationOrderStatus.Completed)
+            .AnyAsync(so => so.Supplies.Any(s => s.SupplyId == itemId), cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<SeparationOrder> Items, int TotalCount)> ListAsync(
         int page, int pageSize, CancellationToken cancellationToken = default)
     {

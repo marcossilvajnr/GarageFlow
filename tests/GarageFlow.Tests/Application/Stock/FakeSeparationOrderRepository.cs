@@ -12,6 +12,14 @@ internal sealed class FakeSeparationOrderRepository : ISeparationOrderRepository
     public Task<SeparationOrder?> GetByExecutionOrderIdAsync(Guid executionOrderId, CancellationToken cancellationToken = default)
         => Task.FromResult(_store.FirstOrDefault(so => so.ExecutionOrderId == executionOrderId));
 
+    public Task<bool> HasCompletedOrderForItemAsync(Guid itemId, StockItemType itemType, CancellationToken cancellationToken = default)
+    {
+        var result = itemType == StockItemType.Part
+            ? _store.Any(so => so.Status == SeparationOrderStatus.Completed && so.Parts.Any(p => p.PartId == itemId))
+            : _store.Any(so => so.Status == SeparationOrderStatus.Completed && so.Supplies.Any(s => s.SupplyId == itemId));
+        return Task.FromResult(result);
+    }
+
     public Task<(IReadOnlyList<SeparationOrder> Items, int TotalCount)> ListAsync(
         int page, int pageSize, CancellationToken cancellationToken = default)
     {
@@ -28,3 +36,4 @@ internal sealed class FakeSeparationOrderRepository : ISeparationOrderRepository
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
         => Task.CompletedTask;
 }
+

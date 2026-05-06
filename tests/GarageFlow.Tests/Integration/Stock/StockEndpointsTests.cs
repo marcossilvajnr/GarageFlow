@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Supplies;
@@ -43,6 +44,55 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         response.EnsureSuccessStatusCode();
         var body = await response.Content.ReadFromJsonAsync<SupplyResponse>(JsonOptions);
         return body!.Id;
+    }
+
+    private async Task<Guid> CreateExecutionOrder()
+    {
+        var request = new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid());
+        var response = await _client.PostAsJsonAsync("/execution-orders", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
+        return body!.Id;
+    }
+
+    /// <summary>
+    /// Creates a SeparationOrder and advances it to Completed status via the full API flow.
+    /// Returns (separationOrderId, partId).
+    /// </summary>
+    private async Task<(Guid SeparationOrderId, Guid PartId)> CreateCompletedSeparationOrderAsync()
+    {
+        var partId = await CreatePart();
+        var partName = "Filtro Ar";
+
+        // Ensure stock exists and has reserved quantity
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 20m, 0m, null, null));
+
+        // Create separation order
+        var executionOrderId = await CreateExecutionOrder();
+        var createSepReq = new CreateSeparationOrderRequest(
+            executionOrderId,
+            [new CreateSeparationPartItemRequest(partId, partName, 5)],
+            []);
+        var createSepResp = await _client.PostAsJsonAsync("/separation-orders", createSepReq);
+        createSepResp.EnsureSuccessStatusCode();
+        var sepBody = await createSepResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
+        var separationOrderId = sepBody!.Id;
+
+        // Reserve separation order (also reserves stock)
+        var reserveResp = await _client.PostAsJsonAsync($"/separation-orders/{separationOrderId}/reserve", new { });
+        reserveResp.EnsureSuccessStatusCode();
+
+        // Confirm stockist withdrawal
+        var stockistResp = await _client.PostAsJsonAsync(
+            $"/separation-orders/{separationOrderId}/confirm-stockist-withdrawal",
+            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+        stockistResp.EnsureSuccessStatusCode();
+
+        // Confirm mechanic receipt → Status = Completed
+        var mechanicResp = await _client.PostAsJsonAsync($"/separation-orders/{separationOrderId}/confirm-mechanic-receipt", new { });
+        mechanicResp.EnsureSuccessStatusCode();
+
+        return (separationOrderId, partId);
     }
 
     [Fact]
@@ -244,5 +294,79 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
-}
 
+    // ---------------------------------------------------------------------------
+    // Task-033: post-custody exceptional adjustment — integration tests
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public async Task ReleaseStock_PostCustody_WithoutReference_Returns400()
+    {
+        var adminClient = CreateClientWithRole("Administrative");
+        var (_, partId) = await CreateCompletedSeparationOrderAsync();
+
+        // The separation order reserved 5 units; add more reserved quantity to release
+        await _client.PostAsJsonAsync("/stock/reservations",
+            new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+
+        // Attempt release without referenceId/referenceType — must fail because item is post-custody
+        var response = await adminClient.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste excepcional", "admin.user", null, null));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_PostCustody_WithValidReference_Returns200()
+    {
+        var adminClient = CreateClientWithRole("Administrative");
+        var (separationOrderId, partId) = await CreateCompletedSeparationOrderAsync();
+
+        // Add more reserved quantity to release (the separation order reserved 5 units)
+        await _client.PostAsJsonAsync("/stock/reservations",
+            new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+
+        // Exceptional post-custody adjustment with all mandatory fields
+        var response = await adminClient.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(
+                partId, StockItemType.Part, 2m,
+                "Ajuste excepcional pós-custódia autorizado",
+                "admin.user",
+                separationOrderId, "SeparationOrder"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<StockPositionResponse>(JsonOptions);
+        body!.AvailableQuantity.Should().BeGreaterThanOrEqualTo(0m);
+    }
+
+    [Fact]
+    public async Task ReturnSeparationOrderTotal_AfterMechanicReceipt_Returns409()
+    {
+        // RN-032: operational return must be blocked after ConfirmMechanicReceipt
+        var (separationOrderId, _) = await CreateCompletedSeparationOrderAsync();
+
+        var response = await _client.PostAsJsonAsync(
+            $"/separation-orders/{separationOrderId}/return-total", new { });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task ReleaseStock_PostCustody_WithUnsupportedReferenceType_Returns400()
+    {
+        var adminClient = CreateClientWithRole("Administrative");
+        var (separationOrderId, partId) = await CreateCompletedSeparationOrderAsync();
+
+        await _client.PostAsJsonAsync("/stock/reservations",
+            new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+
+        var response = await adminClient.PostAsJsonAsync("/stock/releases",
+            new ReleaseStockReservationRequest(
+                partId, StockItemType.Part, 1m,
+                "Ajuste excepcional pós-custódia",
+                "admin.user",
+                separationOrderId, "ServiceOrder"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+}
