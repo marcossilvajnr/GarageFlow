@@ -54,3 +54,34 @@ Regras de evolução:
 - não introduzir custo recorrente sem evidência de ganho;
 - preservar rastreabilidade dos relatórios;
 - manter compatibilidade com os contratos públicos da API.
+
+## Cobertura E2E Crítica (Pre-JWT)
+Objetivo:
+- demonstrar o sistema ponta a ponta com três fluxos de maior valor antes da fase de JWT.
+
+Fluxos obrigatórios:
+1. OS ponta a ponta com estoque suficiente.
+2. OS com falta de estoque, compra e retomada da separação.
+3. OS com cancelamento no último estágio permitido.
+
+Evidências mínimas por fluxo:
+- respostas HTTP esperadas por etapa crítica;
+- estado final consistente de `ServiceOrder`, `SeparationOrder`, `PurchaseOrder` (quando houver) e `ExecutionOrder`;
+- ids rastreáveis dos agregados principais no teste.
+
+Estados-alvo por fluxo:
+- Fluxo 1:
+  - `ServiceOrder`: `Approved -> InExecution -> Finished`
+  - `SeparationOrder`: `Pending -> WaitingPickup -> Separated -> Completed`
+  - `ExecutionOrder`: `Pending -> Ready -> InExecution -> Completed`
+- Fluxo 2:
+  - `SeparationOrder`: `Pending -> WaitingPurchase -> WaitingPickup -> Separated -> Completed`
+  - `PurchaseOrder`: `Created -> Started -> Completed`
+  - `ExecutionOrder`: `Ready -> InExecution -> Completed`
+- Fluxo 3:
+  - cancelamento aceito no limite canônico e bloqueio de avanço inválido após cancelamento.
+
+Limites desta fase:
+- sem validação de token real JWT;
+- uso de autenticação de teste permitido;
+- foco em integridade de fluxo e máquina de estado.
