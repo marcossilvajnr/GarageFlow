@@ -1,224 +1,115 @@
-# GarageFlow — Mapeamento Linguagem Ubíqua -> Código
+# GarageFlow - Linguagem Ubiqua
 
 ## Objetivo
-Este documento mapeia os termos do domínio em português para os nomes em inglês usados no código C#.
-Todo o código deve seguir este mapeamento para garantir consistência entre documentação e implementação.
+Este documento define os termos oficiais do negocio usados no GarageFlow.
+A ideia e garantir que atendimento, oficina, estoque, administrativo e tecnologia usem o mesmo vocabulario.
 
 ---
 
-## Contratos Canônicos de Implementação
-- **Unicidade:** regras de unicidade (CPF/CNPJ/placa/RENAVAM/códigos) são garantidas por índice único no banco.
-- **Normalização textual:** aplicar `trim` nas bordas em entradas textuais de agregados.
-- **Itens internos:** validação obrigatória item a item em `ServiceItem`, `QuoteItem`, `SeparationPartItem`, `SeparationSupplyItem` e itens de composição de serviço.
+## Termos Principais
+
+- **Ordem de Servico (OS):** registro principal do atendimento de um veiculo, do recebimento ate a entrega.
+- **Diagnostico:** avaliacao tecnica inicial para identificar os servicos necessarios.
+- **Orcamento:** proposta de valores e itens para aprovacao do cliente.
+- **Ordem de Execucao:** ordem operacional para realizar um servico aprovado.
+- **Ordem de Separacao (ordem de retirada):** lista de pecas e insumos que o estoque separa para a execucao.
+- **Ordem de Compra:** ordem para reposicao de itens quando o estoque esta insuficiente.
+- **Estoque:** controle de saldo, reserva, consumo e ajustes de pecas e insumos.
 
 ---
 
-## Agregados e Entidades
+## Cadastros Mestres
 
-| Domínio (PT) | Código (EN) | Namespace |
-|--------------|-------------|-----------|
-| Ordem de Serviço | ServiceOrder | GarageFlow.Domain.ServiceOrders |
-| Diagnóstico | Diagnostic | GarageFlow.Domain.ServiceOrders |
-| Orçamento | Quote | GarageFlow.Domain.ServiceOrders |
-| Item de Serviço | ServiceItem | GarageFlow.Domain.ServiceOrders |
-| Histórico de Serviços da OS | ServiceOrderServiceHistory | GarageFlow.Domain.ServiceOrders |
-| Ordem de Execução | ExecutionOrder | GarageFlow.Domain.Executions |
-| Ordem de Separação | SeparationOrder | GarageFlow.Domain.Stock |
-| Ordem de Compra | PurchaseOrder | GarageFlow.Domain.Purchasing |
-| Cliente | Customer | GarageFlow.Domain.Customers |
-| Veículo | Vehicle | GarageFlow.Domain.Vehicles |
-| Serviço | Service | GarageFlow.Domain.Services |
-| Peça | Part | GarageFlow.Domain.Parts |
-| Insumo | Supply | GarageFlow.Domain.Supplies |
-| Fornecedor | Supplier | GarageFlow.Domain.Suppliers |
-| Funcionário | Employee | GarageFlow.Domain.Employees |
-| Estoque | Stock | GarageFlow.Domain.Stock |
+- **Cliente:** pessoa fisica ou juridica que contrata o servico.
+- **Veiculo:** bem atendido na OS; cada veiculo fica vinculado a um cliente.
+- **Servico:** atividade que pode ser executada pela oficina.
+- **Peca:** item fisico aplicado no servico.
+- **Insumo:** material de consumo usado no servico.
+- **Fornecedor:** empresa que fornece pecas e insumos.
+- **Funcionario:** colaborador interno com papel operacional definido.
 
 ---
 
-## Tipos Internos de Composição
+## Papeis Operacionais
 
-| Domínio (PT) | Código (EN) | Uso |
-|--------------|-------------|-----|
-| Item de Peça do Serviço | ServicePartItem | Composição de `Service` |
-| Item de Insumo do Serviço | ServiceSupplyItem | Composição de `Service` |
-| Origem do Serviço na OS | ServiceSource | `FrontDesk` \| `Diagnostic` |
-| Item de Peça no Snapshot da OS | ServiceItemPart | Snapshot em `ServiceItem` |
-| Item de Insumo no Snapshot da OS | ServiceItemSupply | Snapshot em `ServiceItem` |
-| Item de Peça da Separação | SeparationPartItem | `SeparationOrder` |
-| Item de Insumo da Separação | SeparationSupplyItem | `SeparationOrder` |
-| Item do Orçamento | QuoteItem | `Quote` |
+- **Atendente:** abre e conduz a OS no fluxo de atendimento.
+- **Mecanico:** realiza diagnostico e execucao tecnica.
+- **Estoquista:** separa e entrega itens para a execucao.
+- **Administrativo:** governa cadastros e pode atuar em fluxos criticos conforme regra.
 
 ---
 
-## Value Objects
-Namespace único: `GarageFlow.Domain.ValueObjects`
-Caminho físico: `GarageFlow.Domain/ValueObjects/[Nome].cs`
+## Status da Ordem de Servico (OS)
 
-| Domínio (PT) | Código (EN) | Usado em |
-|--------------|-------------|----------|
-| CPF | Cpf | Customer |
-| CNPJ | Cnpj | Customer, Supplier, Employee |
-| Placa | LicensePlate | Vehicle |
-| RENAVAM | Renavam | Vehicle |
-| E-mail | Email | Customer, Supplier, Employee |
-| Telefone | PhoneNumber | Customer, Supplier, Employee |
-| Endereço | Address | Customer, Supplier, Employee |
-
-Decisões vigentes:
-- `Money` não é Value Object; valores monetários são `decimal`.
-- `Name` não é Value Object; nomes são `string` validadas no agregado.
+- **Recebida:** OS aberta no atendimento e pronta para iniciar o diagnostico.
+- **Em Diagnostico:** veiculo em avaliacao tecnica.
+- **Aguardando Aprovacao:** orcamento gerado e aguardando decisao do cliente.
+- **Aprovada:** cliente aprovou o orcamento e a OS pode seguir para execucao.
+- **Rejeitada:** cliente recusou o orcamento e a OS nao avanca para execucao.
+- **Em Execucao:** servicos aprovados estao sendo realizados.
+- **Finalizada:** execucao concluida, aguardando entrega do veiculo.
+- **Entregue:** veiculo entregue ao cliente e atendimento encerrado.
 
 ---
 
-## Enums de Status
+## Status do Diagnostico
 
-### ServiceOrderStatus
-| Domínio (PT) | Código (EN) |
-|--------------|-------------|
-| Recebida | Received |
-| Em Diagnóstico | InDiagnostic |
-| Aguardando Aprovação | WaitingApproval |
-| Aprovada | Approved |
-| Rejeitada | Rejected |
-| Em Execução | InExecution |
-| Finalizada | Finished |
-| Entregue | Delivered |
-
-### DiagnosticStatus
-| Domínio (PT) | Código (EN) |
-|--------------|-------------|
-| Em andamento | InProgress |
-| Concluído | Completed |
-
-### ExecutionOrderStatus
-| Domínio (PT) | Código (EN) |
-|--------------|-------------|
-| Pendente | Pending |
-| Pronta para Início | Ready |
-| Em Execução | InExecution |
-| Concluída | Completed |
-
-### SeparationOrderStatus
-| Domínio (PT) | Código (EN) |
-|--------------|-------------|
-| Pendente | Pending |
-| Aguardando Compra | WaitingPurchase |
-| Aguardando Retirada | WaitingPickup |
-| Separada | Separated |
-| Concluída | Completed |
-
-### PurchaseOrderStatus
-| Domínio (PT) | Código (EN) |
-|--------------|-------------|
-| Criada | Created |
-| Iniciada | Started |
-| Concluída | Completed |
-
-### QuoteStatus
-| Domínio (PT) | Código (EN) |
-|--------------|-------------|
-| Aguardando Aprovação do Cliente | WaitingCustomerApproval |
-| Aprovado pelo Cliente | CustomerApproved |
-| Rejeitado pelo Cliente | CustomerRejected |
-
-### Unidade de medida canônica para insumos (`SupplyUnit`)
-| Domínio (PT) | Código (EN) |
-|--------------|-------------|
-| Litro | Liter |
-| Mililitro | Milliliter |
-| Grama | Gram |
-| Quilograma | Kilogram |
-| Unidade | Unit |
+- **Em andamento:** mecanico ainda esta avaliando e montando escopo.
+- **Concluido:** diagnostico fechado e pronto para consolidacao dos servicos.
 
 ---
 
-## Métodos de Domínio
+## Status da Ordem de Execucao
 
-| Domínio (PT) | Código (EN) | Agregado/Entidade |
-|--------------|-------------|-------------------|
-| Criar OS | Create() | ServiceOrder |
-| Iniciar Diagnóstico | StartDiagnostic() | ServiceOrder |
-| Concluir Diagnóstico | CompleteDiagnostic() | ServiceOrder |
-| Aprovar Orçamento | AcceptQuote() | ServiceOrder |
-| Rejeitar Orçamento | RejectQuote() | ServiceOrder |
-| Finalizar OS | Finish() | ServiceOrder |
-| Registrar Entrega | RegisterDelivery() | ServiceOrder |
-| Adicionar Serviço ao Diagnóstico | AddService() | Diagnostic |
-| Remover Serviço do Diagnóstico | RemoveService() | Diagnostic |
-| Concluir Diagnóstico Interno | Complete() | Diagnostic |
-| Adicionar Peça ao Serviço | AddPart() | Service |
-| Remover Peça do Serviço | RemovePart() | Service |
-| Adicionar Insumo ao Serviço | AddSupply() | Service |
-| Remover Insumo do Serviço | RemoveSupply() | Service |
-| Marcar Execução Pronta | MarkReadyToStart() | ExecutionOrder |
-| Iniciar Execução | StartExecution() | ExecutionOrder |
-| Concluir Execução | CompleteExecution() | ExecutionOrder |
-| Reservar Itens da Separação | Reserve() | SeparationOrder |
-| Aguardar Compra | WaitForPurchase() | SeparationOrder |
-| Retomar após Compra | ResumeAfterPurchase() | SeparationOrder |
-| Confirmar Retirada (Estoquista) | ConfirmStockistWithdrawal() | SeparationOrder |
-| Confirmar Recebimento (Mecânico) | ConfirmMechanicReceipt() | SeparationOrder |
-| Reservar Estoque | Reserve() | Stock |
-| Baixar Estoque | Decrease() | Stock |
-| Liberar Reserva (ajuste manual de estoque) | Release() | Stock |
-| Repor Estoque | Replenish() | Stock |
-| Atribuir Fornecedor | AssignSupplier() | PurchaseOrder |
-| Iniciar Compra | Start() | PurchaseOrder |
-| Concluir Compra | Complete() | PurchaseOrder |
-| Desativar | Deactivate() | Customer, Vehicle, Service, Part, Supply, Supplier, Employee |
+- **Pendente:** ordem criada, aguardando liberacao operacional.
+- **Pronta para Inicio:** itens necessarios ja estao disponiveis para iniciar.
+- **Em Execucao:** servico em andamento na oficina.
+- **Concluida:** servico finalizado tecnicamente.
 
 ---
 
-## Regra Canônica de Preço no Orçamento
-- `LaborPrice` de `QuoteItem` vem de `Service.BasePrice` no momento da geração do orçamento.
-- `ServiceItem` não armazena preço; mantém somente snapshot estrutural.
+## Status da Ordem de Separacao (Retirada)
 
-## Regra Canônica de Governança do Orçamento
-- `Quote` é imutável por versão após geração.
-- Cada versão só pode transicionar de `WaitingCustomerApproval` para `CustomerApproved` ou `CustomerRejected`.
-- Mudança de escopo solicitada pelo cliente gera nova versão de orçamento no atendimento.
-
-## Regra Canônica de Ajuste Manual de Estoque
-- `Release()` em `Stock` é operação de ajuste manual para peças e insumos.
-- Exige justificativa obrigatória.
-- É governada por perfil `Administrative`.
-- Não substitui a devolução operacional total vinculada à `SeparationOrder`.
+- **Pendente:** ordem criada e aguardando acao do estoque.
+- **Aguardando Compra:** falta item e a separacao depende de reposicao.
+- **Aguardando Retirada:** itens reservados e prontos para retirada.
+- **Separada:** retirada confirmada pelo estoque.
+- **Concluida:** recebimento confirmado pelo mecanico.
 
 ---
 
-## Repositórios
+## Status da Ordem de Compra
 
-| Domínio (PT) | Código (EN) | Namespace |
-|--------------|-------------|-----------|
-| Repositório de OS | IServiceOrderRepository | GarageFlow.Domain.ServiceOrders |
-| Repositório de OE | IExecutionOrderRepository | GarageFlow.Domain.Executions |
-| Repositório de Ordem de Separação | ISeparationOrderRepository | GarageFlow.Domain.Stock |
-| Repositório de OdC | IPurchaseOrderRepository | GarageFlow.Domain.Purchasing |
-| Repositório de Cliente | ICustomerRepository | GarageFlow.Domain.Customers |
-| Repositório de Veículo | IVehicleRepository | GarageFlow.Domain.Vehicles |
-| Repositório de Serviço | IServiceRepository | GarageFlow.Domain.Services |
-| Repositório de Peça | IPartRepository | GarageFlow.Domain.Parts |
-| Repositório de Insumo | ISupplyRepository | GarageFlow.Domain.Supplies |
-| Repositório de Fornecedor | ISupplierRepository | GarageFlow.Domain.Suppliers |
-| Repositório de Funcionário | IEmployeeRepository | GarageFlow.Domain.Employees |
-| Repositório de Estoque | IStockRepository | GarageFlow.Domain.Stock |
+- **Criada:** necessidade de compra registrada.
+- **Iniciada:** compra em andamento com fornecedor definido.
+- **Concluida:** itens recebidos e compra encerrada.
 
 ---
 
-## Atores
+## Status do Orcamento
 
-| Domínio (PT) | Código (EN) |
-|--------------|-------------|
-| Cliente | Customer |
-| Atendente | Attendant |
-| Mecânico | Mechanic |
-| Estoquista | Stockist |
-| Administrativo | Administrative |
+- **Aguardando Aprovacao do Cliente:** proposta enviada e sem decisao final.
+- **Aprovado pelo Cliente:** cliente aceitou a proposta.
+- **Rejeitado pelo Cliente:** cliente recusou a proposta.
 
 ---
 
-## Eventos de Integração
-O catálogo canônico de eventos de integração está centralizado em
-`docs/domain/agregados.md`, na seção **Eventos de Integração Canônicos**.
-Este documento mantém apenas o mapeamento de linguagem ubíqua.
+## Regras de Linguagem para o Time
+
+- Usar sempre **OS** para falar do fluxo principal de atendimento.
+- Usar **ordem de retirada** como sinonimo operacional de **ordem de separacao**.
+- Diferenciar claramente:
+  - **Aprovada** (status da OS)
+  - **Aprovado pelo Cliente** (status do orcamento)
+- Quando houver falta de item, falar em **insuficiencia de estoque** e nao em "erro de separacao".
+
+---
+
+## Handoffs Entre Areas (Visao de Negocio)
+
+- Atendimento libera OS para diagnostico.
+- Producao conclui diagnostico e devolve para atendimento gerar/seguir com orcamento.
+- Aprovacao do cliente libera producao e estoque para execucao.
+- Estoque conclui retirada para permitir avanco da execucao.
+- Insuficiencia de estoque aciona compra no administrativo.
+- Compra concluida permite retomada de separacoes pendentes.
