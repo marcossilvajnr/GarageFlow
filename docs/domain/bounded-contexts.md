@@ -1,8 +1,11 @@
-# GarageFlow — Bounded Contexts
+# GarageFlow - Bounded Contexts
 
-## Visão Geral
-O domínio do GarageFlow é dividido em 8 contextos delimitados.
-Cada contexto tem responsabilidade única e se comunica com os demais por eventos de integração.
+## Visao Geral
+O dominio do GarageFlow esta organizado em 4 contextos delimitados, alinhados ao fluxo operacional:
+- Atendimento
+- Producao
+- Estoque
+- Administrativo
 
 ---
 
@@ -10,289 +13,160 @@ Cada contexto tem responsabilidade única e se comunica com os demais por evento
 
 ```mermaid
 graph TD
-    subgraph BC1[Gestão de Clientes]
-        Cliente
-        Veiculo
+    subgraph BC1[Atendimento]
+        Customer
+        Vehicle
+        ServiceOrder
+        Quote
     end
 
-    subgraph BC2[Catálogo]
-        Servico
-        Peca
-        Insumo
+    subgraph BC2[Producao]
+        Diagnostic
+        ExecutionOrder
     end
 
-    subgraph BC3[Fornecedores]
-        Fornecedor
+    subgraph BC3[Estoque]
+        Stock
+        SeparationOrder
     end
 
-    subgraph BC4[Gestão de Pessoas]
-        Funcionario
+    subgraph BC4[Administrativo]
+        Employee
+        Supplier
+        Service
+        Part
+        Supply
+        PurchaseOrder
     end
 
-    subgraph BC5[Gestão de Ordens de Serviço]
-        OrdemDeServico
-        Diagnostico
-        Orcamento
-    end
+    BC1 -->|OS liberada para diagnostico| BC2
+    BC2 -->|Diagnostico concluido| BC1
+    BC1 -->|QuoteApprovedEvent| BC2
+    BC2 -->|ExecutionOrderCreatedEvent| BC3
+    BC3 -->|SeparationOrderCompletedEvent| BC2
+    BC3 -->|InsufficientStockEvent| BC4
+    BC4 -->|PurchaseOrderCompletedEvent| BC3
 
-    subgraph BC6[Produção]
-        OrdemDeExecucao
-    end
-
-    subgraph BC7[Gestão de Estoque]
-        Estoque
-        OrdemDeSeparacao
-    end
-
-    subgraph BC8[Compras]
-        OrdemDeCompra
-    end
-
-    BC1 -->|CustomerId, VehicleId| BC5
-    BC2 -->|ServiceId + composição| BC5
-    BC2 -->|PartId, SupplyId| BC7
-    BC3 -->|SupplierId| BC8
-    BC5 -->|QuoteApprovedEvent| BC6
-    BC6 -->|ExecutionOrderCreatedEvent| BC7
-    BC6 -->|ExecutionOrderCompletedEvent| BC5
-    BC7 -->|SeparationOrderCompletedEvent| BC6
-    BC7 -->|InsufficientStockEvent| BC8
-    BC8 -->|PurchaseOrderCompletedEvent| BC7
+    BC4 -->|ServiceId e composicao| BC1
+    BC4 -->|PartId e SupplyId| BC3
+    BC4 -->|EmployeeId papel compativel| BC1
+    BC4 -->|EmployeeId papel compativel| BC2
+    BC4 -->|EmployeeId papel compativel| BC3
 ```
 
 ---
 
-## 1. Gestão de Clientes
+## 1. Atendimento
 
-Responsabilidade: cadastro e histórico de clientes e veículos.
-
-Agregados:
-- `Customer` (CPF/CNPJ)
-- `Vehicle` (LicensePlate/Renavam)
-
-Regras críticas:
-- CPF/CNPJ únicos
-- Placa/RENAVAM únicos
-- veículo pertence a um único cliente
-- remoção lógica (soft delete)
-
-Comunicações:
-- fornece `CustomerId` e `VehicleId` para Gestão de Ordens de Serviço
-
----
-
-## 2. Catálogo
-
-Responsabilidade: definição de serviços, peças e insumos ofertados.
-
-Agregados:
-- `Service`
-- `Part`
-- `Supply`
-
-Regras críticas:
-- serviço, peça e insumo são desativáveis (soft delete)
-- `Service` mantém composição pré-definida de peças e insumos
-- composição de serviço só aceita itens não duplicados e quantidades > 0
-- `BasePrice` do serviço é a fonte de preço de mão de obra no orçamento
-- `Part` mantém `Code` e `Sku` como identificadores de catálogo
-- `Supply` mantém `Code`, `UnitOfMeasure`, `BaseCost` e pode referenciar `PreferredSupplierId`
-
-Comunicações:
-- fornece `ServiceId` e composição para Gestão de Ordens de Serviço
-- fornece `PartId` e `SupplyId` para Gestão de Estoque
-
----
-
-## 3. Fornecedores
-
-Responsabilidade: cadastro de fornecedores de peças e insumos.
-
-Agregado:
-- `Supplier`
-
-Regras críticas:
-- CNPJ único
-- remoção lógica (soft delete)
-
-Comunicações:
-- fornece `SupplierId` para Compras
-
----
-
-## 4. Gestão de Pessoas
-
-Responsabilidade: cadastro e ciclo de vida de funcionários internos do sistema.
-
-Agregado:
-- `Employee`
-
-Regras críticas:
-- CPF/CNPJ únicos no contexto de funcionários
-- cargo obrigatório
-- remoção lógica (soft delete)
-
-Comunicações:
-- fornece identidade e papel para fluxos operacionais do sistema
-
----
-
-## 5. Gestão de Ordens de Serviço
-
-Responsabilidade: controle do ciclo de vida da OS, diagnóstico e orçamento.
+Responsabilidade: receber o cliente, abrir e conduzir a OS ate aprovacao/reprovacao de orcamento.
 
 Agregados/entidades:
-- `ServiceOrder` (raiz)
-- `Diagnostic` (entidade interna)
-- `Quote` (entidade interna)
-- `ServiceItem` (value object interno)
+- `Customer`
+- `Vehicle`
+- `ServiceOrder`
+- `Quote`
 
-Status da OS:
-
-```mermaid
-stateDiagram-v2
-    [*] --> Received
-    Received --> InDiagnostic : StartDiagnostic
-    InDiagnostic --> WaitingApproval : CompleteDiagnostic
-    WaitingApproval --> Approved : AcceptQuote
-    WaitingApproval --> Rejected : RejectQuote
-    Approved --> InExecution : StartExecutionFlow
-    InExecution --> Finished : All services completed
-    Finished --> Delivered : RegisterDelivery
-```
-
-Regras críticas:
-- `CustomerId` e `VehicleId` imutáveis
-- mecânico seleciona serviços no diagnóstico
-- peças e insumos não são cadastrados manualmente no diagnóstico
-- após `Diagnostic.Completed`, não há reabertura
-- `Quote` calcula:
-  - `LaborPrice` via `Service.BasePrice`
-  - `PartsTotal` e `SuppliesTotal` via preços de catálogo no momento da geração
-- `ServiceItem` é snapshot estrutural (sem preço)
+Regras criticas:
+- cadastro e manutencao de cliente e veiculo
+- `ServiceOrder` nasce com `FrontDeskEmployeeId` obrigatorio
+- orcamento e gerado a partir dos servicos consolidados
+- aceite/rejeicao do orcamento ocorre neste contexto
 
 Comunicações:
-- consome `CustomerId` e `VehicleId` de Gestão de Clientes
-- consome `ServiceId` e composição do Catálogo
-- publica `QuoteApprovedEvent` para Produção
-- consome `ExecutionOrderCompletedEvent` para progresso da OS
+- consome `ServiceId` e composicao do contexto Administrativo
+- consome `EmployeeId` para papeis de atendimento
+- publica liberacao para diagnostico (handoff para Producao)
+- publica `QuoteApprovedEvent` para Producao
+- consome evento de execucao concluida para progresso da OS
 
 ---
 
-## 6. Produção
+## 2. Producao
 
-Responsabilidade: execução de serviços pelos mecânicos.
+Responsabilidade: executar o trabalho tecnico (diagnostico e execucao).
 
-Agregado:
+Agregados/entidades:
+- `Diagnostic`
 - `ExecutionOrder`
 
-Status:
-
-```mermaid
-stateDiagram-v2
-    [*] --> Pending
-    Pending --> Ready : SeparationOrderCompletedEvent
-    Ready --> InExecution : StartExecution
-    InExecution --> Completed : CompleteExecution
-```
-
-Regras críticas:
-- criado automaticamente ao aprovar orçamento (1 por serviço)
-- só inicia execução após separação concluída
-- registra tempo real da execução
+Regras criticas:
+- diagnostico e responsabilidade operacional da Producao
+- `Diagnostic` exige `MechanicId` compativel
+- `ExecutionOrder` exige `MechanicId` obrigatorio na criacao
+- execucao so inicia apos disponibilidade da separacao
 
 Comunicações:
-- consome `QuoteApprovedEvent`
-- publica `ExecutionOrderCreatedEvent`
-- publica `ExecutionOrderReadyEvent`
-- publica `ExecutionOrderCompletedEvent`
-- consome `SeparationOrderCompletedEvent`
+- consome OS liberada e `QuoteApprovedEvent` de Atendimento
+- consome `EmployeeId` para papel de mecanico
+- publica `ExecutionOrderCreatedEvent` para Estoque
+- consome `SeparationOrderCompletedEvent` do Estoque
+- publica `ExecutionOrderCompletedEvent` para Atendimento
 
 ---
 
-## 7. Gestão de Estoque
+## 3. Estoque
 
-Responsabilidade: controle de saldo e separação física para execução.
+Responsabilidade: disponibilidade de itens e ordem de retirada/separacao para execucao.
 
 Agregados:
 - `Stock`
 - `SeparationOrder`
 
-Status da separação:
-
-```mermaid
-stateDiagram-v2
-    [*] --> Pending
-    Pending --> WaitingPurchase : no stock
-    Pending --> WaitingPickup : stock available
-    WaitingPurchase --> WaitingPickup : PurchaseOrderCompletedEvent
-    WaitingPickup --> Separated : Stockist withdrawal
-    Separated --> Completed : Mechanic receipt
-```
-
-Regras críticas:
-- separação criada automaticamente por execução
-- separação mantém listas separadas de peças e insumos
-- devolução de retirada:
-  - permitida somente antes de `ConfirmMechanicReceipt`
-  - vinculada obrigatoriamente à `SeparationOrder` de origem
-  - total para todos os itens da ordem (peças e insumos)
-  - bloqueada após `ConfirmMechanicReceipt`
-- ajuste manual de reserva de estoque:
-  - permite peças e insumos
-  - exige justificativa obrigatória
-  - é restrito ao perfil `Administrative`
-  - não substitui o fluxo de devolução total da `SeparationOrder`
-- `AvailableQuantity` nunca negativa
+Regras criticas:
+- `SeparationOrder` representa a ordem de retirada
+- retirada exige `StockistId` compativel
+- confirmacao do mecanico encerra a separacao
+- insuficiencia de estoque aciona compra
 
 Comunicações:
-- consome `ExecutionOrderCreatedEvent`
-- publica `SeparationOrderCompletedEvent`
-- publica `InsufficientStockEvent`
-- consome `PurchaseOrderCompletedEvent`
+- consome `ExecutionOrderCreatedEvent` da Producao
+- consome `EmployeeId` para papel de estoquista
+- publica `SeparationOrderCompletedEvent` para Producao
+- publica `InsufficientStockEvent` para Administrativo
+- consome `PurchaseOrderCompletedEvent` do Administrativo
 
 ---
 
-## 8. Compras
+## 4. Administrativo
 
-Responsabilidade: reposição de estoque por ordem de compra.
+Responsabilidade: governanca dos cadastros mestres (CRUDs) e fluxo de compra.
 
-Agregado:
+Agregados:
+- `Employee`
+- `Supplier`
+- `Service`
+- `Part`
+- `Supply`
 - `PurchaseOrder`
 
-Status:
-
-```mermaid
-stateDiagram-v2
-    [*] --> Created
-    Created --> Started : Administrative starts
-    Started --> Completed : Stockist confirms receipt
-```
-
-Regras críticas:
-- geração automática quando há insuficiência
-- fornecedor obrigatório para iniciar
-- conclusão aciona retomada automática de separações pendentes
+Regras criticas:
+- concentra CRUDs administrativos
+- `PurchaseOrder` tem um `EmployeeId` responsavel
+- atribuicao de fornecedor, inicio e conclusao da compra respeitam papel compativel
+- conclusao da compra reativa separacoes pendentes
 
 Comunicações:
-- consome `InsufficientStockEvent`
-- consome `SupplierId`
-- publica `PurchaseOrderCompletedEvent`
+- fornece mestres para os demais contextos (`Service`, `Part`, `Supply`, `Supplier`, `Employee`)
+- consome `InsufficientStockEvent` do Estoque
+- publica `PurchaseOrderCompletedEvent` para Estoque
 
 ---
 
-## Diagrama de Comunicações entre Contextos
+## Diagrama de Comunicacoes entre Contextos
 
 ```mermaid
 graph TD
-    BC1[Gestão de Clientes] -->|CustomerId, VehicleId| BC5[Gestão de OS]
-    BC2[Catálogo] -->|ServiceId + composição| BC5
-    BC2 -->|PartId, SupplyId| BC7[Gestão de Estoque]
-    BC3[Fornecedores] -->|SupplierId| BC8[Compras]
-    BC5 -->|QuoteApprovedEvent| BC6[Produção]
-    BC6 -->|ExecutionOrderCreatedEvent| BC7
-    BC6 -->|ExecutionOrderCompletedEvent| BC5
-    BC7 -->|SeparationOrderCompletedEvent| BC6
-    BC7 -->|InsufficientStockEvent| BC8
-    BC8 -->|PurchaseOrderCompletedEvent| BC7
+    ATD[Atendimento] -->|OS liberada para diagnostico| PRD[Producao]
+    PRD -->|Diagnostico concluido| ATD
+    ATD -->|QuoteApprovedEvent| PRD
+    PRD -->|ExecutionOrderCreatedEvent| EST[Estoque]
+    EST -->|SeparationOrderCompletedEvent| PRD
+    PRD -->|ExecutionOrderCompletedEvent| ATD
+
+    EST -->|InsufficientStockEvent| ADM[Administrativo]
+    ADM -->|PurchaseOrderCompletedEvent| EST
+
+    ADM -->|Catalogo, fornecedores, funcionarios| ATD
+    ADM -->|Funcionarios mecanicos| PRD
+    ADM -->|Catalogo e funcionarios estoque| EST
 ```

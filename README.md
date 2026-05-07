@@ -1,5 +1,7 @@
 # GarageFlow
 
+Detalhes da modelagem de domínio: `docs/domain`.
+
 Backend .NET para gestão de oficina mecânica, com foco em Ordem de Serviço, estoque e execução de ponta a ponta.
 
 ## Documentação
@@ -59,16 +61,6 @@ Exemplo de resposta esperada do `POST /auth/login`:
   "role": "Administrative"
 }
 ```
-
-Matriz rápida de acesso por papel (endpoints críticos):
-- `POST /service-orders` e `GET /employees`:
-  - `FrontDesk`, `Administrative`
-- `POST /service-orders/{id}/diagnostic/start`:
-  - `Mechanic`, `Administrative`
-- `POST /separation-orders/{id}/confirm-stockist-withdrawal`:
-  - `Stockist`, `Administrative`
-- `POST /stock/releases`:
-  - apenas `Administrative`
 
 Exemplo equivalente via `curl`:
 
