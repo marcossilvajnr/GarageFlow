@@ -209,7 +209,7 @@ public sealed class DiagnosticTests
     [Fact]
     public void ServiceOrder_StartDiagnostic_WithValidMechanic_SetsDiagnosticAndStatus()
     {
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         var mechanicId = Guid.NewGuid();
 
         serviceOrder.StartDiagnostic(mechanicId);
@@ -224,7 +224,7 @@ public sealed class DiagnosticTests
     [Fact]
     public void ServiceOrder_StartDiagnostic_WhenAlreadyInDiagnostic_ThrowsDiagnosticAlreadyStartedException()
     {
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
 
         var act = () => serviceOrder.StartDiagnostic(Guid.NewGuid());
@@ -236,7 +236,7 @@ public sealed class DiagnosticTests
     [Fact]
     public void ServiceOrder_StartDiagnostic_WithEmptyMechanicId_ThrowsDomainException()
     {
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         var act = () => serviceOrder.StartDiagnostic(Guid.Empty);
 
@@ -247,7 +247,7 @@ public sealed class DiagnosticTests
     [Fact]
     public void ServiceOrder_AddDiagnosticService_WhenNoDiagnostic_ThrowsDiagnosticNotInProgressException()
     {
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         var act = () => serviceOrder.AddDiagnosticService(Guid.NewGuid());
 

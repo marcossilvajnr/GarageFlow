@@ -2,9 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using GarageFlow.Api.DTOs.Employees;
 using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Executions;
+using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Tests.Integration;
@@ -26,6 +29,54 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     {
         PropertyNameCaseInsensitive = true
     };
+    private static int _employeeSeed;
+    private static int _cpfSeed = 400_000_000;
+
+    private static string GenerateValidCpf()
+    {
+        var baseDigits = Interlocked.Increment(ref _cpfSeed) % 1_000_000_000;
+        var baseNumber = baseDigits.ToString("D9");
+        var firstDigit = CalculateCpfVerifier(baseNumber, 10);
+        var secondDigit = CalculateCpfVerifier(baseNumber + firstDigit, 11);
+        var rawCpf = $"{baseNumber}{firstDigit}{secondDigit}";
+        return $"{rawCpf[..3]}.{rawCpf.Substring(3, 3)}.{rawCpf.Substring(6, 3)}-{rawCpf.Substring(9, 2)}";
+    }
+
+    private static int CalculateCpfVerifier(string digits, int weightStart)
+    {
+        var sum = 0;
+        for (var i = 0; i < digits.Length; i++)
+        {
+            sum += (digits[i] - '0') * (weightStart - i);
+        }
+
+        var mod = sum % 11;
+        return mod < 2 ? 0 : 11 - mod;
+    }
+
+    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    {
+        var seed = Interlocked.Increment(ref _employeeSeed);
+        var request = new CreateEmployeeRequest(
+            $"Employee Separation {seed}",
+            CustomerDocumentType.Cpf,
+            GenerateValidCpf(),
+            $"separation-employee-{seed}@garageflow.test",
+            $"1195{seed % 1_0000:D4}321",
+            "Rua Estoque",
+            "50",
+            null,
+            "Centro",
+            "Sao Paulo",
+            "SP",
+            "01310100",
+            role);
+
+        var response = await _client.PostAsJsonAsync("/employees", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<EmployeeResponse>(JsonOptions);
+        return body!.Id;
+    }
 
     private async Task<Guid> CreatePart()
     {
@@ -47,7 +98,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
     private async Task<Guid> CreateExecutionOrder()
     {
-        var request = new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid());
+        var request = new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         var response = await _client.PostAsJsonAsync("/execution-orders", request);
         response.EnsureSuccessStatusCode();
         var body = await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
@@ -275,7 +326,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         var created = await CreateSeparationOrder();
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
 
-        var request = new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid());
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
         var response = await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -296,7 +347,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
 
-        var request = new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid());
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
         await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
 
         var stockResponse = await _client.GetAsync($"/stock/Part/{partId}");
@@ -321,7 +372,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         await adminClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste operacional de teste", "sistema", null, null));
 
-        var request = new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid());
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
         var response = await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -332,7 +383,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     {
         var created = await CreateSeparationOrder();
 
-        var request = new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid());
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
         var response = await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -353,7 +404,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     [Fact]
     public async Task ConfirmStockistWithdrawal_WhenNotFound_Returns404()
     {
-        var request = new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid());
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
         var response = await _client.PostAsJsonAsync($"/separation-orders/{Guid.NewGuid()}/confirm-stockist-withdrawal", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -368,7 +419,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
         await _client.PostAsJsonAsync(
             $"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
-            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+            new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist)));
 
         var response = await _client.PostAsync($"/separation-orders/{created.Id}/return-total", null);
 
@@ -407,7 +458,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         var created = await CreateSeparationOrder(request);
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
         await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
-            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+            new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist)));
 
         var response = await _client.PostAsync($"/separation-orders/{created.Id}/confirm-mechanic-receipt", null);
 
@@ -422,7 +473,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         var created = await CreateSeparationOrder();
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
         await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
-            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+            new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist)));
 
         var response = await _client.PostAsync($"/separation-orders/{created.Id}/confirm-mechanic-receipt", null);
 

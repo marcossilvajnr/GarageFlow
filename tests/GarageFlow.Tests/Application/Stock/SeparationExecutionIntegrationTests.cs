@@ -3,10 +3,14 @@ using GarageFlow.Application.Executions.Commands;
 using GarageFlow.Application.Executions.Handlers;
 using GarageFlow.Application.Stock.Commands;
 using GarageFlow.Application.Stock.Handlers;
+using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
+using GarageFlow.Domain.ValueObjects;
+using GarageFlow.Tests.Application.Employees;
 using GarageFlow.Tests.Application.Executions;
 using GarageFlow.Tests.Application.ServiceOrders;
 using DomainStock = GarageFlow.Domain.Stock.Stock;
@@ -15,14 +19,34 @@ namespace GarageFlow.Tests.Application.Stock;
 
 public sealed class SeparationExecutionIntegrationTests
 {
+    private static Address ValidAddress() => Address.Create(
+        "Rua das Flores", "100", null, "Centro", "São Paulo", "SP", "01310100");
+
+    private static async Task<Employee> SeedStockistAsync(FakeEmployeeRepository employeeRepo)
+    {
+        var employee = Employee.Create(
+            "Estoquista Teste",
+            CustomerDocumentType.Cpf,
+            "529.982.247-25",
+            $"estoquista.{Guid.NewGuid():N}@garageflow.test",
+            "11987654321",
+            ValidAddress(),
+            EmployeeRole.Stockist);
+
+        await employeeRepo.AddAsync(employee);
+        return employee;
+    }
+
     [Fact]
     public async Task ConfirmMechanicReceipt_CompletesSeparation_AndMarksExecutionReady()
     {
         var separationRepo = new FakeSeparationOrderRepository();
         var executionRepo = new FakeExecutionOrderRepository();
         var stockRepo = new FakeStockRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedStockistAsync(employeeRepo);
 
-        var execution = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var execution = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await executionRepo.AddAsync(execution);
 
         var partId = Guid.NewGuid();
@@ -38,8 +62,8 @@ public sealed class SeparationExecutionIntegrationTests
 
         await new ReserveSeparationOrderHandler(separationRepo, stockRepo)
             .HandleAsync(new ReserveSeparationOrderCommand(separation.Id));
-        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo, stockRepo)
-            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(separation.Id, Guid.NewGuid()));
+        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo, stockRepo, employeeRepo)
+            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(separation.Id, stockist.Id));
 
         var handler = new ConfirmSeparationMechanicReceiptHandler(separationRepo, executionRepo);
         var result = await handler.HandleAsync(new ConfirmSeparationMechanicReceiptCommand(separation.Id));
@@ -54,6 +78,8 @@ public sealed class SeparationExecutionIntegrationTests
         var separationRepo = new FakeSeparationOrderRepository();
         var executionRepo = new FakeExecutionOrderRepository();
         var stockRepo = new FakeStockRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedStockistAsync(employeeRepo);
 
         var partId = Guid.NewGuid();
         var stock = DomainStock.Create(partId, StockItemType.Part, 100m, 0m);
@@ -68,8 +94,8 @@ public sealed class SeparationExecutionIntegrationTests
 
         await new ReserveSeparationOrderHandler(separationRepo, stockRepo)
             .HandleAsync(new ReserveSeparationOrderCommand(separation.Id));
-        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo, stockRepo)
-            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(separation.Id, Guid.NewGuid()));
+        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo, stockRepo, employeeRepo)
+            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(separation.Id, stockist.Id));
 
         var handler = new ConfirmSeparationMechanicReceiptHandler(separationRepo, executionRepo);
         var act = async () => await handler.HandleAsync(new ConfirmSeparationMechanicReceiptCommand(separation.Id));
@@ -85,13 +111,15 @@ public sealed class SeparationExecutionIntegrationTests
         var executionRepo = new FakeExecutionOrderRepository();
         var stockRepo = new FakeStockRepository();
         var soRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedStockistAsync(employeeRepo);
 
-        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Status))!
             .SetValue(so, ServiceOrderStatus.InExecution);
         await soRepo.AddAsync(so);
 
-        var execution = ExecutionOrder.Create(so.Id, Guid.NewGuid());
+        var execution = ExecutionOrder.Create(so.Id, Guid.NewGuid(), Guid.NewGuid());
         await executionRepo.AddAsync(execution);
 
         var partId = Guid.NewGuid();
@@ -114,8 +142,8 @@ public sealed class SeparationExecutionIntegrationTests
         var reservedAfterReserve = stock.ReservedQuantity;
 
         // Baixa definitiva ocorre aqui — ConfirmStockistWithdrawal
-        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo, stockRepo)
-            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(separation.Id, Guid.NewGuid()));
+        await new ConfirmSeparationStockistWithdrawalHandler(separationRepo, stockRepo, employeeRepo)
+            .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(separation.Id, stockist.Id));
 
         var totalAfterWithdrawal = stock.TotalQuantity;
         var reservedAfterWithdrawal = stock.ReservedQuantity;
@@ -126,7 +154,7 @@ public sealed class SeparationExecutionIntegrationTests
 
         // Avançar execução para InExecution
         await new StartExecutionOrderHandler(executionRepo, soRepo)
-            .HandleAsync(new StartExecutionOrderCommand(execution.Id, Guid.NewGuid()));
+            .HandleAsync(new StartExecutionOrderCommand(execution.Id));
 
         var totalBeforeComplete = stock.TotalQuantity;
         var reservedBeforeComplete = stock.ReservedQuantity;

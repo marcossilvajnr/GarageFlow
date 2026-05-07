@@ -28,7 +28,7 @@ public sealed class PersistenceObservabilitySaveChangesInterceptorTests
 
         var dbContext = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
 
-        var executionOrder = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var executionOrder = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         dbContext.ExecutionOrders.Add(executionOrder);
         await dbContext.SaveChangesAsync();
 

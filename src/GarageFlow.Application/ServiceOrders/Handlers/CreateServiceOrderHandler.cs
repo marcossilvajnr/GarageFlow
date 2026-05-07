@@ -1,6 +1,7 @@
 using GarageFlow.Application.ServiceOrders.Commands;
 using GarageFlow.Application.ServiceOrders.DTOs;
 using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Shared;
@@ -11,7 +12,8 @@ namespace GarageFlow.Application.ServiceOrders.Handlers;
 public sealed class CreateServiceOrderHandler(
     IServiceOrderRepository serviceOrderRepository,
     ICustomerRepository customerRepository,
-    IVehicleRepository vehicleRepository)
+    IVehicleRepository vehicleRepository,
+    IEmployeeRepository employeeRepository)
 {
     public async Task<ServiceOrderDto> HandleAsync(CreateServiceOrderCommand command, CancellationToken cancellationToken = default)
     {
@@ -20,6 +22,14 @@ public sealed class CreateServiceOrderHandler(
 
         if (command.VehicleId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.InvalidServiceOrderVehicleId);
+
+        var frontDeskEmployeeId = command.FrontDeskEmployeeId;
+        await Employees.EmployeeActorValidator.ValidateAsync(
+            employeeRepository,
+            frontDeskEmployeeId,
+            DomainErrorMessages.InvalidServiceOrderFrontDeskEmployeeId,
+            [EmployeeRole.Attendant, EmployeeRole.Administrative],
+            cancellationToken);
 
         var customer = await customerRepository.GetByIdAsync(command.CustomerId, cancellationToken);
         if (customer is null)
@@ -32,7 +42,7 @@ public sealed class CreateServiceOrderHandler(
         if (vehicle.CustomerId != command.CustomerId)
             throw new DomainException(DomainErrorMessages.ServiceOrderVehicleCustomerMismatch);
 
-        var serviceOrder = ServiceOrder.Create(command.CustomerId, command.VehicleId);
+        var serviceOrder = ServiceOrder.Create(command.CustomerId, command.VehicleId, frontDeskEmployeeId);
 
         await serviceOrderRepository.AddAsync(serviceOrder, cancellationToken);
         await serviceOrderRepository.SaveChangesAsync(cancellationToken);

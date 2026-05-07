@@ -2,11 +2,13 @@ using FluentAssertions;
 using GarageFlow.Application.Purchasing.Commands;
 using GarageFlow.Application.Purchasing.Handlers;
 using GarageFlow.Application.Purchasing.Queries;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Suppliers;
 using GarageFlow.Domain.ValueObjects;
+using GarageFlow.Tests.Application.Employees;
 using GarageFlow.Tests.Application.Stock;
 using GarageFlow.Tests.Application.Suppliers;
 
@@ -23,6 +25,24 @@ public sealed class PurchaseOrderHandlersTests
     {
         var address = Address.Create("Rua Teste", "123", null, "Centro", "São Paulo", "SP", "01310-100");
         return Supplier.Create("Fornecedor Teste", "11222333000181", "contato@fornecedor.com", "(11) 99999-9999", address);
+    }
+
+    private static async Task<Employee> SeedEmployeeAsync(
+        FakeEmployeeRepository employeeRepo,
+        EmployeeRole role = EmployeeRole.Stockist)
+    {
+        var address = Address.Create("Rua Teste", "123", null, "Centro", "São Paulo", "SP", "01310-100");
+        var employee = Employee.Create(
+            "Funcionário Teste",
+            GarageFlow.Domain.Customers.CustomerDocumentType.Cpf,
+            "529.982.247-25",
+            "funcionario@garageflow.com",
+            "11987654321",
+            address,
+            role);
+
+        await employeeRepo.AddAsync(employee);
+        return employee;
     }
 
     // --- CreatePurchaseOrderHandler ---
@@ -118,14 +138,16 @@ public sealed class PurchaseOrderHandlersTests
     {
         var purchaseRepo = new FakePurchaseOrderRepository();
         var supplierRepo = new FakeSupplierRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
         var supplier = ValidSupplier();
         await supplierRepo.AddAsync(supplier);
 
         var createHandler = new CreatePurchaseOrderHandler(purchaseRepo);
         var dto = await createHandler.HandleAsync(ValidCreateCommand());
 
-        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo);
-        var result = await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id));
+        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo, employeeRepo);
+        var result = await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id, stockist.Id));
 
         result.SupplierId.Should().Be(supplier.Id);
     }
@@ -135,13 +157,15 @@ public sealed class PurchaseOrderHandlersTests
     {
         var purchaseRepo = new FakePurchaseOrderRepository();
         var supplierRepo = new FakeSupplierRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
 
         var createHandler = new CreatePurchaseOrderHandler(purchaseRepo);
         var dto = await createHandler.HandleAsync(ValidCreateCommand());
 
-        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo);
+        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo, employeeRepo);
         var act = async () => await assignHandler.HandleAsync(
-            new AssignPurchaseOrderSupplierCommand(dto.Id, Guid.NewGuid()));
+            new AssignPurchaseOrderSupplierCommand(dto.Id, Guid.NewGuid(), stockist.Id));
 
         await act.Should().ThrowAsync<DomainException>();
     }
@@ -151,10 +175,12 @@ public sealed class PurchaseOrderHandlersTests
     {
         var purchaseRepo = new FakePurchaseOrderRepository();
         var supplierRepo = new FakeSupplierRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
 
-        var handler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo);
+        var handler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo, employeeRepo);
         var act = async () => await handler.HandleAsync(
-            new AssignPurchaseOrderSupplierCommand(Guid.NewGuid(), Guid.NewGuid()));
+            new AssignPurchaseOrderSupplierCommand(Guid.NewGuid(), Guid.NewGuid(), stockist.Id));
 
         await act.Should().ThrowAsync<EntityNotFoundException>();
     }
@@ -164,20 +190,22 @@ public sealed class PurchaseOrderHandlersTests
     {
         var purchaseRepo = new FakePurchaseOrderRepository();
         var supplierRepo = new FakeSupplierRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
         var supplier = ValidSupplier();
         await supplierRepo.AddAsync(supplier);
 
         var createHandler = new CreatePurchaseOrderHandler(purchaseRepo);
         var dto = await createHandler.HandleAsync(ValidCreateCommand());
 
-        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo);
-        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id));
+        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo, employeeRepo);
+        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id, stockist.Id));
 
         var startHandler = new StartPurchaseOrderHandler(purchaseRepo);
         await startHandler.HandleAsync(new StartPurchaseOrderCommand(dto.Id));
 
         var act = async () => await assignHandler.HandleAsync(
-            new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id));
+            new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id, stockist.Id));
 
         await act.Should().ThrowAsync<InvalidPurchaseOrderStatusTransitionException>();
     }
@@ -189,14 +217,16 @@ public sealed class PurchaseOrderHandlersTests
     {
         var purchaseRepo = new FakePurchaseOrderRepository();
         var supplierRepo = new FakeSupplierRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
         var supplier = ValidSupplier();
         await supplierRepo.AddAsync(supplier);
 
         var createHandler = new CreatePurchaseOrderHandler(purchaseRepo);
         var dto = await createHandler.HandleAsync(ValidCreateCommand());
 
-        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo);
-        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id));
+        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo, employeeRepo);
+        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id, stockist.Id));
 
         var startHandler = new StartPurchaseOrderHandler(purchaseRepo);
         var result = await startHandler.HandleAsync(new StartPurchaseOrderCommand(dto.Id));
@@ -234,14 +264,16 @@ public sealed class PurchaseOrderHandlersTests
     {
         var purchaseRepo = new FakePurchaseOrderRepository();
         var supplierRepo = new FakeSupplierRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
         var supplier = ValidSupplier();
         await supplierRepo.AddAsync(supplier);
 
         var createHandler = new CreatePurchaseOrderHandler(purchaseRepo);
         var dto = await createHandler.HandleAsync(ValidCreateCommand());
 
-        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo);
-        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id));
+        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo, employeeRepo);
+        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id, stockist.Id));
 
         var startHandler = new StartPurchaseOrderHandler(purchaseRepo);
         await startHandler.HandleAsync(new StartPurchaseOrderCommand(dto.Id));
@@ -283,6 +315,8 @@ public sealed class PurchaseOrderHandlersTests
         var separationRepo = new FakeSeparationOrderRepository();
         var stockRepo = new FakeStockRepository();
         var supplierRepo = new FakeSupplierRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
         var supplier = ValidSupplier();
         await supplierRepo.AddAsync(supplier);
 
@@ -293,8 +327,8 @@ public sealed class PurchaseOrderHandlersTests
         var createHandler = new CreatePurchaseOrderHandler(purchaseRepo);
         var dto = await createHandler.HandleAsync(ValidCreateCommand([separationOrder.Id]));
 
-        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo);
-        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id));
+        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo, employeeRepo);
+        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id, stockist.Id));
 
         var startHandler = new StartPurchaseOrderHandler(purchaseRepo);
         await startHandler.HandleAsync(new StartPurchaseOrderCommand(dto.Id));

@@ -144,7 +144,7 @@ public static class ServiceOrdersEndpoints
     {
         try
         {
-            var command = new CreateServiceOrderCommand(request.CustomerId, request.VehicleId);
+            var command = new CreateServiceOrderCommand(request.CustomerId, request.VehicleId, request.FrontDeskEmployeeId);
             var dto = await handler.HandleAsync(command, cancellationToken);
             var response = MapToResponse(dto);
             return Results.Created($"/service-orders/{dto.Id}", response);
@@ -524,6 +524,7 @@ public static class ServiceOrdersEndpoints
             dto.Id,
             dto.CustomerId,
             dto.VehicleId,
+            dto.FrontDeskEmployeeId,
             dto.Status,
             dto.Diagnostic is not null ? MapToDiagnosticResponse(dto.Diagnostic) : null,
             dto.Quote is not null ? MapToQuoteResponse(dto.Quote) : null,

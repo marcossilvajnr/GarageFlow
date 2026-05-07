@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Customers;
+using GarageFlow.Api.DTOs.Employees;
 using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Purchasing;
@@ -11,6 +12,7 @@ using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Suppliers;
 using GarageFlow.Api.DTOs.Vehicles;
 using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.ServiceOrders;
@@ -28,6 +30,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
     private static int _renavamSeed = 1_500_000_000;
     private static int _licensePlateSeed;
     private static int _supplierSeed;
+    private static int _employeeSeed;
 
     private static readonly string[] SupplierCnpjs =
     [
@@ -53,6 +56,9 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
     {
         await ResetRealDatabaseAsync(_client);
         await AuthenticateAsAsync(_client, E2ERole.Administrative);
+        var frontDeskEmployeeId = await CreateEmployeeAsync(EmployeeRole.Attendant);
+        var mechanicEmployeeId = await CreateEmployeeAsync(EmployeeRole.Mechanic);
+        var stockistEmployeeId = await CreateEmployeeAsync(EmployeeRole.Stockist);
 
         var customer = await CreateCustomerAsync();
         var vehicle = await CreateVehicleAsync(customer.Id);
@@ -67,14 +73,14 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
 
         var createServiceOrderResponse = await _client.PostAsJsonAsync(
             "/service-orders",
-            new CreateServiceOrderRequest(customer.Id, vehicle.Id));
+            new CreateServiceOrderRequest(customer.Id, vehicle.Id, frontDeskEmployeeId));
         createServiceOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var serviceOrder = await ReadAsync<ServiceOrderResponse>(createServiceOrderResponse);
         serviceOrder.Status.Should().Be(ServiceOrderStatus.Received);
 
         var startDiagnosticResponse = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/start",
-            new StartDiagnosticRequest(Guid.NewGuid()));
+            new StartDiagnosticRequest(mechanicEmployeeId));
         startDiagnosticResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var serviceOrderInDiagnostic = await ReadAsync<ServiceOrderResponse>(startDiagnosticResponse);
         serviceOrderInDiagnostic.Status.Should().Be(ServiceOrderStatus.InDiagnostic);
@@ -113,7 +119,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
 
         var createExecutionResponse = await _client.PostAsJsonAsync(
             "/execution-orders",
-            new CreateExecutionOrderRequest(serviceOrder.Id, service.Id));
+            new CreateExecutionOrderRequest(serviceOrder.Id, service.Id, mechanicEmployeeId));
         createExecutionResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var executionOrder = await ReadAsync<ExecutionOrderResponse>(createExecutionResponse);
         executionOrder.Status.Should().Be(ExecutionOrderStatus.Pending);
@@ -138,9 +144,8 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         var waitingPurchaseOrder = await ReadAsync<SeparationOrderResponse>(waitPurchaseResponse);
         waitingPurchaseOrder.Status.Should().Be(SeparationOrderStatus.WaitingPurchase);
 
-        var startBeforeReadyResponse = await _client.PostAsJsonAsync(
-            $"/execution-orders/{executionOrder.Id}/start",
-            new StartExecutionOrderRequest(Guid.NewGuid()));
+        var startBeforeReadyResponse = await _client.PostAsync(
+            $"/execution-orders/{executionOrder.Id}/start", null);
         startBeforeReadyResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         var createPurchaseResponse = await _client.PostAsJsonAsync(
@@ -154,12 +159,13 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
 
         var assignSupplierResponse = await _client.PostAsJsonAsync(
             $"/purchase-orders/{purchaseOrder.Id}/assign-supplier",
-            new AssignPurchaseOrderSupplierRequest(supplier.Id));
+            new AssignPurchaseOrderSupplierRequest(supplier.Id, stockistEmployeeId));
         assignSupplierResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var purchaseWithSupplier = await ReadAsync<PurchaseOrderResponse>(assignSupplierResponse);
         purchaseWithSupplier.SupplierId.Should().Be(supplier.Id);
 
-        var startPurchaseResponse = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/start", new { });
+        var startPurchaseResponse = await _client.PostAsync(
+            $"/purchase-orders/{purchaseOrder.Id}/start", null);
         startPurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var startedPurchaseOrder = await ReadAsync<PurchaseOrderResponse>(startPurchaseResponse);
         startedPurchaseOrder.Status.Should().Be(PurchaseOrderStatus.Started);
@@ -167,7 +173,8 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         // Simula chegada do item comprado ao estoque antes da conclusão da compra.
         await SeedStockAsync(part.Id, StockItemType.Part, 10m);
 
-        var completePurchaseResponse = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        var completePurchaseResponse = await _client.PostAsync(
+            $"/purchase-orders/{purchaseOrder.Id}/complete", null);
         completePurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var completedPurchaseOrder = await ReadAsync<PurchaseOrderResponse>(completePurchaseResponse);
         completedPurchaseOrder.Status.Should().Be(PurchaseOrderStatus.Completed);
@@ -185,7 +192,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
 
         var confirmStockistResponse = await _client.PostAsJsonAsync(
             $"/separation-orders/{separationOrder.Id}/confirm-stockist-withdrawal",
-            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+            new ConfirmSeparationStockistWithdrawalRequest(stockistEmployeeId));
         confirmStockistResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var separatedOrder = await ReadAsync<SeparationOrderResponse>(confirmStockistResponse);
         separatedOrder.Status.Should().Be(SeparationOrderStatus.Separated);
@@ -202,9 +209,8 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         var readyExecutionOrder = await ReadAsync<ExecutionOrderResponse>(readyExecutionOrderResponse);
         readyExecutionOrder.Status.Should().Be(ExecutionOrderStatus.Ready);
 
-        var startExecutionResponse = await _client.PostAsJsonAsync(
-            $"/execution-orders/{executionOrder.Id}/start",
-            new StartExecutionOrderRequest(Guid.NewGuid()));
+        var startExecutionResponse = await _client.PostAsync(
+            $"/execution-orders/{executionOrder.Id}/start", null);
         startExecutionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var inExecutionOrder = await ReadAsync<ExecutionOrderResponse>(startExecutionResponse);
         inExecutionOrder.Status.Should().Be(ExecutionOrderStatus.InExecution);
@@ -336,6 +342,31 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         return await ReadAsync<SupplierResponse>(response);
+    }
+
+    private async Task<Guid> CreateEmployeeAsync(EmployeeRole role)
+    {
+        var seed = Interlocked.Increment(ref _employeeSeed);
+        var response = await _client.PostAsJsonAsync(
+            "/employees",
+            new CreateEmployeeRequest(
+                $"Funcionario E2E Ruptura {seed}",
+                CustomerDocumentType.Cpf,
+                GenerateValidCpf(),
+                $"funcionario-e2e-ruptura-{seed}@garageflow.test",
+                $"1191{seed % 1_0000:D4}321",
+                "Rua E2E",
+                "10",
+                null,
+                "Centro",
+                "Sao Paulo",
+                "SP",
+                "01310100",
+                role));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var employee = await ReadAsync<EmployeeResponse>(response);
+        return employee.Id;
     }
 
     private async Task SeedStockAsync(Guid itemId, StockItemType itemType, decimal quantity)

@@ -13,14 +13,11 @@ public sealed class StartExecutionOrderHandler(
 {
     public async Task<ExecutionOrderDto> HandleAsync(StartExecutionOrderCommand command, CancellationToken cancellationToken = default)
     {
-        if (command.MechanicId == Guid.Empty)
-            throw new DomainException(DomainErrorMessages.InvalidExecutionOrderMechanicId);
-
         var executionOrder = await executionOrderRepository.GetByIdAsync(command.ExecutionOrderId, cancellationToken);
         if (executionOrder is null)
             throw new EntityNotFoundException(DomainErrorMessages.ExecutionOrderNotFound(command.ExecutionOrderId));
 
-        executionOrder.StartExecution(command.MechanicId);
+        executionOrder.StartExecution();
 
         // Keep ServiceOrder and ExecutionOrder state machines aligned:
         // the first execution start transitions the service order into InExecution.

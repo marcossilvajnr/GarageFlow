@@ -1,11 +1,13 @@
 using FluentAssertions;
 using GarageFlow.Application.Purchasing.Commands;
 using GarageFlow.Application.Purchasing.Handlers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Suppliers;
 using GarageFlow.Domain.ValueObjects;
+using GarageFlow.Tests.Application.Employees;
 using GarageFlow.Tests.Application.Stock;
 using GarageFlow.Tests.Application.Suppliers;
 
@@ -23,6 +25,24 @@ public sealed class PurchaseOrderSeparationIntegrationTests
         new(
             separationIds,
             [new CreatePurchaseItemCommand(Guid.NewGuid(), PurchaseItemType.Part, "Filtro de óleo", 2m, 15.50m)]);
+
+    private static async Task<Employee> SeedEmployeeAsync(
+        FakeEmployeeRepository employeeRepo,
+        EmployeeRole role = EmployeeRole.Stockist)
+    {
+        var address = Address.Create("Rua Teste", "123", null, "Centro", "São Paulo", "SP", "01310-100");
+        var employee = Employee.Create(
+            "Funcionário Teste",
+            GarageFlow.Domain.Customers.CustomerDocumentType.Cpf,
+            "529.982.247-25",
+            "funcionario@garageflow.com",
+            "11987654321",
+            address,
+            role);
+
+        await employeeRepo.AddAsync(employee);
+        return employee;
+    }
 
     private static SeparationOrder SeparationOrderInWaitingPurchase()
     {
@@ -51,6 +71,8 @@ public sealed class PurchaseOrderSeparationIntegrationTests
         FakePurchaseOrderRepository purchaseRepo,
         FakeSeparationOrderRepository separationRepo,
         FakeStockRepository stockRepo,
+        FakeEmployeeRepository employeeRepo,
+        Guid stockistId,
         IReadOnlyList<Guid> separationIds)
     {
         var supplierRepo = new FakeSupplierRepository();
@@ -60,8 +82,8 @@ public sealed class PurchaseOrderSeparationIntegrationTests
         var createHandler = new CreatePurchaseOrderHandler(purchaseRepo);
         var dto = await createHandler.HandleAsync(CreateCommandForSeparations(separationIds));
 
-        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo);
-        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id));
+        var assignHandler = new AssignPurchaseOrderSupplierHandler(purchaseRepo, supplierRepo, employeeRepo);
+        await assignHandler.HandleAsync(new AssignPurchaseOrderSupplierCommand(dto.Id, supplier.Id, stockistId));
 
         var startHandler = new StartPurchaseOrderHandler(purchaseRepo);
         await startHandler.HandleAsync(new StartPurchaseOrderCommand(dto.Id));
@@ -77,13 +99,15 @@ public sealed class PurchaseOrderSeparationIntegrationTests
         var purchaseRepo = new FakePurchaseOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
         var stockRepo = new FakeStockRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
 
         var separationOrder = SeparationOrderInWaitingPurchase();
         await separationRepo.AddAsync(separationOrder);
         await SeedStockForSeparationAsync(stockRepo, separationOrder);
 
         var (handler, purchaseOrderId) = await BuildStartedPurchaseOrderAndGetHandler(
-            purchaseRepo, separationRepo, stockRepo, [separationOrder.Id]);
+            purchaseRepo, separationRepo, stockRepo, employeeRepo, stockist.Id, [separationOrder.Id]);
 
         var result = await handler.HandleAsync(new CompletePurchaseOrderCommand(purchaseOrderId));
 
@@ -98,6 +122,8 @@ public sealed class PurchaseOrderSeparationIntegrationTests
         var purchaseRepo = new FakePurchaseOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
         var stockRepo = new FakeStockRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
 
         var sep1 = SeparationOrderInWaitingPurchase();
         var sep2 = SeparationOrderInWaitingPurchase();
@@ -107,7 +133,7 @@ public sealed class PurchaseOrderSeparationIntegrationTests
         await SeedStockForSeparationAsync(stockRepo, sep2);
 
         var (handler, purchaseOrderId) = await BuildStartedPurchaseOrderAndGetHandler(
-            purchaseRepo, separationRepo, stockRepo, [sep1.Id, sep2.Id]);
+            purchaseRepo, separationRepo, stockRepo, employeeRepo, stockist.Id, [sep1.Id, sep2.Id]);
 
         var result = await handler.HandleAsync(new CompletePurchaseOrderCommand(purchaseOrderId));
 
@@ -124,10 +150,12 @@ public sealed class PurchaseOrderSeparationIntegrationTests
         var purchaseRepo = new FakePurchaseOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
         var stockRepo = new FakeStockRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
         var nonExistentSeparationId = Guid.NewGuid();
 
         var (handler, purchaseOrderId) = await BuildStartedPurchaseOrderAndGetHandler(
-            purchaseRepo, separationRepo, stockRepo, [nonExistentSeparationId]);
+            purchaseRepo, separationRepo, stockRepo, employeeRepo, stockist.Id, [nonExistentSeparationId]);
 
         var act = async () => await handler.HandleAsync(new CompletePurchaseOrderCommand(purchaseOrderId));
 
@@ -143,6 +171,8 @@ public sealed class PurchaseOrderSeparationIntegrationTests
         var purchaseRepo = new FakePurchaseOrderRepository();
         var separationRepo = new FakeSeparationOrderRepository();
         var stockRepo = new FakeStockRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var stockist = await SeedEmployeeAsync(employeeRepo);
 
         var separationOrder = SeparationOrder.Create(
             Guid.NewGuid(),
@@ -153,7 +183,7 @@ public sealed class PurchaseOrderSeparationIntegrationTests
         await SeedStockForSeparationAsync(stockRepo, separationOrder);
 
         var (handler, purchaseOrderId) = await BuildStartedPurchaseOrderAndGetHandler(
-            purchaseRepo, separationRepo, stockRepo, [separationOrder.Id]);
+            purchaseRepo, separationRepo, stockRepo, employeeRepo, stockist.Id, [separationOrder.Id]);
 
         var act = async () => await handler.HandleAsync(new CompletePurchaseOrderCommand(purchaseOrderId));
 

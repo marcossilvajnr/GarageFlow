@@ -6,6 +6,7 @@ public sealed record PurchaseOrderResponse(
     Guid Id,
     IReadOnlyList<Guid> SeparationOrderIds,
     Guid? SupplierId,
+    Guid? EmployeeId,
     PurchaseOrderStatus Status,
     IReadOnlyList<PurchaseItemResponse> Items,
     DateTime CreatedAt,

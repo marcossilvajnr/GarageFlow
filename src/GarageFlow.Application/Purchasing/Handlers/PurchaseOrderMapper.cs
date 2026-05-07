@@ -10,6 +10,7 @@ internal static class PurchaseOrderMapper
             purchaseOrder.Id,
             purchaseOrder.SeparationOrderIds.ToList(),
             purchaseOrder.SupplierId,
+            purchaseOrder.EmployeeId,
             purchaseOrder.Status,
             purchaseOrder.Items.Select(ToItemDto).ToList(),
             purchaseOrder.CreatedAt,

@@ -259,7 +259,7 @@ public sealed class QuoteTests
     [Fact]
     public void ServiceOrderGenerateQuote_WithNoActiveServices_ThrowsNoConsolidatedServicesException()
     {
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         var act = () => order.GenerateQuote([ValidItem()]);
 
@@ -332,7 +332,7 @@ public sealed class QuoteTests
     [Fact]
     public void ServiceOrderAcceptQuote_WhenNoQuote_ThrowsQuoteNotFoundException()
     {
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         var act = () => order.AcceptQuote();
 
@@ -405,7 +405,7 @@ public sealed class QuoteTests
     [Fact]
     public void ServiceOrderRejectQuote_WhenNoQuote_ThrowsQuoteNotFoundException()
     {
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         var act = () => order.RejectQuote("Motivo");
 
@@ -416,7 +416,7 @@ public sealed class QuoteTests
 
     private static ServiceOrder CreateOrderWithConsolidatedService()
     {
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         var mechanicId = Guid.NewGuid();
         order.StartDiagnostic(mechanicId);
         var serviceId = Guid.NewGuid();

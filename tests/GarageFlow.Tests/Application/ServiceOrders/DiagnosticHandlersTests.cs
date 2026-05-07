@@ -1,15 +1,37 @@
 using FluentAssertions;
 using GarageFlow.Application.ServiceOrders.Commands;
 using GarageFlow.Application.ServiceOrders.Handlers;
+using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Services;
+using GarageFlow.Domain.ValueObjects;
+using GarageFlow.Tests.Application.Employees;
 using GarageFlow.Tests.Application.Services;
 
 namespace GarageFlow.Tests.Application.ServiceOrders;
 
 public sealed class DiagnosticHandlersTests
 {
+    private static Address ValidAddress() => Address.Create(
+        "Rua das Flores", "100", null, "Centro", "São Paulo", "SP", "01310100");
+
+    private static async Task<Employee> SeedMechanicAsync(FakeEmployeeRepository employeeRepo)
+    {
+        var employee = Employee.Create(
+            "Mecânico Teste",
+            CustomerDocumentType.Cpf,
+            "529.982.247-25",
+            $"mecanico.{Guid.NewGuid():N}@garageflow.test",
+            "11987654321",
+            ValidAddress(),
+            EmployeeRole.Mechanic);
+
+        await employeeRepo.AddAsync(employee);
+        return employee;
+    }
+
     private static Service ValidService() =>
         Service.Create("SVC-DIAG-001", "Troca de Óleo Diagnóstico", null, 80m, 60);
 
@@ -19,17 +41,18 @@ public sealed class DiagnosticHandlersTests
     public async Task StartDiagnostic_WithValidData_ReturnsUpdatedDtoWithDiagnostic()
     {
         var repo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var employeeRepo = new FakeEmployeeRepository();
+        var mechanic = await SeedMechanicAsync(employeeRepo);
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await repo.AddAsync(serviceOrder);
 
-        var handler = new StartDiagnosticHandler(repo);
-        var mechanicId = Guid.NewGuid();
-        var command = new StartDiagnosticCommand(serviceOrder.Id, mechanicId);
+        var handler = new StartDiagnosticHandler(repo, employeeRepo);
+        var command = new StartDiagnosticCommand(serviceOrder.Id, mechanic.Id);
 
         var dto = await handler.HandleAsync(command);
 
         dto.Diagnostic.Should().NotBeNull();
-        dto.Diagnostic!.MechanicId.Should().Be(mechanicId);
+        dto.Diagnostic!.MechanicId.Should().Be(mechanic.Id);
         dto.Diagnostic.Status.Should().Be(DiagnosticStatus.InProgress);
         dto.Status.Should().Be(ServiceOrderStatus.InDiagnostic);
     }
@@ -38,8 +61,10 @@ public sealed class DiagnosticHandlersTests
     public async Task StartDiagnostic_WithNonExistentServiceOrder_ThrowsEntityNotFoundException()
     {
         var repo = new FakeServiceOrderRepository();
-        var handler = new StartDiagnosticHandler(repo);
-        var command = new StartDiagnosticCommand(Guid.NewGuid(), Guid.NewGuid());
+        var employeeRepo = new FakeEmployeeRepository();
+        var mechanic = await SeedMechanicAsync(employeeRepo);
+        var handler = new StartDiagnosticHandler(repo, employeeRepo);
+        var command = new StartDiagnosticCommand(Guid.NewGuid(), mechanic.Id);
 
         var act = async () => await handler.HandleAsync(command);
 
@@ -50,10 +75,11 @@ public sealed class DiagnosticHandlersTests
     public async Task StartDiagnostic_WithEmptyMechanicId_ThrowsDomainException()
     {
         var repo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var employeeRepo = new FakeEmployeeRepository();
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await repo.AddAsync(serviceOrder);
 
-        var handler = new StartDiagnosticHandler(repo);
+        var handler = new StartDiagnosticHandler(repo, employeeRepo);
         var command = new StartDiagnosticCommand(serviceOrder.Id, Guid.Empty);
 
         var act = async () => await handler.HandleAsync(command);
@@ -65,12 +91,23 @@ public sealed class DiagnosticHandlersTests
     public async Task StartDiagnostic_WhenAlreadyStarted_ThrowsDiagnosticAlreadyStartedException()
     {
         var repo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
-        serviceOrder.StartDiagnostic(Guid.NewGuid());
+        var employeeRepo = new FakeEmployeeRepository();
+        var firstMechanic = await SeedMechanicAsync(employeeRepo);
+        var secondMechanic = Employee.Create(
+            "Mecânico Teste 2",
+            CustomerDocumentType.Cpf,
+            "111.444.777-35",
+            $"mecanico2.{Guid.NewGuid():N}@garageflow.test",
+            "11987654322",
+            ValidAddress(),
+            EmployeeRole.Mechanic);
+        await employeeRepo.AddAsync(secondMechanic);
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        serviceOrder.StartDiagnostic(firstMechanic.Id);
         await repo.AddAsync(serviceOrder);
 
-        var handler = new StartDiagnosticHandler(repo);
-        var command = new StartDiagnosticCommand(serviceOrder.Id, Guid.NewGuid());
+        var handler = new StartDiagnosticHandler(repo, employeeRepo);
+        var command = new StartDiagnosticCommand(serviceOrder.Id, secondMechanic.Id);
 
         var act = async () => await handler.HandleAsync(command);
 
@@ -85,7 +122,7 @@ public sealed class DiagnosticHandlersTests
         var soRepo = new FakeServiceOrderRepository();
         var svcRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         await soRepo.AddAsync(serviceOrder);
 
@@ -120,7 +157,7 @@ public sealed class DiagnosticHandlersTests
         var soRepo = new FakeServiceOrderRepository();
         var svcRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         await soRepo.AddAsync(serviceOrder);
 
@@ -138,7 +175,7 @@ public sealed class DiagnosticHandlersTests
         var soRepo = new FakeServiceOrderRepository();
         var svcRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await soRepo.AddAsync(serviceOrder);
 
         var service = ValidService();
@@ -158,7 +195,7 @@ public sealed class DiagnosticHandlersTests
         var soRepo = new FakeServiceOrderRepository();
         var svcRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         await soRepo.AddAsync(serviceOrder);
 
@@ -182,7 +219,7 @@ public sealed class DiagnosticHandlersTests
         var soRepo = new FakeServiceOrderRepository();
         var svcRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         var serviceId1 = Guid.NewGuid();
         var serviceId2 = Guid.NewGuid();
@@ -215,7 +252,7 @@ public sealed class DiagnosticHandlersTests
     public async Task RemoveDiagnosticService_WhenOnlyService_ThrowsDiagnosticLastServiceException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         var serviceId = Guid.NewGuid();
         serviceOrder.AddDiagnosticService(serviceId);
@@ -235,7 +272,7 @@ public sealed class DiagnosticHandlersTests
     public async Task CompleteDiagnostic_WithValidData_ReturnsDtoWithCompletedDiagnostic()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         serviceOrder.AddDiagnosticService(Guid.NewGuid());
         await soRepo.AddAsync(serviceOrder);
@@ -266,7 +303,7 @@ public sealed class DiagnosticHandlersTests
     public async Task CompleteDiagnostic_WithEmptyDescription_ThrowsDomainException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         serviceOrder.AddDiagnosticService(Guid.NewGuid());
         await soRepo.AddAsync(serviceOrder);
@@ -283,7 +320,7 @@ public sealed class DiagnosticHandlersTests
     public async Task CompleteDiagnostic_WithNoServices_ThrowsDiagnosticNoServicesException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         await soRepo.AddAsync(serviceOrder);
 
@@ -299,7 +336,7 @@ public sealed class DiagnosticHandlersTests
     public async Task CompleteDiagnostic_WhenAlreadyCompleted_ThrowsDiagnosticNotInProgressException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         serviceOrder.AddDiagnosticService(Guid.NewGuid());
         serviceOrder.CompleteDiagnostic("Primeira conclusão.");
@@ -320,7 +357,7 @@ public sealed class DiagnosticHandlersTests
     {
         var soRepo = new FakeServiceOrderRepository();
         var serviceId = Guid.NewGuid();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         serviceOrder.AddDiagnosticService(serviceId);
         serviceOrder.CompleteDiagnostic("Diagnóstico concluído.");
@@ -354,7 +391,7 @@ public sealed class DiagnosticHandlersTests
     public async Task ConsolidateDiagnosticServices_WithNoDiagnostic_ThrowsDiagnosticNotCompletedException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await soRepo.AddAsync(serviceOrder);
 
         var handler = new ConsolidateDiagnosticServicesHandler(soRepo);
@@ -369,7 +406,7 @@ public sealed class DiagnosticHandlersTests
     public async Task ConsolidateDiagnosticServices_WithInProgressDiagnostic_ThrowsDiagnosticNotCompletedException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         serviceOrder.StartDiagnostic(Guid.NewGuid());
         serviceOrder.AddDiagnosticService(Guid.NewGuid());
         await soRepo.AddAsync(serviceOrder);

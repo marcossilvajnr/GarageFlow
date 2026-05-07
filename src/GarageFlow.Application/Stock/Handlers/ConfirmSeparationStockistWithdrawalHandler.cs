@@ -1,5 +1,6 @@
 using GarageFlow.Application.Stock.Commands;
 using GarageFlow.Application.Stock.DTOs;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Shared;
 using GarageFlow.Domain.Stock;
@@ -8,7 +9,8 @@ namespace GarageFlow.Application.Stock.Handlers;
 
 public sealed class ConfirmSeparationStockistWithdrawalHandler(
     ISeparationOrderRepository separationOrderRepository,
-    IStockRepository stockRepository)
+    IStockRepository stockRepository,
+    IEmployeeRepository employeeRepository)
 {
     public async Task<SeparationOrderDto> HandleAsync(ConfirmSeparationStockistWithdrawalCommand command, CancellationToken cancellationToken = default)
     {
@@ -19,8 +21,12 @@ public sealed class ConfirmSeparationStockistWithdrawalHandler(
         if (separationOrder.Status != SeparationOrderStatus.WaitingPickup)
             throw new InvalidSeparationOrderStatusTransitionException(DomainErrorMessages.SeparationOrderNotWaitingPickup);
 
-        if (command.StockistId == Guid.Empty)
-            throw new DomainException(DomainErrorMessages.InvalidSeparationStockistId);
+        await Employees.EmployeeActorValidator.ValidateAsync(
+            employeeRepository,
+            command.StockistId,
+            DomainErrorMessages.InvalidSeparationStockistId,
+            [EmployeeRole.Stockist, EmployeeRole.Administrative],
+            cancellationToken);
 
         foreach (var part in separationOrder.Parts)
         {

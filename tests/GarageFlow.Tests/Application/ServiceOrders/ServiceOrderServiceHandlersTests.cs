@@ -33,7 +33,7 @@ public sealed class ServiceOrderServiceHandlersTests
 
         var customerId = Guid.NewGuid();
         var vehicleId = Guid.NewGuid();
-        var serviceOrder = ServiceOrder.Create(customerId, vehicleId);
+        var serviceOrder = ServiceOrder.Create(customerId, vehicleId, Guid.NewGuid());
         await serviceOrderRepo.AddAsync(serviceOrder);
 
         var service = ValidService();
@@ -70,7 +70,7 @@ public sealed class ServiceOrderServiceHandlersTests
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var serviceRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await serviceOrderRepo.AddAsync(serviceOrder);
 
         var handler = new AddServiceToServiceOrderHandler(serviceOrderRepo, serviceRepo);
@@ -87,7 +87,7 @@ public sealed class ServiceOrderServiceHandlersTests
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var serviceRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await serviceOrderRepo.AddAsync(serviceOrder);
 
         var service = ValidService();
@@ -108,7 +108,7 @@ public sealed class ServiceOrderServiceHandlersTests
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var serviceRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await serviceOrderRepo.AddAsync(serviceOrder);
 
         var handler = new AddServiceToServiceOrderHandler(serviceOrderRepo, serviceRepo);
@@ -125,7 +125,7 @@ public sealed class ServiceOrderServiceHandlersTests
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var serviceRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await serviceOrderRepo.AddAsync(serviceOrder);
 
         var service = ValidService();
@@ -149,7 +149,7 @@ public sealed class ServiceOrderServiceHandlersTests
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var serviceRepo = new FakeServiceRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await serviceOrderRepo.AddAsync(serviceOrder);
 
         var service = ValidService();
@@ -185,7 +185,7 @@ public sealed class ServiceOrderServiceHandlersTests
     {
         var serviceOrderRepo = new FakeServiceOrderRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await serviceOrderRepo.AddAsync(serviceOrder);
 
         var handler = new RemoveServiceFromServiceOrderHandler(serviceOrderRepo);
@@ -201,7 +201,7 @@ public sealed class ServiceOrderServiceHandlersTests
     {
         var serviceOrderRepo = new FakeServiceOrderRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await serviceOrderRepo.AddAsync(serviceOrder);
 
         var handler = new RemoveServiceFromServiceOrderHandler(serviceOrderRepo);
@@ -217,7 +217,7 @@ public sealed class ServiceOrderServiceHandlersTests
     {
         var serviceOrderRepo = new FakeServiceOrderRepository();
 
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await serviceOrderRepo.AddAsync(serviceOrder);
 
         var handler = new RemoveServiceFromServiceOrderHandler(serviceOrderRepo);

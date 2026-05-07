@@ -15,7 +15,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
 {
     private static ServiceOrder CreateServiceOrderInExecution()
     {
-        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         typeof(ServiceOrder)
             .GetProperty(nameof(ServiceOrder.Status))!
             .SetValue(so, ServiceOrderStatus.InExecution);
@@ -29,7 +29,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
     {
         await new MarkExecutionOrderReadyHandler(execRepo).HandleAsync(new MarkExecutionOrderReadyCommand(executionOrderId));
         await new StartExecutionOrderHandler(execRepo, soRepo)
-            .HandleAsync(new StartExecutionOrderCommand(executionOrderId, Guid.NewGuid()));
+            .HandleAsync(new StartExecutionOrderCommand(executionOrderId));
     }
 
     private static async Task SeedSeparationAndStock(
@@ -64,8 +64,8 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         await soRepo.AddAsync(so);
 
         var createHandler = new CreateExecutionOrderHandler(execRepo);
-        var first = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid()));
-        var second = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid()));
+        var first = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid(), Guid.NewGuid()));
+        var second = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid(), Guid.NewGuid()));
 
         await AdvanceToInExecution(execRepo, soRepo, first.Id);
         await AdvanceToInExecution(execRepo, soRepo, second.Id);
@@ -91,7 +91,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         await soRepo.AddAsync(so);
 
         var createHandler = new CreateExecutionOrderHandler(execRepo);
-        var created = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid()));
+        var created = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid(), Guid.NewGuid()));
 
         await AdvanceToInExecution(execRepo, soRepo, created.Id);
         await SeedSeparationAndStock(separationRepo, stockRepo, created.Id);
@@ -114,8 +114,8 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         await soRepo.AddAsync(so);
 
         var createHandler = new CreateExecutionOrderHandler(execRepo);
-        var first = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid()));
-        var second = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid()));
+        var first = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid(), Guid.NewGuid()));
+        var second = await createHandler.HandleAsync(new CreateExecutionOrderCommand(so.Id, Guid.NewGuid(), Guid.NewGuid()));
 
         await AdvanceToInExecution(execRepo, soRepo, first.Id);
         await AdvanceToInExecution(execRepo, soRepo, second.Id);
@@ -146,7 +146,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         var stockRepo = new FakeStockRepository();
 
         var createHandler = new CreateExecutionOrderHandler(execRepo);
-        var created = await createHandler.HandleAsync(new CreateExecutionOrderCommand(Guid.NewGuid(), Guid.NewGuid()));
+        var created = await createHandler.HandleAsync(new CreateExecutionOrderCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()));
 
         await new MarkExecutionOrderReadyHandler(execRepo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
         var execution = await execRepo.GetByIdAsync(created.Id);
@@ -188,7 +188,7 @@ public sealed class ExecutionServiceOrderCompletionIntegrationTests
         var stockRepo = new FakeStockRepository();
 
         var createHandler = new CreateExecutionOrderHandler(execRepo);
-        var created = await createHandler.HandleAsync(new CreateExecutionOrderCommand(Guid.NewGuid(), Guid.NewGuid()));
+        var created = await createHandler.HandleAsync(new CreateExecutionOrderCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()));
         await SeedSeparationAndStock(separationRepo, stockRepo, created.Id);
 
         var handler = new CompleteExecutionOrderHandler(execRepo, soRepo, separationRepo);

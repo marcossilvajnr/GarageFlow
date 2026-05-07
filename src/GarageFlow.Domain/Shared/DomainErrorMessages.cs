@@ -81,6 +81,9 @@ public static class DomainErrorMessages
 
     // Employee not found (handlers - context-specific)
     public static string EmployeeNotFound(Guid id) => $"Funcionário '{id}' não encontrado";
+    public const string EmployeeInactive = "Funcionário está inativo";
+    public static string EmployeeRoleIncompatible(string expectedRoles) =>
+        $"Funcionário não possui perfil compatível. Perfis permitidos: {expectedRoles}";
 
     // Service aggregate (context-specific)
     public const string InvalidServiceCode = "Código do serviço inválido";
@@ -141,6 +144,7 @@ public static class DomainErrorMessages
     // ServiceOrder aggregate (context-specific)
     public const string InvalidServiceOrderCustomerId = "Id do cliente da OS inválido";
     public const string InvalidServiceOrderVehicleId = "Id do veículo da OS inválido";
+    public const string InvalidServiceOrderFrontDeskEmployeeId = "Id do funcionário de atendimento da OS inválido";
     public const string ServiceOrderVehicleCustomerMismatch = "Veículo não pertence ao cliente informado para a OS";
 
     // ServiceOrder not found (handlers - context-specific)
@@ -259,6 +263,7 @@ public static class DomainErrorMessages
     public const string InvalidPurchaseItemQuantity = "Item da ordem de compra inválido";
     public const string InvalidPurchaseItemUnitPrice = "Item da ordem de compra inválido";
     public const string PurchaseOrderSupplierRequired = "Fornecedor é obrigatório";
+    public const string InvalidPurchaseOrderActorEmployeeId = "Funcionário responsável pela operação da OC é obrigatório";
     public const string PurchaseOrderCannotChangeSupplierAfterStart = "Não é possível alterar fornecedor após início";
     public const string PurchaseOrderSupplierNotSet = "Fornecedor não foi selecionado";
     public const string PurchaseOrderNotCreated = "Ordem de Compra não está no status Criada";

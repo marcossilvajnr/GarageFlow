@@ -6,6 +6,7 @@ public sealed record ServiceOrderResponse(
     Guid Id,
     Guid CustomerId,
     Guid VehicleId,
+    Guid FrontDeskEmployeeId,
     ServiceOrderStatus Status,
     DiagnosticResponse? Diagnostic,
     QuoteResponse? Quote,

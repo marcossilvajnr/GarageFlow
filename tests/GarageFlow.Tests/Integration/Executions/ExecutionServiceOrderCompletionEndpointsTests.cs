@@ -2,10 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using GarageFlow.Api.DTOs.Employees;
 using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.ServiceOrders;
 using GarageFlow.Api.DTOs.Stock;
+using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
@@ -24,6 +27,54 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
     {
         PropertyNameCaseInsensitive = true
     };
+    private static int _employeeSeed;
+    private static int _cpfSeed = 600_000_000;
+
+    private static string GenerateValidCpf()
+    {
+        var baseDigits = Interlocked.Increment(ref _cpfSeed) % 1_000_000_000;
+        var baseNumber = baseDigits.ToString("D9");
+        var firstDigit = CalculateCpfVerifier(baseNumber, 10);
+        var secondDigit = CalculateCpfVerifier(baseNumber + firstDigit, 11);
+        var rawCpf = $"{baseNumber}{firstDigit}{secondDigit}";
+        return $"{rawCpf[..3]}.{rawCpf.Substring(3, 3)}.{rawCpf.Substring(6, 3)}-{rawCpf.Substring(9, 2)}";
+    }
+
+    private static int CalculateCpfVerifier(string digits, int weightStart)
+    {
+        var sum = 0;
+        for (var i = 0; i < digits.Length; i++)
+        {
+            sum += (digits[i] - '0') * (weightStart - i);
+        }
+
+        var mod = sum % 11;
+        return mod < 2 ? 0 : 11 - mod;
+    }
+
+    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    {
+        var seed = Interlocked.Increment(ref _employeeSeed);
+        var request = new CreateEmployeeRequest(
+            $"Employee Execution Completion {seed}",
+            CustomerDocumentType.Cpf,
+            GenerateValidCpf(),
+            $"execution-completion-employee-{seed}@garageflow.test",
+            $"1193{seed % 1_0000:D4}321",
+            "Rua Execucao",
+            "60",
+            null,
+            "Centro",
+            "Sao Paulo",
+            "SP",
+            "01310100",
+            role);
+
+        var response = await _client.PostAsJsonAsync("/employees", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<EmployeeResponse>(JsonOptions);
+        return body!.Id;
+    }
 
     /// <summary>
     /// Seeds a ServiceOrder in InExecution status directly into the SQLite test database.
@@ -34,7 +85,7 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
 
-        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         typeof(ServiceOrder)
             .GetProperty(nameof(ServiceOrder.Status))!
             .SetValue(so, ServiceOrderStatus.InExecution);
@@ -47,7 +98,7 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
 
     private async Task<ExecutionOrderResponse> CreateExecution(Guid serviceOrderId)
     {
-        var request = new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid());
+        var request = new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid(), Guid.NewGuid());
         var response = await _client.PostAsJsonAsync("/execution-orders", request);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
@@ -56,8 +107,7 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
     private async Task<ExecutionOrderResponse> AdvanceToInExecution(Guid executionOrderId)
     {
         await _client.PostAsync($"/execution-orders/{executionOrderId}/mark-ready", null);
-        var startRequest = new StartExecutionOrderRequest(Guid.NewGuid());
-        var response = await _client.PostAsJsonAsync($"/execution-orders/{executionOrderId}/start", startRequest);
+        var response = await _client.PostAsync($"/execution-orders/{executionOrderId}/start", null);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
     }
@@ -198,7 +248,7 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
     public async Task CompleteExecution_WhenNotInExecution_Returns409()
     {
         var serviceOrderId = await SeedServiceOrderInExecution();
-        var request = new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid());
+        var request = new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid(), Guid.NewGuid());
         var created = await (await _client.PostAsJsonAsync("/execution-orders", request))
             .Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
         var partId = await CreatePartWithStock();

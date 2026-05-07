@@ -13,14 +13,15 @@ public sealed class ExecutionOrderTests
     {
         var serviceOrderId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
+        var mechanicId = Guid.NewGuid();
 
-        var order = ExecutionOrder.Create(serviceOrderId, serviceId);
+        var order = ExecutionOrder.Create(serviceOrderId, serviceId, mechanicId);
 
         order.Id.Should().NotBeEmpty();
         order.ServiceOrderId.Should().Be(serviceOrderId);
         order.ServiceId.Should().Be(serviceId);
+        order.MechanicId.Should().Be(mechanicId);
         order.Status.Should().Be(ExecutionOrderStatus.Pending);
-        order.MechanicId.Should().BeNull();
         order.StartedAt.Should().BeNull();
         order.CompletedAt.Should().BeNull();
         order.ActualTimeMinutes.Should().BeNull();
@@ -30,7 +31,7 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void Create_WithEmptyServiceOrderId_ThrowsDomainException()
     {
-        var act = () => ExecutionOrder.Create(Guid.Empty, Guid.NewGuid());
+        var act = () => ExecutionOrder.Create(Guid.Empty, Guid.NewGuid(), Guid.NewGuid());
 
         act.Should().Throw<DomainException>().WithMessage("OS é obrigatória");
     }
@@ -38,16 +39,24 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void Create_WithEmptyServiceId_ThrowsDomainException()
     {
-        var act = () => ExecutionOrder.Create(Guid.NewGuid(), Guid.Empty);
+        var act = () => ExecutionOrder.Create(Guid.NewGuid(), Guid.Empty, Guid.NewGuid());
 
         act.Should().Throw<DomainException>().WithMessage("Serviço é obrigatório");
+    }
+
+    [Fact]
+    public void Create_WithEmptyMechanicId_ThrowsDomainException()
+    {
+        var act = () => ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.Empty);
+
+        act.Should().Throw<DomainException>().WithMessage("Mecânico é obrigatório");
     }
 
     [Fact]
     public void Create_ServiceOrderIdIsImmutable()
     {
         var serviceOrderId = Guid.NewGuid();
-        var order = ExecutionOrder.Create(serviceOrderId, Guid.NewGuid());
+        var order = ExecutionOrder.Create(serviceOrderId, Guid.NewGuid(), Guid.NewGuid());
 
         order.ServiceOrderId.Should().Be(serviceOrderId);
     }
@@ -56,7 +65,7 @@ public sealed class ExecutionOrderTests
     public void Create_ServiceIdIsImmutable()
     {
         var serviceId = Guid.NewGuid();
-        var order = ExecutionOrder.Create(Guid.NewGuid(), serviceId);
+        var order = ExecutionOrder.Create(Guid.NewGuid(), serviceId, Guid.NewGuid());
 
         order.ServiceId.Should().Be(serviceId);
     }
@@ -66,7 +75,7 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void MarkReadyToStart_WhenPending_ChangesStatusToReady()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         order.MarkReadyToStart();
 
@@ -76,7 +85,7 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void MarkReadyToStart_WhenAlreadyReady_IsIdempotentNoError()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         order.MarkReadyToStart();
 
         var act = () => order.MarkReadyToStart();
@@ -88,9 +97,9 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void MarkReadyToStart_WhenInExecution_IsIdempotentNoError()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         order.MarkReadyToStart();
-        order.StartExecution(Guid.NewGuid());
+        order.StartExecution();
 
         var act = () => order.MarkReadyToStart();
 
@@ -101,9 +110,9 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void MarkReadyToStart_WhenCompleted_IsIdempotentNoError()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         order.MarkReadyToStart();
-        order.StartExecution(Guid.NewGuid());
+        order.StartExecution();
         order.CompleteExecution();
 
         var act = () => order.MarkReadyToStart();
@@ -115,13 +124,13 @@ public sealed class ExecutionOrderTests
     // --- StartExecution ---
 
     [Fact]
-    public void StartExecution_WhenReady_SetsInExecutionAndMechanic()
+    public void StartExecution_WhenReady_SetsInExecution()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
-        order.MarkReadyToStart();
         var mechanicId = Guid.NewGuid();
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), mechanicId);
+        order.MarkReadyToStart();
 
-        order.StartExecution(mechanicId);
+        order.StartExecution();
 
         order.Status.Should().Be(ExecutionOrderStatus.InExecution);
         order.MechanicId.Should().Be(mechanicId);
@@ -131,9 +140,9 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void StartExecution_WhenPending_ThrowsInvalidExecutionOrderStatusTransitionException()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
-        var act = () => order.StartExecution(Guid.NewGuid());
+        var act = () => order.StartExecution();
 
         act.Should().Throw<InvalidExecutionOrderStatusTransitionException>()
             .WithMessage("Ordem de Execução não está Pronta para Início");
@@ -142,25 +151,14 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void StartExecution_WhenCompleted_ThrowsInvalidExecutionOrderStatusTransitionException()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         order.MarkReadyToStart();
-        order.StartExecution(Guid.NewGuid());
+        order.StartExecution();
         order.CompleteExecution();
 
-        var act = () => order.StartExecution(Guid.NewGuid());
+        var act = () => order.StartExecution();
 
         act.Should().Throw<InvalidExecutionOrderStatusTransitionException>();
-    }
-
-    [Fact]
-    public void StartExecution_WithEmptyMechanicId_ThrowsDomainException()
-    {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
-        order.MarkReadyToStart();
-
-        var act = () => order.StartExecution(Guid.Empty);
-
-        act.Should().Throw<DomainException>().WithMessage("Mecânico é obrigatório");
     }
 
     // --- CompleteExecution ---
@@ -168,9 +166,9 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void CompleteExecution_WhenInExecution_SetsCompletedAndCalculatesTime()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         order.MarkReadyToStart();
-        order.StartExecution(Guid.NewGuid());
+        order.StartExecution();
 
         order.CompleteExecution();
 
@@ -183,7 +181,7 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void CompleteExecution_WhenPending_ThrowsInvalidExecutionOrderStatusTransitionException()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         var act = () => order.CompleteExecution();
 
@@ -194,7 +192,7 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void CompleteExecution_WhenReady_ThrowsInvalidExecutionOrderStatusTransitionException()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         order.MarkReadyToStart();
 
         var act = () => order.CompleteExecution();
@@ -205,9 +203,9 @@ public sealed class ExecutionOrderTests
     [Fact]
     public void CompleteExecution_ActualTimeMinutes_IsDecimalCalculation()
     {
-        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ExecutionOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         order.MarkReadyToStart();
-        order.StartExecution(Guid.NewGuid());
+        order.StartExecution();
 
         order.CompleteExecution();
 

@@ -3,10 +3,12 @@ using GarageFlow.Application.ServiceOrders.Commands;
 using GarageFlow.Application.ServiceOrders.Handlers;
 using GarageFlow.Application.ServiceOrders.Queries;
 using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.ValueObjects;
 using GarageFlow.Domain.Vehicles;
+using GarageFlow.Tests.Application.Employees;
 
 namespace GarageFlow.Tests.Application.ServiceOrders;
 
@@ -22,6 +24,21 @@ public sealed class ServiceOrderHandlersTests
     private static Vehicle ValidVehicle(Guid customerId) => Vehicle.Create(
         customerId, "ABC-1234", "11144477731", "Toyota", "Corolla", 2020, "Branco");
 
+    private static async Task<Employee> SeedFrontDeskEmployeeAsync(FakeEmployeeRepository employeeRepo)
+    {
+        var employee = Employee.Create(
+            "Atendente Teste",
+            CustomerDocumentType.Cpf,
+            "529.982.247-25",
+            "atendente@garageflow.com",
+            "11987654321",
+            ValidAddress(),
+            EmployeeRole.Attendant);
+
+        await employeeRepo.AddAsync(employee);
+        return employee;
+    }
+
     // Create handler tests
 
     [Fact]
@@ -33,12 +50,14 @@ public sealed class ServiceOrderHandlersTests
         var customerRepo = new FakeCustomerRepository();
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
         await customerRepo.AddAsync(customer);
         await vehicleRepo.AddAsync(vehicle);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo);
-        var command = new CreateServiceOrderCommand(customer.Id, vehicle.Id);
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var command = new CreateServiceOrderCommand(customer.Id, vehicle.Id, frontDeskEmployee.Id);
 
         var dto = await handler.HandleAsync(command);
 
@@ -56,9 +75,11 @@ public sealed class ServiceOrderHandlersTests
         var customerRepo = new FakeCustomerRepository();
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo);
-        var command = new CreateServiceOrderCommand(Guid.NewGuid(), Guid.NewGuid());
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var command = new CreateServiceOrderCommand(Guid.NewGuid(), Guid.NewGuid(), frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
 
@@ -71,9 +92,11 @@ public sealed class ServiceOrderHandlersTests
         var customerRepo = new FakeCustomerRepository();
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo);
-        var command = new CreateServiceOrderCommand(Guid.Empty, Guid.NewGuid());
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var command = new CreateServiceOrderCommand(Guid.Empty, Guid.NewGuid(), frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
 
@@ -86,9 +109,11 @@ public sealed class ServiceOrderHandlersTests
         var customerRepo = new FakeCustomerRepository();
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo);
-        var command = new CreateServiceOrderCommand(Guid.NewGuid(), Guid.Empty);
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var command = new CreateServiceOrderCommand(Guid.NewGuid(), Guid.Empty, frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
 
@@ -102,11 +127,13 @@ public sealed class ServiceOrderHandlersTests
         var customerRepo = new FakeCustomerRepository();
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
         await customerRepo.AddAsync(customer);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo);
-        var command = new CreateServiceOrderCommand(customer.Id, Guid.NewGuid());
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var command = new CreateServiceOrderCommand(customer.Id, Guid.NewGuid(), frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
 
@@ -125,13 +152,15 @@ public sealed class ServiceOrderHandlersTests
         var customerRepo = new FakeCustomerRepository();
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
         await customerRepo.AddAsync(customer1);
         await customerRepo.AddAsync(customer2);
         await vehicleRepo.AddAsync(vehicleFromCustomer1);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo);
-        var command = new CreateServiceOrderCommand(customer2.Id, vehicleFromCustomer1.Id);
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var command = new CreateServiceOrderCommand(customer2.Id, vehicleFromCustomer1.Id, frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
 
@@ -144,7 +173,7 @@ public sealed class ServiceOrderHandlersTests
     [Fact]
     public async Task GetServiceOrderById_Existing_ReturnsDto()
     {
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         var repo = new FakeServiceOrderRepository();
         await repo.AddAsync(serviceOrder);
 
@@ -173,8 +202,8 @@ public sealed class ServiceOrderHandlersTests
     public async Task ListServiceOrders_ReturnsPaged()
     {
         var repo = new FakeServiceOrderRepository();
-        await repo.AddAsync(ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid()));
-        await repo.AddAsync(ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid()));
+        await repo.AddAsync(ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()));
+        await repo.AddAsync(ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()));
 
         var handler = new ListServiceOrdersHandler(repo);
         var result = await handler.HandleAsync(new ListServiceOrdersQuery(1, 10));

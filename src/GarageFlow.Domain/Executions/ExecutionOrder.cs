@@ -17,7 +17,7 @@ public sealed class ExecutionOrder
 
     private ExecutionOrder() { }
 
-    public static ExecutionOrder Create(Guid serviceOrderId, Guid serviceId)
+    public static ExecutionOrder Create(Guid serviceOrderId, Guid serviceId, Guid mechanicId)
     {
         if (serviceOrderId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.InvalidExecutionOrderServiceOrderId);
@@ -25,13 +25,16 @@ public sealed class ExecutionOrder
         if (serviceId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.InvalidExecutionOrderServiceId);
 
+        if (mechanicId == Guid.Empty)
+            throw new DomainException(DomainErrorMessages.InvalidExecutionOrderMechanicId);
+
         return new ExecutionOrder
         {
             Id = Guid.NewGuid(),
             ServiceOrderId = serviceOrderId,
             ServiceId = serviceId,
+            MechanicId = mechanicId,
             Status = ExecutionOrderStatus.Pending,
-            MechanicId = null,
             StartedAt = null,
             CompletedAt = null,
             ActualTimeMinutes = null,
@@ -47,17 +50,16 @@ public sealed class ExecutionOrder
         // Idempotent: if already Ready, InExecution, or Completed — no-op, no error
     }
 
-    public void StartExecution(Guid mechanicId)
+    public void StartExecution()
     {
         if (Status != ExecutionOrderStatus.Ready)
             throw new InvalidExecutionOrderStatusTransitionException(
                 DomainErrorMessages.ExecutionOrderNotReady);
 
-        if (mechanicId == Guid.Empty)
+        if (MechanicId is null || MechanicId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.InvalidExecutionOrderMechanicId);
 
         Status = ExecutionOrderStatus.InExecution;
-        MechanicId = mechanicId;
         StartedAt = DateTime.UtcNow;
     }
 

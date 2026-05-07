@@ -17,12 +17,13 @@ public sealed class ExecutionOrderHandlersTests
 {
     private static CreateExecutionOrderCommand ValidCreateCommand(
         Guid? serviceOrderId = null,
-        Guid? serviceId = null) =>
-        new(serviceOrderId ?? Guid.NewGuid(), serviceId ?? Guid.NewGuid());
+        Guid? serviceId = null,
+        Guid? mechanicId = null) =>
+        new(serviceOrderId ?? Guid.NewGuid(), serviceId ?? Guid.NewGuid(), mechanicId ?? Guid.NewGuid());
 
     private static async Task SeedApprovedServiceOrderAsync(FakeServiceOrderRepository serviceOrderRepository, Guid serviceOrderId)
     {
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Id))!.SetValue(serviceOrder, serviceOrderId);
         typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Status))!.SetValue(serviceOrder, ServiceOrderStatus.Approved);
         await serviceOrderRepository.AddAsync(serviceOrder);
@@ -43,8 +44,8 @@ public sealed class ExecutionOrderHandlersTests
         dto.Id.Should().NotBeEmpty();
         dto.ServiceOrderId.Should().Be(command.ServiceOrderId);
         dto.ServiceId.Should().Be(command.ServiceId);
+        dto.MechanicId.Should().Be(command.MechanicId);
         dto.Status.Should().Be(ExecutionOrderStatus.Pending);
-        dto.MechanicId.Should().BeNull();
         dto.StartedAt.Should().BeNull();
         dto.CompletedAt.Should().BeNull();
         dto.ActualTimeMinutes.Should().BeNull();
@@ -72,6 +73,18 @@ public sealed class ExecutionOrderHandlersTests
         var act = async () => await handler.HandleAsync(command);
 
         await act.Should().ThrowAsync<DomainException>().WithMessage("Serviço é obrigatório");
+    }
+
+    [Fact]
+    public async Task CreateExecutionOrder_WithEmptyMechanicId_ThrowsDomainException()
+    {
+        var repo = new FakeExecutionOrderRepository();
+        var handler = new CreateExecutionOrderHandler(repo);
+        var command = ValidCreateCommand(mechanicId: Guid.Empty);
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<DomainException>().WithMessage("Mecânico é obrigatório");
     }
 
     // --- GetExecutionOrderByIdHandler ---
@@ -191,16 +204,16 @@ public sealed class ExecutionOrderHandlersTests
         var repo = new FakeExecutionOrderRepository();
         var soRepo = new FakeServiceOrderRepository();
         var createHandler = new CreateExecutionOrderHandler(repo);
-        var created = await createHandler.HandleAsync(ValidCreateCommand());
+        var command = ValidCreateCommand();
+        var created = await createHandler.HandleAsync(command);
         await SeedApprovedServiceOrderAsync(soRepo, created.ServiceOrderId);
         await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
 
-        var mechanicId = Guid.NewGuid();
         var startHandler = new StartExecutionOrderHandler(repo, soRepo);
-        var result = await startHandler.HandleAsync(new StartExecutionOrderCommand(created.Id, mechanicId));
+        var result = await startHandler.HandleAsync(new StartExecutionOrderCommand(created.Id));
 
         result.Status.Should().Be(ExecutionOrderStatus.InExecution);
-        result.MechanicId.Should().Be(mechanicId);
+        result.MechanicId.Should().Be(command.MechanicId);
         result.StartedAt.Should().NotBeNull();
     }
 
@@ -214,25 +227,9 @@ public sealed class ExecutionOrderHandlersTests
         await SeedApprovedServiceOrderAsync(soRepo, created.ServiceOrderId);
 
         var startHandler = new StartExecutionOrderHandler(repo, soRepo);
-        var act = async () => await startHandler.HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
+        var act = async () => await startHandler.HandleAsync(new StartExecutionOrderCommand(created.Id));
 
         await act.Should().ThrowAsync<InvalidExecutionOrderStatusTransitionException>();
-    }
-
-    [Fact]
-    public async Task StartExecutionOrder_WithEmptyMechanicId_ThrowsDomainException()
-    {
-        var repo = new FakeExecutionOrderRepository();
-        var soRepo = new FakeServiceOrderRepository();
-        var createHandler = new CreateExecutionOrderHandler(repo);
-        var created = await createHandler.HandleAsync(ValidCreateCommand());
-        await SeedApprovedServiceOrderAsync(soRepo, created.ServiceOrderId);
-        await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
-
-        var startHandler = new StartExecutionOrderHandler(repo, soRepo);
-        var act = async () => await startHandler.HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.Empty));
-
-        await act.Should().ThrowAsync<DomainException>().WithMessage("Mecânico é obrigatório");
     }
 
     [Fact]
@@ -241,7 +238,7 @@ public sealed class ExecutionOrderHandlersTests
         var repo = new FakeExecutionOrderRepository();
         var handler = new StartExecutionOrderHandler(repo, new FakeServiceOrderRepository());
 
-        var act = async () => await handler.HandleAsync(new StartExecutionOrderCommand(Guid.NewGuid(), Guid.NewGuid()));
+        var act = async () => await handler.HandleAsync(new StartExecutionOrderCommand(Guid.NewGuid()));
 
         await act.Should().ThrowAsync<EntityNotFoundException>();
     }
@@ -257,14 +254,14 @@ public sealed class ExecutionOrderHandlersTests
         var stockRepo = new FakeStockRepository();
 
         var serviceOrderId = Guid.NewGuid();
-        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Id))!.SetValue(so, serviceOrderId);
         typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Status))!.SetValue(so, ServiceOrderStatus.InExecution);
         await soRepo.AddAsync(so);
 
-        var created = await new CreateExecutionOrderHandler(repo).HandleAsync(new CreateExecutionOrderCommand(serviceOrderId, Guid.NewGuid()));
+        var created = await new CreateExecutionOrderHandler(repo).HandleAsync(new CreateExecutionOrderCommand(serviceOrderId, Guid.NewGuid(), Guid.NewGuid()));
         await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
-        await new StartExecutionOrderHandler(repo, soRepo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
+        await new StartExecutionOrderHandler(repo, soRepo).HandleAsync(new StartExecutionOrderCommand(created.Id));
 
         var partId = Guid.NewGuid();
         var stock = DomainStock.Create(partId, StockItemType.Part, 10m, 0m);
@@ -362,7 +359,7 @@ public sealed class ExecutionOrderHandlersTests
         var created = await new CreateExecutionOrderHandler(repo).HandleAsync(ValidCreateCommand());
         await SeedApprovedServiceOrderAsync(soRepo, created.ServiceOrderId);
         await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
-        await new StartExecutionOrderHandler(repo, soRepo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
+        await new StartExecutionOrderHandler(repo, soRepo).HandleAsync(new StartExecutionOrderCommand(created.Id));
 
         var handler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo);
         var act = async () => await handler.HandleAsync(new CompleteExecutionOrderCommand(created.Id));
@@ -380,7 +377,7 @@ public sealed class ExecutionOrderHandlersTests
         var created = await new CreateExecutionOrderHandler(repo).HandleAsync(ValidCreateCommand());
         await SeedApprovedServiceOrderAsync(soRepo, created.ServiceOrderId);
         await new MarkExecutionOrderReadyHandler(repo).HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
-        await new StartExecutionOrderHandler(repo, soRepo).HandleAsync(new StartExecutionOrderCommand(created.Id, Guid.NewGuid()));
+        await new StartExecutionOrderHandler(repo, soRepo).HandleAsync(new StartExecutionOrderCommand(created.Id));
 
         var separation = SeparationOrder.Create(
             created.Id,

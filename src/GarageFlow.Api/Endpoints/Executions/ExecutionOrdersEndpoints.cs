@@ -69,7 +69,7 @@ public static class ExecutionOrdersEndpoints
     {
         try
         {
-            var command = new CreateExecutionOrderCommand(request.ServiceOrderId, request.ServiceId);
+            var command = new CreateExecutionOrderCommand(request.ServiceOrderId, request.ServiceId, request.MechanicId);
             var dto = await handler.HandleAsync(command, cancellationToken);
             var response = MapToResponse(dto);
             return Results.Created($"/execution-orders/{dto.Id}", response);
@@ -140,13 +140,12 @@ public static class ExecutionOrdersEndpoints
 
     private static async Task<IResult> StartExecutionOrder(
         Guid id,
-        StartExecutionOrderRequest request,
         StartExecutionOrderHandler handler,
         CancellationToken cancellationToken)
     {
         try
         {
-            var command = new StartExecutionOrderCommand(id, request.MechanicId);
+            var command = new StartExecutionOrderCommand(id);
             var dto = await handler.HandleAsync(command, cancellationToken);
             return Results.Ok(MapToResponse(dto));
         }

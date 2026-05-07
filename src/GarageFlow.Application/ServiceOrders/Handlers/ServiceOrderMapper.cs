@@ -10,6 +10,7 @@ internal static class ServiceOrderMapper
             serviceOrder.Id,
             serviceOrder.CustomerId,
             serviceOrder.VehicleId,
+            serviceOrder.FrontDeskEmployeeId,
             serviceOrder.Status,
             serviceOrder.Diagnostic is not null ? ToDiagnosticDto(serviceOrder.Diagnostic) : null,
             serviceOrder.Quote is not null ? ToQuoteDto(serviceOrder.Quote) : null,

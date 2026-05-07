@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Customers;
+using GarageFlow.Api.DTOs.Employees;
 using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Api.DTOs.Purchasing;
 using GarageFlow.Api.DTOs.ServiceOrders;
@@ -9,6 +10,7 @@ using GarageFlow.Api.DTOs.Services;
 using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Vehicles;
 using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Tests.E2E.Infrastructure;
 
@@ -22,6 +24,7 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
     private static int _cpfSeed = 400_000_000;
     private static int _renavamSeed = 1_600_000_000;
     private static int _licensePlateSeed;
+    private static int _employeeSeed;
 
     public ServiceOrderCancellationLatestStageE2ETests(E2ERealDbWebApplicationFactory factory)
     {
@@ -33,6 +36,8 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
     {
         await ResetRealDatabaseAsync(_client);
         await AuthenticateAsAsync(_client, E2ERole.Administrative);
+        var frontDeskEmployeeId = await CreateEmployeeAsync(EmployeeRole.Attendant);
+        var mechanicEmployeeId = await CreateEmployeeAsync(EmployeeRole.Mechanic);
 
         var customer = await CreateCustomerAsync();
         var vehicle = await CreateVehicleAsync(customer.Id);
@@ -40,14 +45,14 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
 
         var createServiceOrderResponse = await _client.PostAsJsonAsync(
             "/service-orders",
-            new CreateServiceOrderRequest(customer.Id, vehicle.Id));
+            new CreateServiceOrderRequest(customer.Id, vehicle.Id, frontDeskEmployeeId));
         createServiceOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var serviceOrder = await ReadAsync<ServiceOrderResponse>(createServiceOrderResponse);
         serviceOrder.Status.Should().Be(ServiceOrderStatus.Received);
 
         var startDiagnosticResponse = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/start",
-            new StartDiagnosticRequest(Guid.NewGuid()));
+            new StartDiagnosticRequest(mechanicEmployeeId));
         startDiagnosticResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var inDiagnosticOrder = await ReadAsync<ServiceOrderResponse>(startDiagnosticResponse);
         inDiagnosticOrder.Status.Should().Be(ServiceOrderStatus.InDiagnostic);
@@ -100,7 +105,7 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
 
         var restartDiagnosticResponse = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/start",
-            new StartDiagnosticRequest(Guid.NewGuid()));
+            new StartDiagnosticRequest(mechanicEmployeeId));
         restartDiagnosticResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
         var regenerateQuoteResponse = await _client.PostAsync(
@@ -177,6 +182,31 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         return await ReadAsync<ServiceResponse>(response);
+    }
+
+    private async Task<Guid> CreateEmployeeAsync(EmployeeRole role)
+    {
+        var seed = Interlocked.Increment(ref _employeeSeed);
+        var response = await _client.PostAsJsonAsync(
+            "/employees",
+            new CreateEmployeeRequest(
+                $"Funcionario E2E Cancelamento {seed}",
+                CustomerDocumentType.Cpf,
+                GenerateValidCpf(),
+                $"funcionario-e2e-cancelamento-{seed}@garageflow.test",
+                $"1190{seed % 1_0000:D4}321",
+                "Rua E2E",
+                "10",
+                null,
+                "Centro",
+                "Sao Paulo",
+                "SP",
+                "01310100",
+                role));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var employee = await ReadAsync<EmployeeResponse>(response);
+        return employee.Id;
     }
 
     private async Task<ServiceOrderResponse> GetServiceOrderAsync(Guid serviceOrderId)

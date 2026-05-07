@@ -3,10 +3,12 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.DTOs.Customers;
+using GarageFlow.Api.DTOs.Employees;
 using GarageFlow.Api.DTOs.ServiceOrders;
 using GarageFlow.Api.DTOs.Services;
 using GarageFlow.Api.DTOs.Vehicles;
 using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Tests.Integration;
 
@@ -19,6 +21,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     private static int _cpfSeed = 100_000_000;
     private static int _renavamSeed = 1_000_000_000;
     private static int _licensePlateSeed;
+    private static int _employeeSeed;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -110,10 +113,35 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
     private async Task<ServiceOrderResponse> CreateServiceOrder(Guid customerId, Guid vehicleId)
     {
-        var request = new CreateServiceOrderRequest(customerId, vehicleId);
+        var frontDeskEmployeeId = await CreateEmployee(EmployeeRole.Attendant);
+        var request = new CreateServiceOrderRequest(customerId, vehicleId, frontDeskEmployeeId);
         var response = await _client.PostAsJsonAsync("/service-orders", request);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions))!;
+    }
+
+    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    {
+        var seed = Interlocked.Increment(ref _employeeSeed);
+        var request = new CreateEmployeeRequest(
+            $"Funcionario {seed}",
+            CustomerDocumentType.Cpf,
+            GenerateValidCpf(),
+            $"funcionario-{seed}@garageflow.test",
+            $"1198{seed % 1_0000:D4}321",
+            "Rua dos Funcionarios",
+            "10",
+            null,
+            "Centro",
+            "Sao Paulo",
+            "SP",
+            "01310100",
+            role);
+
+        var response = await _client.PostAsJsonAsync("/employees", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<EmployeeResponse>(JsonOptions);
+        return body!.Id;
     }
 
     private async Task<ServiceResponse> CreateService(string code, string name)
@@ -130,7 +158,8 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
 
-        var request = new CreateServiceOrderRequest(customer.Id, vehicle.Id);
+        var frontDeskEmployeeId = await CreateEmployee(EmployeeRole.Attendant);
+        var request = new CreateServiceOrderRequest(customer.Id, vehicle.Id, frontDeskEmployeeId);
         var response = await _client.PostAsJsonAsync("/service-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -146,7 +175,8 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     [Fact]
     public async Task PostServiceOrder_WithNonExistentCustomer_Returns404()
     {
-        var request = new CreateServiceOrderRequest(Guid.NewGuid(), Guid.NewGuid());
+        var frontDeskEmployeeId = await CreateEmployee(EmployeeRole.Attendant);
+        var request = new CreateServiceOrderRequest(Guid.NewGuid(), Guid.NewGuid(), frontDeskEmployeeId);
         var response = await _client.PostAsJsonAsync("/service-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -156,7 +186,8 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     public async Task PostServiceOrder_WithNonExistentVehicle_Returns404()
     {
         var customer = await CreateCustomer(GenerateValidCpf());
-        var request = new CreateServiceOrderRequest(customer.Id, Guid.NewGuid());
+        var frontDeskEmployeeId = await CreateEmployee(EmployeeRole.Attendant);
+        var request = new CreateServiceOrderRequest(customer.Id, Guid.NewGuid(), frontDeskEmployeeId);
         var response = await _client.PostAsJsonAsync("/service-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -165,7 +196,8 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     [Fact]
     public async Task PostServiceOrder_WithEmptyCustomerId_Returns400()
     {
-        var request = new CreateServiceOrderRequest(Guid.Empty, Guid.NewGuid());
+        var frontDeskEmployeeId = await CreateEmployee(EmployeeRole.Attendant);
+        var request = new CreateServiceOrderRequest(Guid.Empty, Guid.NewGuid(), frontDeskEmployeeId);
         var response = await _client.PostAsJsonAsync("/service-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -175,7 +207,8 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     public async Task PostServiceOrder_WithEmptyVehicleId_Returns400()
     {
         var customer = await CreateCustomer(GenerateValidCpf());
-        var request = new CreateServiceOrderRequest(customer.Id, Guid.Empty);
+        var frontDeskEmployeeId = await CreateEmployee(EmployeeRole.Attendant);
+        var request = new CreateServiceOrderRequest(customer.Id, Guid.Empty, frontDeskEmployeeId);
         var response = await _client.PostAsJsonAsync("/service-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -188,7 +221,8 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var customer2 = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer1.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
 
-        var request = new CreateServiceOrderRequest(customer2.Id, vehicle.Id);
+        var frontDeskEmployeeId = await CreateEmployee(EmployeeRole.Attendant);
+        var request = new CreateServiceOrderRequest(customer2.Id, vehicle.Id, frontDeskEmployeeId);
         var response = await _client.PostAsJsonAsync("/service-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -356,7 +390,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var diagnosticService = await CreateService("SVC-035-001", "Serviço Diagnóstico 001");
         var frontDeskService = await CreateService("SVC-035-002", "Serviço FrontDesk 002");
 
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/services",
             new AddDiagnosticServiceRequest(diagnosticService.Id));
@@ -479,7 +513,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
             $"/service-orders/{serviceOrder.Id}/services",
             new AddServiceToServiceOrderRequest(frontDeskService.Id, Guid.NewGuid()));
 
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/services",
             new AddDiagnosticServiceRequest(diagnosticService.Id));
@@ -529,7 +563,10 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
     private async Task<ServiceOrderResponse> StartDiagnostic(Guid serviceOrderId, Guid mechanicId)
     {
-        var request = new StartDiagnosticRequest(mechanicId);
+        var effectiveMechanicId = mechanicId == Guid.Empty
+            ? await CreateEmployee(EmployeeRole.Mechanic)
+            : mechanicId;
+        var request = new StartDiagnosticRequest(effectiveMechanicId);
         var response = await _client.PostAsJsonAsync($"/service-orders/{serviceOrderId}/diagnostic/start", request);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions))!;
@@ -541,7 +578,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
-        var mechanicId = Guid.NewGuid();
+        var mechanicId = await CreateEmployee(EmployeeRole.Mechanic);
 
         var response = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/start",
@@ -561,7 +598,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     {
         var response = await _client.PostAsJsonAsync(
             $"/service-orders/{Guid.NewGuid()}/diagnostic/start",
-            new StartDiagnosticRequest(Guid.NewGuid()));
+            new StartDiagnosticRequest(await CreateEmployee(EmployeeRole.Mechanic)));
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -586,11 +623,11 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
 
         var response = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/start",
-            new StartDiagnosticRequest(Guid.NewGuid()));
+            new StartDiagnosticRequest(await CreateEmployee(EmployeeRole.Mechanic)));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -602,7 +639,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-015-001", "Diagnóstico Elétrico 015-001");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
 
         var response = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/services",
@@ -631,7 +668,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
 
         var response = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/services",
@@ -662,7 +699,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-015-004", "Balanceamento 015-004");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
 
         await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/services",
@@ -683,7 +720,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service1 = await CreateService("SVC-015-005", "Revisão Completa 015-005");
         var service2 = await CreateService("SVC-015-006", "Troca de Óleo 015-006");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service1.Id));
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service2.Id));
 
@@ -721,7 +758,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
 
         var response = await _client.DeleteAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/services/{Guid.NewGuid()}");
@@ -736,7 +773,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-015-007", "Suspensão 015-007");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
 
         var response = await _client.DeleteAsync(
@@ -752,7 +789,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-015-008", "Injeção Eletrônica 015-008");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
 
         var response = await _client.PostAsJsonAsync(
@@ -797,7 +834,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-015-009", "Câmbio 015-009");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
 
         var response = await _client.PostAsJsonAsync(
@@ -813,7 +850,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
 
         var response = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/complete",
@@ -829,7 +866,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-015-010", "Freios 015-010");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/complete", new CompleteDiagnosticRequest("Primeira conclusão."));
 
@@ -846,7 +883,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var customer = await CreateCustomer(GenerateValidCpf());
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
-        var mechanicId = Guid.NewGuid();
+        var mechanicId = await CreateEmployee(EmployeeRole.Mechanic);
         await StartDiagnostic(serviceOrder.Id, mechanicId);
 
         var response = await _client.GetAsync($"/service-orders/{serviceOrder.Id}");
@@ -876,7 +913,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-016-001", "Revisão Completa 016-001");
-        var mechanicId = Guid.NewGuid();
+        var mechanicId = await CreateEmployee(EmployeeRole.Mechanic);
         await StartDiagnostic(serviceOrder.Id, mechanicId);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
         await CompleteDiagnostic(serviceOrder.Id, "Motor com desgaste.");
@@ -924,7 +961,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-016-002", "Alinhamento 016-002");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
 
         var response = await _client.PostAsync(
@@ -940,7 +977,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-016-003", "Balanceamento 016-003");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
         await CompleteDiagnostic(serviceOrder.Id, "Diagnóstico finalizado.");
         await _client.PostAsync($"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
@@ -960,7 +997,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-016-004", "Suspensão 016-004");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
         await CompleteDiagnostic(serviceOrder.Id, "Suspensão com desgaste.");
         await _client.PostAsync($"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
@@ -983,7 +1020,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService("SVC-016-005", "Freios 016-005");
-        await StartDiagnostic(serviceOrder.Id, Guid.NewGuid());
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services", new AddDiagnosticServiceRequest(service.Id));
         await CompleteDiagnostic(serviceOrder.Id, "Freios com desgaste.");
         await _client.PostAsync($"/service-orders/{serviceOrder.Id}/diagnostic/consolidate-services", null);
@@ -1016,7 +1053,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
         var so = await CreateServiceOrder(customer.Id, vehicle.Id);
         var service = await CreateService($"SVC-017-{seed:D4}", $"Serviço Quote {seed:D4}");
-        await StartDiagnostic(so.Id, Guid.NewGuid());
+        await StartDiagnostic(so.Id, Guid.Empty);
         await _client.PostAsJsonAsync($"/service-orders/{so.Id}/diagnostic/services",
             new AddDiagnosticServiceRequest(service.Id));
         await CompleteDiagnostic(so.Id, "Diagnóstico concluído para orçamento.");

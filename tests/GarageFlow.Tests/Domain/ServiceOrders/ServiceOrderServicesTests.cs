@@ -7,7 +7,7 @@ namespace GarageFlow.Tests.Domain.ServiceOrders;
 public sealed class ServiceOrderServicesTests
 {
     private static ServiceOrder ValidServiceOrder() =>
-        ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
     // AddService tests
 

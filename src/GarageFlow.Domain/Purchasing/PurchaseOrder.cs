@@ -17,6 +17,7 @@ public sealed class PurchaseOrder
         _separationOrderRefs.Select(r => r.SeparationOrderId).ToList().AsReadOnly();
 
     public Guid? SupplierId { get; private set; }
+    public Guid? EmployeeId { get; private set; }
     public PurchaseOrderStatus Status { get; private set; }
     public IReadOnlyList<PurchaseItem> Items => _items.AsReadOnly();
     public DateTime CreatedAt { get; private set; }
@@ -45,6 +46,7 @@ public sealed class PurchaseOrder
             Status = PurchaseOrderStatus.Created,
             CreatedAt = DateTime.UtcNow,
             SupplierId = null,
+            EmployeeId = null,
             StartedAt = null,
             CompletedAt = null,
             _separationOrderRefs = separationIdsList.Select(PurchaseOrderSeparationRef.From).ToList(),
@@ -52,16 +54,20 @@ public sealed class PurchaseOrder
         };
     }
 
-    public void AssignSupplier(Guid supplierId)
+    public void AssignSupplier(Guid supplierId, Guid employeeId)
     {
         if (supplierId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.PurchaseOrderSupplierRequired);
+
+        if (employeeId == Guid.Empty)
+            throw new DomainException(DomainErrorMessages.InvalidPurchaseOrderActorEmployeeId);
 
         if (Status != PurchaseOrderStatus.Created)
             throw new InvalidPurchaseOrderStatusTransitionException(
                 DomainErrorMessages.PurchaseOrderCannotChangeSupplierAfterStart);
 
         SupplierId = supplierId;
+        EmployeeId = employeeId;
     }
 
     public void Start()
@@ -73,6 +79,9 @@ public sealed class PurchaseOrder
         if (SupplierId is null)
             throw new DomainException(DomainErrorMessages.PurchaseOrderSupplierNotSet);
 
+        if (EmployeeId is null || EmployeeId == Guid.Empty)
+            throw new DomainException(DomainErrorMessages.InvalidPurchaseOrderActorEmployeeId);
+
         Status = PurchaseOrderStatus.Started;
         StartedAt = DateTime.UtcNow;
     }
@@ -83,7 +92,11 @@ public sealed class PurchaseOrder
             throw new InvalidPurchaseOrderStatusTransitionException(
                 DomainErrorMessages.PurchaseOrderNotStarted);
 
+        if (EmployeeId is null || EmployeeId == Guid.Empty)
+            throw new DomainException(DomainErrorMessages.InvalidPurchaseOrderActorEmployeeId);
+
         Status = PurchaseOrderStatus.Completed;
         CompletedAt = DateTime.UtcNow;
     }
+
 }

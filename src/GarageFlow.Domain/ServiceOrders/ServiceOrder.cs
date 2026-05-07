@@ -11,6 +11,7 @@ public sealed class ServiceOrder
     public Guid Id { get; private set; }
     public Guid CustomerId { get; private set; }
     public Guid VehicleId { get; private set; }
+    public Guid FrontDeskEmployeeId { get; private set; }
     public ServiceOrderStatus Status { get; private set; }
     public Diagnostic? Diagnostic { get; private set; }
     public Quote? Quote { get; private set; }
@@ -21,7 +22,7 @@ public sealed class ServiceOrder
 
     private ServiceOrder() { }
 
-    public static ServiceOrder Create(Guid customerId, Guid vehicleId)
+    public static ServiceOrder Create(Guid customerId, Guid vehicleId, Guid frontDeskEmployeeId)
     {
         if (customerId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.InvalidServiceOrderCustomerId);
@@ -29,11 +30,15 @@ public sealed class ServiceOrder
         if (vehicleId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.InvalidServiceOrderVehicleId);
 
+        if (frontDeskEmployeeId == Guid.Empty)
+            throw new DomainException(DomainErrorMessages.InvalidServiceOrderFrontDeskEmployeeId);
+
         return new ServiceOrder
         {
             Id = Guid.NewGuid(),
             CustomerId = customerId,
             VehicleId = vehicleId,
+            FrontDeskEmployeeId = frontDeskEmployeeId,
             Status = ServiceOrderStatus.Received,
             CreatedAt = DateTime.UtcNow
         };

@@ -164,10 +164,12 @@ public sealed class PurchaseOrderTests
     {
         var order = ValidOrder();
         var supplierId = Guid.NewGuid();
+        var employeeId = Guid.NewGuid();
 
-        order.AssignSupplier(supplierId);
+        order.AssignSupplier(supplierId, employeeId);
 
         order.SupplierId.Should().Be(supplierId);
+        order.EmployeeId.Should().Be(employeeId);
     }
 
     [Fact]
@@ -175,7 +177,7 @@ public sealed class PurchaseOrderTests
     {
         var order = ValidOrder();
 
-        var act = () => order.AssignSupplier(Guid.Empty);
+        var act = () => order.AssignSupplier(Guid.Empty, Guid.NewGuid());
 
         act.Should().Throw<DomainException>().WithMessage("Fornecedor é obrigatório");
     }
@@ -184,10 +186,10 @@ public sealed class PurchaseOrderTests
     public void AssignSupplier_AfterStart_ThrowsStatusTransitionException()
     {
         var order = ValidOrder();
-        order.AssignSupplier(Guid.NewGuid());
+        order.AssignSupplier(Guid.NewGuid(), Guid.NewGuid());
         order.Start();
 
-        var act = () => order.AssignSupplier(Guid.NewGuid());
+        var act = () => order.AssignSupplier(Guid.NewGuid(), Guid.NewGuid());
 
         act.Should().Throw<InvalidPurchaseOrderStatusTransitionException>()
             .WithMessage("Não é possível alterar fornecedor após início");
@@ -200,8 +202,8 @@ public sealed class PurchaseOrderTests
         var firstSupplier = Guid.NewGuid();
         var secondSupplier = Guid.NewGuid();
 
-        order.AssignSupplier(firstSupplier);
-        order.AssignSupplier(secondSupplier);
+        order.AssignSupplier(firstSupplier, Guid.NewGuid());
+        order.AssignSupplier(secondSupplier, Guid.NewGuid());
 
         order.SupplierId.Should().Be(secondSupplier);
     }
@@ -212,7 +214,7 @@ public sealed class PurchaseOrderTests
     public void Start_WithSupplierAssigned_SetsStatusStarted()
     {
         var order = ValidOrder();
-        order.AssignSupplier(Guid.NewGuid());
+        order.AssignSupplier(Guid.NewGuid(), Guid.NewGuid());
 
         order.Start();
 
@@ -234,7 +236,7 @@ public sealed class PurchaseOrderTests
     public void Start_WhenAlreadyStarted_ThrowsStatusTransitionException()
     {
         var order = ValidOrder();
-        order.AssignSupplier(Guid.NewGuid());
+        order.AssignSupplier(Guid.NewGuid(), Guid.NewGuid());
         order.Start();
 
         var act = () => order.Start();
@@ -247,7 +249,7 @@ public sealed class PurchaseOrderTests
     public void Start_WhenCompleted_ThrowsStatusTransitionException()
     {
         var order = ValidOrder();
-        order.AssignSupplier(Guid.NewGuid());
+        order.AssignSupplier(Guid.NewGuid(), Guid.NewGuid());
         order.Start();
         order.Complete();
 
@@ -263,7 +265,7 @@ public sealed class PurchaseOrderTests
     public void Complete_WhenStarted_SetsStatusCompleted()
     {
         var order = ValidOrder();
-        order.AssignSupplier(Guid.NewGuid());
+        order.AssignSupplier(Guid.NewGuid(), Guid.NewGuid());
         order.Start();
 
         order.Complete();
@@ -287,7 +289,7 @@ public sealed class PurchaseOrderTests
     public void Complete_WhenAlreadyCompleted_ThrowsStatusTransitionException()
     {
         var order = ValidOrder();
-        order.AssignSupplier(Guid.NewGuid());
+        order.AssignSupplier(Guid.NewGuid(), Guid.NewGuid());
         order.Start();
         order.Complete();
 
@@ -304,16 +306,20 @@ public sealed class PurchaseOrderTests
     {
         var order = ValidOrder();
         var supplierId = Guid.NewGuid();
+        var employeeId = Guid.NewGuid();
 
         order.Status.Should().Be(PurchaseOrderStatus.Created);
 
-        order.AssignSupplier(supplierId);
+        order.AssignSupplier(supplierId, employeeId);
         order.SupplierId.Should().Be(supplierId);
+        order.EmployeeId.Should().Be(employeeId);
 
         order.Start();
         order.Status.Should().Be(PurchaseOrderStatus.Started);
+        order.EmployeeId.Should().Be(employeeId);
 
         order.Complete();
         order.Status.Should().Be(PurchaseOrderStatus.Completed);
+        order.EmployeeId.Should().Be(employeeId);
     }
 }

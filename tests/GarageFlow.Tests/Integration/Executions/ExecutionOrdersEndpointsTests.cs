@@ -2,9 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using GarageFlow.Api.DTOs.Employees;
 using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Stock;
+using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
@@ -23,12 +26,60 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     {
         PropertyNameCaseInsensitive = true
     };
+    private static int _employeeSeed;
+    private static int _cpfSeed = 700_000_000;
+
+    private static string GenerateValidCpf()
+    {
+        var baseDigits = Interlocked.Increment(ref _cpfSeed) % 1_000_000_000;
+        var baseNumber = baseDigits.ToString("D9");
+        var firstDigit = CalculateCpfVerifier(baseNumber, 10);
+        var secondDigit = CalculateCpfVerifier(baseNumber + firstDigit, 11);
+        var rawCpf = $"{baseNumber}{firstDigit}{secondDigit}";
+        return $"{rawCpf[..3]}.{rawCpf.Substring(3, 3)}.{rawCpf.Substring(6, 3)}-{rawCpf.Substring(9, 2)}";
+    }
+
+    private static int CalculateCpfVerifier(string digits, int weightStart)
+    {
+        var sum = 0;
+        for (var i = 0; i < digits.Length; i++)
+        {
+            sum += (digits[i] - '0') * (weightStart - i);
+        }
+
+        var mod = sum % 11;
+        return mod < 2 ? 0 : 11 - mod;
+    }
+
+    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    {
+        var seed = Interlocked.Increment(ref _employeeSeed);
+        var response = await _client.PostAsJsonAsync(
+            "/employees",
+            new CreateEmployeeRequest(
+                $"Employee Execution {seed}",
+                CustomerDocumentType.Cpf,
+                GenerateValidCpf(),
+                $"execution-test-{seed}@garageflow.test",
+                $"1198{seed % 1_0000:D4}000",
+                "Rua Execucao",
+                "10",
+                null,
+                "Centro",
+                "Sao Paulo",
+                "SP",
+                "01310100",
+                role));
+        response.EnsureSuccessStatusCode();
+        var employee = await response.Content.ReadFromJsonAsync<EmployeeResponse>(JsonOptions);
+        return employee!.Id;
+    }
 
     private async Task<Guid> SeedServiceOrderInExecution()
     {
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
-        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         typeof(ServiceOrder)
             .GetProperty(nameof(ServiceOrder.Status))!
             .SetValue(so, ServiceOrderStatus.InExecution);
@@ -41,7 +92,7 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     {
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
-        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         typeof(ServiceOrder)
             .GetProperty(nameof(ServiceOrder.Status))!
             .SetValue(so, ServiceOrderStatus.Approved);
@@ -52,8 +103,9 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
 
     private static CreateExecutionOrderRequest ValidCreateRequest(
         Guid? serviceOrderId = null,
-        Guid? serviceId = null) =>
-        new(serviceOrderId ?? Guid.NewGuid(), serviceId ?? Guid.NewGuid());
+        Guid? serviceId = null,
+        Guid? mechanicId = null) =>
+        new(serviceOrderId ?? Guid.NewGuid(), serviceId ?? Guid.NewGuid(), mechanicId ?? Guid.NewGuid());
 
     private async Task<ExecutionOrderResponse> CreateExecutionOrder(CreateExecutionOrderRequest? request = null)
     {
@@ -73,13 +125,14 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     [Fact]
     public async Task CreateExecutionOrder_WithValidData_Returns201()
     {
-        var response = await _client.PostAsJsonAsync("/execution-orders", ValidCreateRequest());
+        var request = ValidCreateRequest();
+        var response = await _client.PostAsJsonAsync("/execution-orders", request);
+        var body = await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        var body = await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
         body.Should().NotBeNull();
         body!.Status.Should().Be(ExecutionOrderStatus.Pending);
-        body.MechanicId.Should().BeNull();
+        body.MechanicId.Should().Be(request.MechanicId);
         body.StartedAt.Should().BeNull();
         body.CompletedAt.Should().BeNull();
         body.ActualTimeMinutes.Should().BeNull();
@@ -98,6 +151,15 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     public async Task CreateExecutionOrder_WithEmptyServiceId_Returns400()
     {
         var request = ValidCreateRequest(serviceId: Guid.Empty);
+        var response = await _client.PostAsJsonAsync("/execution-orders", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CreateExecutionOrder_WithEmptyMechanicId_Returns400()
+    {
+        var request = ValidCreateRequest(mechanicId: Guid.Empty);
         var response = await _client.PostAsJsonAsync("/execution-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -193,14 +255,12 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     {
         var created = await CreateExecutionOrder();
         await _client.PostAsync($"/execution-orders/{created.Id}/mark-ready", null);
-
-        var request = new StartExecutionOrderRequest(Guid.NewGuid());
-        var response = await _client.PostAsJsonAsync($"/execution-orders/{created.Id}/start", request);
+        var response = await _client.PostAsync($"/execution-orders/{created.Id}/start", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
         body!.Status.Should().Be(ExecutionOrderStatus.InExecution);
-        body.MechanicId.Should().Be(request.MechanicId);
+        body.MechanicId.Should().NotBeNull();
         body.StartedAt.Should().NotBeNull();
     }
 
@@ -208,30 +268,15 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     public async Task StartExecution_WhenPending_Returns409()
     {
         var created = await CreateExecutionOrder();
-
-        var request = new StartExecutionOrderRequest(Guid.NewGuid());
-        var response = await _client.PostAsJsonAsync($"/execution-orders/{created.Id}/start", request);
+        var response = await _client.PostAsync($"/execution-orders/{created.Id}/start", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]
-    public async Task StartExecution_WithEmptyMechanicId_Returns400()
-    {
-        var created = await CreateExecutionOrder();
-        await _client.PostAsync($"/execution-orders/{created.Id}/mark-ready", null);
-
-        var request = new StartExecutionOrderRequest(Guid.Empty);
-        var response = await _client.PostAsJsonAsync($"/execution-orders/{created.Id}/start", request);
-
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Fact]
     public async Task StartExecution_WhenNotFound_Returns404()
     {
-        var request = new StartExecutionOrderRequest(Guid.NewGuid());
-        var response = await _client.PostAsJsonAsync($"/execution-orders/{Guid.NewGuid()}/start", request);
+        var response = await _client.PostAsync($"/execution-orders/{Guid.NewGuid()}/start", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -286,11 +331,11 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     public async Task CompleteExecution_WhenInExecution_Returns200WithCompleted()
     {
         var serviceOrderId = await SeedServiceOrderInExecution();
-        var created = await CreateExecutionOrder(new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid()));
+        var created = await CreateExecutionOrder(new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid(), Guid.NewGuid()));
         var partId = await CreatePartWithStock();
         await CreateAndReserveSeparation(created.Id, partId);
         await _client.PostAsync($"/execution-orders/{created.Id}/mark-ready", null);
-        await _client.PostAsJsonAsync($"/execution-orders/{created.Id}/start", new StartExecutionOrderRequest(Guid.NewGuid()));
+        await _client.PostAsync($"/execution-orders/{created.Id}/start", null);
 
         var response = await _client.PostAsync($"/execution-orders/{created.Id}/complete", null);
 

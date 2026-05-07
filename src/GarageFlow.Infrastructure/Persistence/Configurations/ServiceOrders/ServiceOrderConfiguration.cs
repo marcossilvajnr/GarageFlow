@@ -26,6 +26,7 @@ internal sealed class ServiceOrderConfiguration : IEntityTypeConfiguration<Servi
 
         builder.Property(so => so.CustomerId).HasColumnName("customer_id").IsRequired();
         builder.Property(so => so.VehicleId).HasColumnName("vehicle_id").IsRequired();
+        builder.Property(so => so.FrontDeskEmployeeId).HasColumnName("front_desk_employee_id").IsRequired();
         builder.Property(so => so.Status).HasColumnName("status").IsRequired();
         builder.Property(so => so.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(so => so.UpdatedAt).HasColumnName("updated_at");

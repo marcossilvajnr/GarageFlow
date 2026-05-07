@@ -100,6 +100,10 @@ public static class PurchaseOrdersEndpoints
         {
             return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
         }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
     }
 
     private static async Task<IResult> ListPurchaseOrders(
@@ -136,7 +140,7 @@ public static class PurchaseOrdersEndpoints
     {
         try
         {
-            var command = new AssignPurchaseOrderSupplierCommand(id, request.SupplierId);
+            var command = new AssignPurchaseOrderSupplierCommand(id, request.SupplierId, request.EmployeeId);
             var dto = await handler.HandleAsync(command, cancellationToken);
             return Results.Ok(MapToResponse(dto));
         }
@@ -200,6 +204,10 @@ public static class PurchaseOrdersEndpoints
         {
             return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
         }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
+        }
     }
 
     private static PurchaseOrderResponse MapToResponse(PurchaseOrderDto dto) =>
@@ -207,6 +215,7 @@ public static class PurchaseOrdersEndpoints
             dto.Id,
             dto.SeparationOrderIds,
             dto.SupplierId,
+            dto.EmployeeId,
             dto.Status,
             dto.Items.Select(i => new PurchaseItemResponse(i.ItemId, i.ItemType, i.ItemName, i.Quantity, i.UnitPrice, i.Subtotal)).ToList(),
             dto.CreatedAt,

@@ -2,11 +2,14 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using GarageFlow.Api.DTOs.Employees;
 using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Purchasing;
 using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Suppliers;
+using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.ServiceOrders;
@@ -28,6 +31,8 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     };
 
     private static int _supplierSeed = 0;
+    private static int _employeeSeed = 0;
+    private static int _cpfSeed = 300_000_000;
 
     private static string NextCnpj()
     {
@@ -46,6 +51,28 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     {
         var index = _supplierSeed;
         return $"sep-integ-{index}@fornecedor.com";
+    }
+
+    private static string GenerateValidCpf()
+    {
+        var baseDigits = Interlocked.Increment(ref _cpfSeed) % 1_000_000_000;
+        var baseNumber = baseDigits.ToString("D9");
+        var firstDigit = CalculateCpfVerifier(baseNumber, 10);
+        var secondDigit = CalculateCpfVerifier(baseNumber + firstDigit, 11);
+        var rawCpf = $"{baseNumber}{firstDigit}{secondDigit}";
+        return $"{rawCpf[..3]}.{rawCpf.Substring(3, 3)}.{rawCpf.Substring(6, 3)}-{rawCpf.Substring(9, 2)}";
+    }
+
+    private static int CalculateCpfVerifier(string digits, int weightStart)
+    {
+        var sum = 0;
+        for (var i = 0; i < digits.Length; i++)
+        {
+            sum += (digits[i] - '0') * (weightStart - i);
+        }
+
+        var mod = sum % 11;
+        return mod < 2 ? 0 : 11 - mod;
     }
 
     private async Task<Guid> CreateSupplier()
@@ -67,6 +94,30 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         response.EnsureSuccessStatusCode();
         var supplier = (await response.Content.ReadFromJsonAsync<SupplierResponse>(JsonOptions))!;
         return supplier.Id;
+    }
+
+    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    {
+        var seed = Interlocked.Increment(ref _employeeSeed);
+        var request = new CreateEmployeeRequest(
+            $"Employee Chain {seed}",
+            CustomerDocumentType.Cpf,
+            GenerateValidCpf(),
+            $"chain-employee-{seed}@garageflow.test",
+            $"1196{seed % 1_0000:D4}321",
+            "Rua Cadeia",
+            "80",
+            null,
+            "Centro",
+            "Sao Paulo",
+            "SP",
+            "01310100",
+            role);
+
+        var response = await _client.PostAsJsonAsync("/employees", request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<EmployeeResponse>(JsonOptions);
+        return body!.Id;
     }
 
     private async Task<SeparationOrderResponse> CreateSeparationOrderInWaitingPurchase()
@@ -98,7 +149,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var serviceOrderId = await SeedServiceOrderApproved();
         var response = await _client.PostAsJsonAsync(
             "/execution-orders",
-            new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid()));
+            new CreateExecutionOrderRequest(serviceOrderId, Guid.NewGuid(), Guid.NewGuid()));
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
     }
@@ -107,7 +158,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     {
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<GarageFlowDbContext>();
-        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         typeof(ServiceOrder)
             .GetProperty(nameof(ServiceOrder.Status))!
             .SetValue(so, ServiceOrderStatus.Approved);
@@ -143,10 +194,11 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var purchaseOrder = (await createResp.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions))!;
 
         var supplierId = await CreateSupplier();
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
         await _client.PostAsJsonAsync(
             $"/purchase-orders/{purchaseOrder.Id}/assign-supplier",
-            new AssignPurchaseOrderSupplierRequest(supplierId));
-        await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/start", new { });
+            new AssignPurchaseOrderSupplierRequest(supplierId, stockistId));
+        await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/start", null);
 
         return purchaseOrder;
     }
@@ -158,8 +210,9 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     {
         var separation = await CreateSeparationOrderInWaitingPurchase();
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
 
-        var response = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        var response = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions);
@@ -172,8 +225,9 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     {
         var separation = await CreateSeparationOrderInWaitingPurchase();
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
 
-        await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
         var separationResp = await _client.GetAsync($"/separation-orders/{separation.Id}");
         separationResp.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -188,8 +242,9 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     {
         var nonExistentSeparationId = Guid.NewGuid();
         var purchaseOrder = await CreateStartedPurchaseOrder(nonExistentSeparationId);
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
 
-        var response = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        var response = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -213,8 +268,9 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         await _client.PostAsync($"/separation-orders/{separation.Id}/reserve", null);
 
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
 
-        var response = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        var response = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
@@ -231,8 +287,9 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var createResp = await _client.PostAsJsonAsync("/purchase-orders", createReq);
         createResp.EnsureSuccessStatusCode();
         var purchaseOrder = (await createResp.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions))!;
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
 
-        var response = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        var response = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
@@ -242,7 +299,8 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     [Fact]
     public async Task CompletePurchaseOrder_WhenPurchaseOrderNotFound_Returns404()
     {
-        var response = await _client.PostAsJsonAsync($"/purchase-orders/{Guid.NewGuid()}/complete", new { });
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var response = await _client.PostAsync($"/purchase-orders/{Guid.NewGuid()}/complete", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -253,13 +311,14 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var execution = await CreateExecutionOrder();
         var separation = await CreateSeparationOrderInWaitingPurchase(execution.Id);
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var mechanicId = await CreateEmployee(EmployeeRole.Mechanic);
 
-        var completePurchaseResponse = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        var completePurchaseResponse = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
         completePurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var startExecutionResponse = await _client.PostAsJsonAsync(
-            $"/execution-orders/{execution.Id}/start",
-            new StartExecutionOrderRequest(Guid.NewGuid()));
+        var startExecutionResponse = await _client.PostAsync(
+            $"/execution-orders/{execution.Id}/start", null);
 
         startExecutionResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
@@ -270,13 +329,16 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var execution = await CreateExecutionOrder();
         var separation = await CreateSeparationOrderInWaitingPurchase(execution.Id);
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var secondStockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var mechanicId = await CreateEmployee(EmployeeRole.Mechanic);
 
-        var completePurchaseResponse = await _client.PostAsJsonAsync($"/purchase-orders/{purchaseOrder.Id}/complete", new { });
+        var completePurchaseResponse = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
         completePurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var confirmStockistResponse = await _client.PostAsJsonAsync(
             $"/separation-orders/{separation.Id}/confirm-stockist-withdrawal",
-            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+            new ConfirmSeparationStockistWithdrawalRequest(secondStockistId));
         confirmStockistResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var confirmMechanicResponse = await _client.PostAsync(
@@ -289,9 +351,8 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var executionBody = await executionGetResponse.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
         executionBody!.Status.Should().Be(ExecutionOrderStatus.Ready);
 
-        var startExecutionResponse = await _client.PostAsJsonAsync(
-            $"/execution-orders/{execution.Id}/start",
-            new StartExecutionOrderRequest(Guid.NewGuid()));
+        var startExecutionResponse = await _client.PostAsync(
+            $"/execution-orders/{execution.Id}/start", null);
         startExecutionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

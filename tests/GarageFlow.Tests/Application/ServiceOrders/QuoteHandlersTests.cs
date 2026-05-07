@@ -43,7 +43,7 @@ public sealed class QuoteHandlersTests
 
     private static ServiceOrder CreateConsolidatedOrder(Service service, FakeServiceOrderRepository soRepo)
     {
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         order.StartDiagnostic(Guid.NewGuid());
         order.AddDiagnosticService(service.Id);
         order.CompleteDiagnostic("Diagnóstico concluído.");
@@ -84,7 +84,7 @@ public sealed class QuoteHandlersTests
     public async Task GenerateQuote_WithNoActiveServices_ThrowsNoConsolidatedServicesException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await soRepo.AddAsync(order);
 
         var handler = new GenerateQuoteHandler(
@@ -180,7 +180,7 @@ public sealed class QuoteHandlersTests
     public async Task GetQuote_WithNoQuote_ThrowsQuoteNotFoundException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await soRepo.AddAsync(order);
 
         var handler = new GetServiceOrderQuoteHandler(soRepo);
@@ -250,7 +250,7 @@ public sealed class QuoteHandlersTests
     public async Task AcceptQuote_WithNoQuote_ThrowsQuoteNotFoundException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await soRepo.AddAsync(order);
 
         var act = async () =>
@@ -311,7 +311,7 @@ public sealed class QuoteHandlersTests
     public async Task RejectQuote_WithNoQuote_ThrowsQuoteNotFoundException()
     {
         var soRepo = new FakeServiceOrderRepository();
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         await soRepo.AddAsync(order);
 
         var act = async () =>

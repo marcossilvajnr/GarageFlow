@@ -12,7 +12,7 @@ public sealed class ServiceOrderTests
         var customerId = Guid.NewGuid();
         var vehicleId = Guid.NewGuid();
 
-        var serviceOrder = ServiceOrder.Create(customerId, vehicleId);
+        var serviceOrder = ServiceOrder.Create(customerId, vehicleId, Guid.NewGuid());
 
         serviceOrder.Id.Should().NotBeEmpty();
         serviceOrder.CustomerId.Should().Be(customerId);
@@ -25,7 +25,7 @@ public sealed class ServiceOrderTests
     [Fact]
     public void Create_StatusIsAlwaysReceived()
     {
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         serviceOrder.Status.Should().Be(ServiceOrderStatus.Received);
     }
@@ -33,7 +33,7 @@ public sealed class ServiceOrderTests
     [Fact]
     public void Create_WithEmptyCustomerId_ThrowsDomainException()
     {
-        var act = () => ServiceOrder.Create(Guid.Empty, Guid.NewGuid());
+        var act = () => ServiceOrder.Create(Guid.Empty, Guid.NewGuid(), Guid.NewGuid());
 
         act.Should().Throw<DomainException>().WithMessage("Id do cliente da OS inválido");
     }
@@ -41,7 +41,7 @@ public sealed class ServiceOrderTests
     [Fact]
     public void Create_WithEmptyVehicleId_ThrowsDomainException()
     {
-        var act = () => ServiceOrder.Create(Guid.NewGuid(), Guid.Empty);
+        var act = () => ServiceOrder.Create(Guid.NewGuid(), Guid.Empty, Guid.NewGuid());
 
         act.Should().Throw<DomainException>().WithMessage("Id do veículo da OS inválido");
     }
@@ -50,7 +50,7 @@ public sealed class ServiceOrderTests
     public void Create_CustomerIdIsImmutableAfterCreation()
     {
         var customerId = Guid.NewGuid();
-        var serviceOrder = ServiceOrder.Create(customerId, Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(customerId, Guid.NewGuid(), Guid.NewGuid());
 
         serviceOrder.CustomerId.Should().Be(customerId);
 
@@ -62,7 +62,7 @@ public sealed class ServiceOrderTests
     public void Create_VehicleIdIsImmutableAfterCreation()
     {
         var vehicleId = Guid.NewGuid();
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), vehicleId);
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), vehicleId, Guid.NewGuid());
 
         serviceOrder.VehicleId.Should().Be(vehicleId);
 
@@ -73,7 +73,7 @@ public sealed class ServiceOrderTests
     [Fact]
     public void Deliver_WhenStatusIsNotFinished_ThrowsInvalidServiceOrderStatusTransitionException()
     {
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         var act = () => serviceOrder.Deliver();
 
@@ -84,7 +84,7 @@ public sealed class ServiceOrderTests
     [Fact]
     public void Deliver_WhenStatusIsFinished_ChangesStatusToDelivered()
     {
-        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var serviceOrder = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Status))!
             .SetValue(serviceOrder, ServiceOrderStatus.Finished);
 

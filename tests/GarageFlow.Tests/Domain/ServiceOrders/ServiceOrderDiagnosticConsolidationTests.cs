@@ -9,7 +9,7 @@ public sealed class ServiceOrderDiagnosticConsolidationTests
 {
     private static ServiceOrder CreateOrderInDiagnostic(out Guid mechanicId)
     {
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         mechanicId = Guid.NewGuid();
         order.StartDiagnostic(mechanicId);
         return order;
@@ -97,7 +97,7 @@ public sealed class ServiceOrderDiagnosticConsolidationTests
     [Fact]
     public void ConsolidateDiagnosticServices_WithoutDiagnostic_ThrowsDiagnosticNotCompletedException()
     {
-        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid());
+        var order = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
         var act = () => order.ConsolidateDiagnosticServices();
 

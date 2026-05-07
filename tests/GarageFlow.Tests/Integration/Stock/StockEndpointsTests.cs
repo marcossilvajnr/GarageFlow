@@ -2,10 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using GarageFlow.Api.DTOs.Employees;
 using GarageFlow.Api.DTOs.Executions;
 using GarageFlow.Api.DTOs.Parts;
 using GarageFlow.Api.DTOs.Stock;
 using GarageFlow.Api.DTOs.Supplies;
+using GarageFlow.Domain.Customers;
+using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.Integration;
 
@@ -20,6 +23,54 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         PropertyNameCaseInsensitive = true
     };
+    private static int _employeeSeed;
+    private static int _cpfSeed = 900_000_000;
+
+    private static string GenerateValidCpf()
+    {
+        var baseDigits = Interlocked.Increment(ref _cpfSeed) % 1_000_000_000;
+        var baseNumber = baseDigits.ToString("D9");
+        var firstDigit = CalculateCpfVerifier(baseNumber, 10);
+        var secondDigit = CalculateCpfVerifier(baseNumber + firstDigit, 11);
+        var rawCpf = $"{baseNumber}{firstDigit}{secondDigit}";
+        return $"{rawCpf[..3]}.{rawCpf.Substring(3, 3)}.{rawCpf.Substring(6, 3)}-{rawCpf.Substring(9, 2)}";
+    }
+
+    private static int CalculateCpfVerifier(string digits, int weightStart)
+    {
+        var sum = 0;
+        for (var i = 0; i < digits.Length; i++)
+        {
+            sum += (digits[i] - '0') * (weightStart - i);
+        }
+
+        var mod = sum % 11;
+        return mod < 2 ? 0 : 11 - mod;
+    }
+
+    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    {
+        var seed = Interlocked.Increment(ref _employeeSeed);
+        var response = await _client.PostAsJsonAsync(
+            "/employees",
+            new CreateEmployeeRequest(
+                $"Employee Stock {seed}",
+                CustomerDocumentType.Cpf,
+                GenerateValidCpf(),
+                $"stock-test-{seed}@garageflow.test",
+                $"1196{seed % 1_0000:D4}002",
+                "Rua Estoque",
+                "10",
+                null,
+                "Centro",
+                "Sao Paulo",
+                "SP",
+                "01310100",
+                role));
+        response.EnsureSuccessStatusCode();
+        var employee = await response.Content.ReadFromJsonAsync<EmployeeResponse>(JsonOptions);
+        return employee!.Id;
+    }
 
     private HttpClient CreateClientWithRole(string role)
     {
@@ -48,7 +99,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
 
     private async Task<Guid> CreateExecutionOrder()
     {
-        var request = new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid());
+        var request = new CreateExecutionOrderRequest(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         var response = await _client.PostAsJsonAsync("/execution-orders", request);
         response.EnsureSuccessStatusCode();
         var body = await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
@@ -61,6 +112,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     /// </summary>
     private async Task<(Guid SeparationOrderId, Guid PartId)> CreateCompletedSeparationOrderAsync()
     {
+        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
         var partId = await CreatePart();
         var partName = "Filtro Ar";
 
@@ -85,7 +137,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         // Confirm stockist withdrawal
         var stockistResp = await _client.PostAsJsonAsync(
             $"/separation-orders/{separationOrderId}/confirm-stockist-withdrawal",
-            new ConfirmSeparationStockistWithdrawalRequest(Guid.NewGuid()));
+            new ConfirmSeparationStockistWithdrawalRequest(stockistId));
         stockistResp.EnsureSuccessStatusCode();
 
         // Confirm mechanic receipt → Status = Completed

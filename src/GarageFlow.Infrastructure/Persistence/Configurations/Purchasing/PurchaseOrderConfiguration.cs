@@ -14,6 +14,7 @@ internal sealed class PurchaseOrderConfiguration : IEntityTypeConfiguration<Purc
         builder.Property(po => po.Id).HasColumnName("id");
 
         builder.Property(po => po.SupplierId).HasColumnName("supplier_id");
+        builder.Property(po => po.EmployeeId).HasColumnName("assigned_supplier_by_employee_id");
         builder.Property(po => po.Status).HasColumnName("status").HasConversion<int>().IsRequired();
         builder.Property(po => po.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(po => po.StartedAt).HasColumnName("started_at");
