@@ -8,6 +8,22 @@ Esta seção define o baseline operacional do GarageFlow para execução local, 
 - Verificação de disponibilidade da API via `health` e `swagger`.
 - Execução manual da esteira de qualidade e segurança no GitHub Actions.
 - Referência operacional para evidências e artefatos de execução.
+- Governança de acesso por JWT para CRUDs administrativos de cadastro/base.
+
+## Baseline de Autorização (CRUD Administrativo)
+Endpoints de cadastro/base são restritos à policy `Administrative`:
+- `customers`
+- `vehicles`
+- `suppliers`
+- `employees`
+- `services`
+- `parts`
+- `supplies`
+
+Matriz mínima esperada:
+- sem token: `401 Unauthorized`;
+- token válido sem role `Administrative`: `403 Forbidden`;
+- token com role `Administrative`: acesso normal ao contrato do endpoint.
 
 ## Operação Local (Docker)
 Artefatos oficiais:

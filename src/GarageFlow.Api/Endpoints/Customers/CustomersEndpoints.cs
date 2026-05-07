@@ -11,11 +11,15 @@ public static class CustomersEndpoints
 {
     public static IEndpointRouteBuilder MapCustomerEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/customers").WithTags("Customers");
+        var group = endpoints.MapGroup("/customers")
+            .WithTags("Customers")
+            .RequireAuthorization("Administrative");
 
         group.MapPost("/", CreateCustomer)
             .WithName("CreateCustomer")
             .WithSummary("Cria um novo cliente.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<CustomerResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -23,17 +27,23 @@ public static class CustomersEndpoints
         group.MapGet("/{id:guid}", GetCustomerById)
             .WithName("GetCustomerById")
             .WithSummary("Consulta cliente por Id.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<CustomerResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListCustomers)
             .WithName("ListCustomers")
             .WithSummary("Lista clientes com paginação.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<PagedCustomerResponse>(StatusCodes.Status200OK);
 
         group.MapPut("/{id:guid}", UpdateCustomer)
             .WithName("UpdateCustomer")
             .WithSummary("Atualiza dados do cliente.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<CustomerResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
@@ -41,6 +51,8 @@ public static class CustomersEndpoints
         group.MapDelete("/{id:guid}", DeactivateCustomer)
             .WithName("DeactivateCustomer")
             .WithSummary("Desativa cliente (soft delete).")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 

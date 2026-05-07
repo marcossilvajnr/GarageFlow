@@ -11,11 +11,15 @@ public static class EmployeesEndpoints
 {
     public static IEndpointRouteBuilder MapEmployeeEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/employees").WithTags("Employees");
+        var group = endpoints.MapGroup("/employees")
+            .WithTags("Employees")
+            .RequireAuthorization("Administrative");
 
         group.MapPost("/", CreateEmployee)
             .WithName("CreateEmployee")
             .WithSummary("Cria um novo funcionário.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<EmployeeResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -23,13 +27,14 @@ public static class EmployeesEndpoints
         group.MapGet("/{id:guid}", GetEmployeeById)
             .WithName("GetEmployeeById")
             .WithSummary("Consulta funcionário por Id.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<EmployeeResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListEmployees)
             .WithName("ListEmployees")
             .WithSummary("Lista funcionários com paginação.")
-            .RequireAuthorization()
             .Produces<PagedEmployeeResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);
@@ -37,6 +42,8 @@ public static class EmployeesEndpoints
         group.MapPut("/{id:guid}", UpdateEmployee)
             .WithName("UpdateEmployee")
             .WithSummary("Atualiza dados do funcionário.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<EmployeeResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
@@ -44,6 +51,8 @@ public static class EmployeesEndpoints
         group.MapDelete("/{id:guid}", DeactivateEmployee)
             .WithName("DeactivateEmployee")
             .WithSummary("Desativa funcionário (soft delete).")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);

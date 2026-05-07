@@ -11,11 +11,15 @@ public static class SuppliersEndpoints
 {
     public static IEndpointRouteBuilder MapSupplierEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/suppliers").WithTags("Suppliers");
+        var group = endpoints.MapGroup("/suppliers")
+            .WithTags("Suppliers")
+            .RequireAuthorization("Administrative");
 
         group.MapPost("/", CreateSupplier)
             .WithName("CreateSupplier")
             .WithSummary("Cria um novo fornecedor.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<SupplierResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -23,18 +27,24 @@ public static class SuppliersEndpoints
         group.MapGet("/{id:guid}", GetSupplierById)
             .WithName("GetSupplierById")
             .WithSummary("Consulta fornecedor por Id.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<SupplierResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListSuppliers)
             .WithName("ListSuppliers")
             .WithSummary("Lista fornecedores com paginação.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<PagedSupplierResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id:guid}", UpdateSupplier)
             .WithName("UpdateSupplier")
             .WithSummary("Atualiza dados do fornecedor.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<SupplierResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
@@ -43,6 +53,8 @@ public static class SuppliersEndpoints
         group.MapDelete("/{id:guid}", DeactivateSupplier)
             .WithName("DeactivateSupplier")
             .WithSummary("Desativa fornecedor (soft delete).")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);

@@ -13,11 +13,15 @@ public static class SuppliesEndpoints
 {
     public static IEndpointRouteBuilder MapSupplyEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/supplies").WithTags("Supplies");
+        var group = endpoints.MapGroup("/supplies")
+            .WithTags("Supplies")
+            .RequireAuthorization("Administrative");
 
         group.MapPost("/", CreateSupply)
             .WithName("CreateSupply")
             .WithSummary("Cria um novo insumo.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<SupplyResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -25,18 +29,24 @@ public static class SuppliesEndpoints
         group.MapGet("/{id:guid}", GetSupplyById)
             .WithName("GetSupplyById")
             .WithSummary("Consulta insumo por Id.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<SupplyResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListSupplies)
             .WithName("ListSupplies")
             .WithSummary("Lista insumos com paginação.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<PagedSupplyResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id:guid}", UpdateSupply)
             .WithName("UpdateSupply")
             .WithSummary("Atualiza dados do insumo.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<SupplyResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
@@ -45,6 +55,8 @@ public static class SuppliesEndpoints
         group.MapDelete("/{id:guid}", DeactivateSupply)
             .WithName("DeactivateSupply")
             .WithSummary("Desativa insumo (soft delete).")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);

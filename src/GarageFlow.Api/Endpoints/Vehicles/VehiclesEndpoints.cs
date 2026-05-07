@@ -16,11 +16,15 @@ public static class VehiclesEndpoints
 
     public static IEndpointRouteBuilder MapVehicleEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/vehicles").WithTags("Vehicles");
+        var group = endpoints.MapGroup("/vehicles")
+            .WithTags("Vehicles")
+            .RequireAuthorization("Administrative");
 
         group.MapPost("/", CreateVehicle)
             .WithName("CreateVehicle")
             .WithSummary("Cria um novo veículo.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<VehicleResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -28,18 +32,24 @@ public static class VehiclesEndpoints
         group.MapGet("/{id:guid}", GetVehicleById)
             .WithName("GetVehicleById")
             .WithSummary("Consulta veículo por Id.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<VehicleResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListVehicles)
             .WithName("ListVehicles")
             .WithSummary("Lista veículos com paginação.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<PagedVehicleResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id:guid}", UpdateVehicle)
             .WithName("UpdateVehicle")
             .WithSummary("Atualiza dados do veículo.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<VehicleResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
@@ -48,6 +58,8 @@ public static class VehiclesEndpoints
         group.MapDelete("/{id:guid}", DeactivateVehicle)
             .WithName("DeactivateVehicle")
             .WithSummary("Desativa veículo (soft delete).")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);

@@ -232,12 +232,14 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     [Fact]
     public async Task ReleaseStock_WithoutToken_Returns401()
     {
-        _client.DefaultRequestHeaders.Add(TestAuthHandler.ForceAnonymousHeader, "true");
         var partId = await CreatePart();
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
         await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
 
-        var response = await _client.PostAsJsonAsync("/stock/releases",
+        var anonymousClient = factory.CreateClient();
+        anonymousClient.DefaultRequestHeaders.Add(TestAuthHandler.ForceAnonymousHeader, "true");
+
+        var response = await anonymousClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste manual", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -301,11 +303,13 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     [Fact]
     public async Task ListStockOperations_WithoutToken_Returns401()
     {
-        _client.DefaultRequestHeaders.Add(TestAuthHandler.ForceAnonymousHeader, "true");
         var partId = await CreatePart();
         await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 8m, 0m, "Entrada", null));
 
-        var response = await _client.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
+        var anonymousClient = factory.CreateClient();
+        anonymousClient.DefaultRequestHeaders.Add(TestAuthHandler.ForceAnonymousHeader, "true");
+
+        var response = await anonymousClient.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }

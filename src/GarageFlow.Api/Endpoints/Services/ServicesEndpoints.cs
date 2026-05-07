@@ -13,11 +13,15 @@ public static class ServicesEndpoints
 {
     public static IEndpointRouteBuilder MapServiceEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/services").WithTags("Services");
+        var group = endpoints.MapGroup("/services")
+            .WithTags("Services")
+            .RequireAuthorization("Administrative");
 
         group.MapPost("/", CreateService)
             .WithName("CreateService")
             .WithSummary("Cria um novo serviço.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ServiceResponse>(StatusCodes.Status201Created)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -25,18 +29,24 @@ public static class ServicesEndpoints
         group.MapGet("/{id:guid}", GetServiceById)
             .WithName("GetServiceById")
             .WithSummary("Consulta serviço por Id.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ServiceResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListServices)
             .WithName("ListServices")
             .WithSummary("Lista serviços com paginação.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<PagedServiceResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id:guid}", UpdateService)
             .WithName("UpdateService")
             .WithSummary("Atualiza dados do serviço.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ServiceResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
@@ -45,6 +55,8 @@ public static class ServicesEndpoints
         group.MapDelete("/{id:guid}", DeactivateService)
             .WithName("DeactivateService")
             .WithSummary("Desativa serviço (soft delete).")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
@@ -52,6 +64,8 @@ public static class ServicesEndpoints
         group.MapPost("/{id:guid}/parts", AddServicePart)
             .WithName("AddServicePart")
             .WithSummary("Adiciona peça ao serviço.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ServiceResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
@@ -60,12 +74,16 @@ public static class ServicesEndpoints
         group.MapDelete("/{id:guid}/parts/{partId:guid}", RemoveServicePart)
             .WithName("RemoveServicePart")
             .WithSummary("Remove peça do serviço.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{id:guid}/supplies", AddServiceSupply)
             .WithName("AddServiceSupply")
             .WithSummary("Adiciona insumo ao serviço.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ServiceResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
@@ -74,6 +92,8 @@ public static class ServicesEndpoints
         group.MapDelete("/{id:guid}/supplies/{supplyId:guid}", RemoveServiceSupply)
             .WithName("RemoveServiceSupply")
             .WithSummary("Remove insumo do serviço.")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
