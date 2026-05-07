@@ -4,15 +4,15 @@ services:
     container_name: garageflow-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-garageflow}
-      POSTGRES_USER: ${POSTGRES_USER:-garageflow}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-garageflow}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - garageflow-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-garageflow} -d ${POSTGRES_DB:-garageflow}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -30,9 +30,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__GarageFlow: Host=postgres;Port=5432;Database=${POSTGRES_DB:-garageflow};Username=${POSTGRES_USER:-garageflow};Password=${POSTGRES_PASSWORD:-garageflow}
+      ConnectionStrings__GarageFlow: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     ports:
-      - "${API_HTTP_PORT:-8080}:8080"
+      - "${API_HTTP_PORT}:8080"
 
   sonar-db:
     image: postgres:16-alpine
@@ -40,20 +40,20 @@ services:
     profiles: ["quality"]
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${SONAR_DB_NAME:-sonar}
-      POSTGRES_USER: ${SONAR_DB_USER:-sonar}
-      POSTGRES_PASSWORD: ${SONAR_DB_PASSWORD:-sonar}
+      POSTGRES_DB: ${SONAR_DB_NAME}
+      POSTGRES_USER: ${SONAR_DB_USER}
+      POSTGRES_PASSWORD: ${SONAR_DB_PASSWORD}
     volumes:
       - garageflow-sonar-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${SONAR_DB_USER:-sonar} -d ${SONAR_DB_NAME:-sonar}"]
+      test: ["CMD-SHELL", "pg_isready -U ${SONAR_DB_USER} -d ${SONAR_DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 10s
 
   sonarqube:
-    image: sonarqube:lts-community
+    image: sonarqube:community
     container_name: garageflow-sonarqube
     profiles: ["quality"]
     restart: unless-stopped
@@ -61,11 +61,11 @@ services:
       sonar-db:
         condition: service_healthy
     environment:
-      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/${SONAR_DB_NAME:-sonar}
-      SONAR_JDBC_USERNAME: ${SONAR_DB_USER:-sonar}
-      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD:-sonar}
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/${SONAR_DB_NAME}
+      SONAR_JDBC_USERNAME: ${SONAR_DB_USER}
+      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD}
     ports:
-      - "${SONARQUBE_PORT:-9000}:9000"
+      - "${SONARQUBE_PORT}:9000"
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_logs:/opt/sonarqube/logs

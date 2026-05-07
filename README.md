@@ -12,23 +12,29 @@ Backend .NET para gestão de oficina mecânica, com foco em Ordem de Serviço, e
 
 ## Passo a Passo Rápido (Professor/Banca)
 1. Entre na pasta do projeto.
-2. Suba o ambiente (sem configuração prévia):
+2. Configure as variáveis de ambiente:
+
+Um arquivo `.env` com as credenciais do ambiente foi entregue junto com o projeto. Coloque-o na raiz do repositório (mesma pasta deste README) antes de subir o ambiente.
+
+O arquivo `.env.example` no repositório serve apenas como referência da estrutura esperada.
+
+3. Suba o ambiente:
 
 ```bash
 docker compose up -d --build
 ```
 
-3. Verifique se tudo subiu:
+4. Verifique se tudo subiu:
 
 ```bash
 docker compose ps
 ```
 
-4. Abra a API:
+5. Abra a API:
 - Swagger UI: `http://localhost:8080/swagger`
 - Swagger JSON: `http://localhost:8080/swagger/v1/swagger.json`
 
-5. Teste autenticação JWT no Swagger:
+6. Teste autenticação JWT no Swagger:
 - Faça `POST /auth/login` com um usuário de desenvolvimento, por exemplo:
   - Body JSON:
 
@@ -83,8 +89,7 @@ curl -X GET 'http://localhost:8080/employees?page=1&pageSize=10' \
 ```
 
 Observação:
-- No fluxo Docker, a `ConnectionStrings__GarageFlow` é montada automaticamente pelo `docker-compose.yml` com `Host=postgres`.
-- Não é necessário exportar `ConnectionStrings__GarageFlow` no shell para rodar com Docker.
+- A `ConnectionStrings__GarageFlow` é montada automaticamente pelo `docker-compose.yml` a partir das variáveis do `.env` — nenhuma configuração manual adicional é necessária.
 
 ## Validar que Funcionou
 Teste de saúde da API:
