@@ -10,9 +10,7 @@ internal static class EmployeeMapper
         employee.Id,
         employee.Name,
         employee.DocumentType,
-        employee.DocumentType == Domain.Customers.CustomerDocumentType.Cpf
-            ? employee.Cpf!.Value
-            : employee.Cnpj!.Value,
+        ResolveDocument(employee),
         employee.Email.Value,
         employee.PhoneNumber.Value,
         new AddressDto(
@@ -27,4 +25,14 @@ internal static class EmployeeMapper
         employee.IsActive,
         employee.CreatedAt,
         employee.UpdatedAt);
+
+    private static string ResolveDocument(Employee employee) =>
+        employee.DocumentType switch
+        {
+            Domain.Customers.CustomerDocumentType.Cpf =>
+                employee.Cpf?.Value ?? employee.Cnpj?.Value ?? string.Empty,
+            Domain.Customers.CustomerDocumentType.Cnpj =>
+                employee.Cnpj?.Value ?? employee.Cpf?.Value ?? string.Empty,
+            _ => employee.Cpf?.Value ?? employee.Cnpj?.Value ?? string.Empty
+        };
 }
