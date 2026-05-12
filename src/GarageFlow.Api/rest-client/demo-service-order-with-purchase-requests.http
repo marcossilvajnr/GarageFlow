@@ -1,0 +1,722 @@
+# GarageFlow - Demo Service Order with Purchase (REST Client)
+# Single-file end-to-end demo flow.
+# Run requests from top to bottom.
+
+@baseUrl = http://localhost:{{$dotenv API_HTTP_PORT}}
+@username = {{$dotenv API_USERNAME}}
+@password = {{$dotenv API_PASSWORD}}
+@token = {{login.response.body.$.accessToken}}
+
+# Runtime IDs generated along the flow
+@supplierId = {{createSupplier.response.body.$.id}}
+@partId = {{createPart.response.body.$.id}}
+@brakePadPartId = {{createBrakePadPart.response.body.$.id}}
+@supplyId = {{createSupply.response.body.$.id}}
+@primaryServiceId = {{createPrimaryService.response.body.$.id}}
+@diagnosticServiceId = {{createDiagnosticService.response.body.$.id}}
+@customerId = {{createCustomer.response.body.$.id}}
+@vehicleId = {{createVehicle.response.body.$.id}}
+@attendantEmployeeId = {{createAttendant.response.body.$.id}}
+@mechanicEmployeeId = {{createMechanic.response.body.$.id}}
+@stockistEmployeeId = {{createStockist.response.body.$.id}}
+@serviceOrderId = {{createServiceOrder.response.body.$.id}}
+@executionOrderId = {{createExecutionOrder.response.body.$.id}}
+@diagnosticExecutionOrderId = {{createDiagnosticExecutionOrder.response.body.$.id}}
+@separationOrderId = {{createSeparationOrder.response.body.$.id}}
+@diagnosticSeparationOrderId = {{createDiagnosticSeparationOrder.response.body.$.id}}
+@purchaseOrderId = {{createPurchaseOrder.response.body.$.id}}
+
+###
+### 00) Maintenance - Reset DB (destructive)
+###
+
+POST {{baseUrl}}/dev/database/reset
+Content-Type: application/json
+Accept: application/json
+
+{
+  "confirm": true
+}
+
+###
+### 01) Auth + Health
+###
+
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
+
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+### 02) Base Registrations
+###
+
+# @name createSupplier
+POST {{baseUrl}}/suppliers/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Centro Automotivo Paulista LTDA",
+  "cnpj": "11222333000181",
+  "email": "contato@centroautomotivopaulista.com.br",
+  "phoneNumber": "11940028922",
+  "street": "Avenida Industrial",
+  "number": "1000",
+  "complement": "Bloco B",
+  "neighborhood": "Distrito Industrial",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "04567000"
+}
+
+###
+# list validation
+GET {{baseUrl}}/suppliers?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# @name createPart
+POST {{baseUrl}}/parts/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Filtro de Oleo",
+  "code": "PART-OILFILTER-001",
+  "sku": "SKU-OILFILTER-001",
+  "unitOfMeasure": "UN",
+  "unitPrice": 45.90
+}
+
+###
+
+# @name createBrakePadPart
+POST {{baseUrl}}/parts/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Pastilha de Freio Dianteira",
+  "code": "PART-BRAKEPAD-001",
+  "sku": "SKU-BRAKEPAD-001",
+  "unitOfMeasure": "UN",
+  "unitPrice": 89.90
+}
+
+###
+# list validation
+GET {{baseUrl}}/parts?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# @name createSupply
+POST {{baseUrl}}/supplies/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Oleo de Motor 5W30",
+  "code": "SUP-5W30-001",
+  "unitOfMeasure": "L",
+  "baseCost": 32.50,
+  "preferredSupplierId": "{{supplierId}}"
+}
+
+###
+# list validation
+GET {{baseUrl}}/supplies?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# @name createPrimaryService
+POST {{baseUrl}}/services/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "SRV-OILCHANGE-001",
+  "name": "Troca de Oleo e Filtro",
+  "description": "Servico completo de troca de oleo e filtro",
+  "basePrice": 220.00,
+  "estimatedDurationMinutes": 60
+}
+
+###
+
+POST {{baseUrl}}/services/{{primaryServiceId}}/parts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "partId": "{{partId}}",
+  "quantity": 1
+}
+
+###
+
+POST {{baseUrl}}/services/{{primaryServiceId}}/supplies
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "supplyId": "{{supplyId}}",
+  "quantity": 4
+}
+
+###
+
+# @name createDiagnosticService
+POST {{baseUrl}}/services/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "SRV-BRAKEPADS-001",
+  "name": "Troca de Pastilhas de Freio",
+  "description": "Substituicao das 2 pastilhas de freio dianteiro",
+  "basePrice": 420.00,
+  "estimatedDurationMinutes": 90
+}
+
+###
+
+POST {{baseUrl}}/services/{{diagnosticServiceId}}/parts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "partId": "{{brakePadPartId}}",
+  "quantity": 2
+}
+
+###
+# list validation
+GET {{baseUrl}}/services?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# @name createCustomer
+POST {{baseUrl}}/customers/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Marcos Silva",
+  "documentType": 0,
+  "document": "12345678909",
+  "email": "marcos.silva@email.com",
+  "phoneNumber": "11987654321",
+  "street": "Rua das Oficinas",
+  "number": "145",
+  "complement": "Casa",
+  "neighborhood": "Centro",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "01010000"
+}
+
+###
+# list validation
+GET {{baseUrl}}/customers?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# @name createVehicle
+POST {{baseUrl}}/vehicles/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "licensePlate": "BRA2E19",
+  "renavam": "11144477731",
+  "make": "Toyota",
+  "model": "Corolla",
+  "year": 2020,
+  "color": "Prata"
+}
+
+###
+# list validation
+GET {{baseUrl}}/vehicles?customerId={{customerId}}&page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# @name createAttendant
+POST {{baseUrl}}/employees/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Ana Atendimento",
+  "documentType": 0,
+  "document": "31415926590",
+  "email": "ana.atendimento@garageflow.com",
+  "phoneNumber": "11911112222",
+  "street": "Rua A",
+  "number": "10",
+  "complement": null,
+  "neighborhood": "Centro",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "01111000",
+  "role": 1
+}
+
+###
+
+# @name createMechanic
+POST {{baseUrl}}/employees/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Carlos Mecanico",
+  "documentType": 0,
+  "document": "27182818205",
+  "email": "carlos.mecanico@garageflow.com",
+  "phoneNumber": "11933334444",
+  "street": "Rua B",
+  "number": "20",
+  "complement": null,
+  "neighborhood": "Vila Nova",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "02222000",
+  "role": 2
+}
+
+###
+
+# @name createStockist
+POST {{baseUrl}}/employees/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Bruno Estoquista",
+  "documentType": 0,
+  "document": "13579246828",
+  "email": "bruno.estoquista@garageflow.com",
+  "phoneNumber": "11955556666",
+  "street": "Rua C",
+  "number": "30",
+  "complement": null,
+  "neighborhood": "Industrial",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "03333000",
+  "role": 3
+}
+
+###
+# list validation
+GET {{baseUrl}}/employees?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+### 03) Stock Setup (shortage scenario)
+###
+
+POST {{baseUrl}}/stock/entries
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "itemId": "{{partId}}",
+  "itemType": 1,
+  "quantity": 20,
+  "minimumQuantity": 5,
+  "reason": "Carga inicial de estoque - peca",
+  "referenceId": null
+}
+
+###
+
+POST {{baseUrl}}/stock/entries
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "itemId": "{{brakePadPartId}}",
+  "itemType": 1,
+  "quantity": 40,
+  "minimumQuantity": 8,
+  "reason": "Carga inicial de estoque - pastilhas (estoque suficiente)",
+  "referenceId": null
+}
+
+###
+
+POST {{baseUrl}}/stock/entries
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "itemId": "{{supplyId}}",
+  "itemType": 2,
+  "quantity": 2,
+  "minimumQuantity": 5,
+  "reason": "Carga inicial de estoque - insumo (baixo para cenario critico)",
+  "referenceId": null
+}
+
+###
+# quick validations
+GET {{baseUrl}}/stock/1/{{partId}}
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/stock/1/{{brakePadPartId}}
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/stock/2/{{supplyId}}
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+### 04) Service Order up to quote approval
+###
+
+# @name createServiceOrder
+POST {{baseUrl}}/service-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleId}}",
+  "frontDeskEmployeeId": "{{attendantEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{serviceOrderId}}/services
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceId": "{{primaryServiceId}}",
+  "actorId": "{{attendantEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{serviceOrderId}}/diagnostic/start
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+
+# mechanic adds an additional service identified during diagnosis
+POST {{baseUrl}}/service-orders/{{serviceOrderId}}/diagnostic/services
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceId": "{{diagnosticServiceId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{serviceOrderId}}/diagnostic/complete
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Diagnostic completed. Service validated for execution."
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{serviceOrderId}}/diagnostic/consolidate-services
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/service-orders/{{serviceOrderId}}/quote/generate
+Authorization: Bearer {{token}}
+
+###
+
+GET {{baseUrl}}/service-orders/{{serviceOrderId}}/quote
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+POST {{baseUrl}}/service-orders/{{serviceOrderId}}/quote/accept
+Authorization: Bearer {{token}}
+
+###
+# list validation
+GET {{baseUrl}}/service-orders?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+### 05) Execution + Separation -> waiting purchase
+###
+
+# @name createExecutionOrder
+POST {{baseUrl}}/execution-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceOrderId": "{{serviceOrderId}}",
+  "serviceId": "{{primaryServiceId}}",
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+
+# @name createDiagnosticExecutionOrder
+POST {{baseUrl}}/execution-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceOrderId": "{{serviceOrderId}}",
+  "serviceId": "{{diagnosticServiceId}}",
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+
+# @name createSeparationOrder
+POST {{baseUrl}}/separation-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "executionOrderId": "{{executionOrderId}}",
+  "parts": [
+    {
+      "partId": "{{partId}}",
+      "partName": "Filtro de Oleo",
+      "quantity": 1
+    }
+  ],
+  "supplies": [
+    {
+      "supplyId": "{{supplyId}}",
+      "supplyName": "Oleo de Motor 5W30",
+      "quantity": 4,
+      "unit": 1
+    }
+  ]
+}
+
+###
+# expected 409 in critical scenario (insufficient stock)
+POST {{baseUrl}}/separation-orders/{{separationOrderId}}/reserve
+Authorization: Bearer {{token}}
+
+###
+
+# @name createDiagnosticSeparationOrder
+POST {{baseUrl}}/separation-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "executionOrderId": "{{diagnosticExecutionOrderId}}",
+  "parts": [
+    {
+      "partId": "{{brakePadPartId}}",
+      "partName": "Pastilha de Freio Dianteira",
+      "quantity": 2
+    }
+  ],
+  "supplies": []
+}
+
+###
+# should succeed because brake pad stock is sufficient
+POST {{baseUrl}}/separation-orders/{{diagnosticSeparationOrderId}}/reserve
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/separation-orders/{{separationOrderId}}/wait-purchase
+Authorization: Bearer {{token}}
+
+###
+# list validation
+GET {{baseUrl}}/separation-orders?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+### 06) Purchase Order flow
+###
+
+# @name createPurchaseOrder
+POST {{baseUrl}}/purchase-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "separationOrderIds": [
+    "{{separationOrderId}}"
+  ],
+  "items": [
+    {
+      "itemId": "{{supplyId}}",
+      "itemType": 1,
+      "itemName": "Oleo de Motor 5W30",
+      "quantity": 4,
+      "unitPrice": 32.50
+    }
+  ]
+}
+
+###
+
+POST {{baseUrl}}/purchase-orders/{{purchaseOrderId}}/assign-supplier
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "supplierId": "{{supplierId}}",
+  "employeeId": "{{stockistEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/purchase-orders/{{purchaseOrderId}}/start
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/stock/entries
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "itemId": "{{supplyId}}",
+  "itemType": 2,
+  "quantity": 10,
+  "minimumQuantity": 5,
+  "reason": "Entrada de compra - reposicao de insumo para separacao",
+  "referenceId": "{{purchaseOrderId}}"
+}
+
+###
+
+POST {{baseUrl}}/purchase-orders/{{purchaseOrderId}}/complete
+Authorization: Bearer {{token}}
+
+###
+# list validations
+GET {{baseUrl}}/purchase-orders?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/separation-orders?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+### 07) Finalize: separation custody, execution, delivery
+###
+
+POST {{baseUrl}}/separation-orders/{{separationOrderId}}/confirm-stockist-withdrawal
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stockistId": "{{stockistEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/separation-orders/{{separationOrderId}}/confirm-mechanic-receipt
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/separation-orders/{{diagnosticSeparationOrderId}}/confirm-stockist-withdrawal
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stockistId": "{{stockistEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/separation-orders/{{diagnosticSeparationOrderId}}/confirm-mechanic-receipt
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/execution-orders/{{executionOrderId}}/start
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/execution-orders/{{executionOrderId}}/complete
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/execution-orders/{{diagnosticExecutionOrderId}}/start
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/execution-orders/{{diagnosticExecutionOrderId}}/complete
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/service-orders/{{serviceOrderId}}/deliver
+Authorization: Bearer {{token}}
+
+###
+# final list validations
+GET {{baseUrl}}/execution-orders?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{baseUrl}}/service-orders?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json

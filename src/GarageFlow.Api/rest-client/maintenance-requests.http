@@ -1,0 +1,53 @@
+# GarageFlow - Maintenance Requests (REST Client)
+# WARNING: clean/reset are destructive operations for local development.
+
+@baseUrl = http://localhost:{{$dotenv API_HTTP_PORT}}
+
+### Health
+###
+
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+### Development Database - Migrate
+###
+
+POST {{baseUrl}}/dev/database/migrate
+Accept: application/json
+
+###
+### Development Database - Clean (destructive)
+###
+
+POST {{baseUrl}}/dev/database/clean
+Content-Type: application/json
+Accept: application/json
+
+{
+  "confirm": true
+}
+
+###
+### Development Database - Reset (destructive)
+###
+
+POST {{baseUrl}}/dev/database/reset
+Content-Type: application/json
+Accept: application/json
+
+{
+  "confirm": true
+}
+
+###
+### Safety Example (should return 400)
+###
+
+POST {{baseUrl}}/dev/database/reset
+Content-Type: application/json
+Accept: application/json
+
+{
+  "confirm": false
+}
