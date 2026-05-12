@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GarageFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(GarageFlowDbContext))]
-    [Migration("20260505011846_AddStockBaseOperations")]
-    partial class AddStockBaseOperations
+    [Migration("20260512005049_InitialBaseline")]
+    partial class InitialBaseline
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -222,6 +222,10 @@ namespace GarageFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_supplier_by_employee_id");
+
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("started_at");
@@ -259,6 +263,10 @@ namespace GarageFlow.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uuid")
                         .HasColumnName("customer_id");
+
+                    b.Property<Guid>("FrontDeskEmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("front_desk_employee_id");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
@@ -569,6 +577,52 @@ namespace GarageFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("CustomerId", "IsActive");
 
                     b.ToTable("vehicles", (string)null);
+                });
+
+            modelBuilder.Entity("GarageFlow.Infrastructure.Auth.AuthUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("display_name");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("role");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("username");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("auth_users", (string)null);
                 });
 
             modelBuilder.Entity("GarageFlow.Domain.Customers.Customer", b =>
@@ -1345,13 +1399,17 @@ namespace GarageFlow.Infrastructure.Persistence.Migrations
                     b.OwnsMany("GarageFlow.Domain.Stock.StockOperation", "Operations", b1 =>
                         {
                             b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid")
                                 .HasColumnName("id");
 
                             b1.Property<DateTime>("CreatedAt")
                                 .HasColumnType("timestamp with time zone")
                                 .HasColumnName("created_at");
+
+                            b1.Property<string>("PerformedBy")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("performed_by");
 
                             b1.Property<decimal>("Quantity")
                                 .HasColumnType("numeric(18,4)")
@@ -1365,6 +1423,11 @@ namespace GarageFlow.Infrastructure.Persistence.Migrations
                             b1.Property<Guid?>("ReferenceId")
                                 .HasColumnType("uuid")
                                 .HasColumnName("reference_id");
+
+                            b1.Property<string>("ReferenceType")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("reference_type");
 
                             b1.Property<int>("Type")
                                 .HasColumnType("integer")
