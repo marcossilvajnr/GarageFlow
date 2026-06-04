@@ -8,13 +8,14 @@ using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationT
 using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
+using AppPurchaseItemType = GarageFlow.Application.Purchasing.Enums.PurchaseItemType;
+using AppPurchaseOrderStatus = GarageFlow.Application.Purchasing.Enums.PurchaseOrderStatus;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Executions.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Purchasing.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Suppliers.DTOs;
-using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Infrastructure.Persistence;
@@ -192,7 +193,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     {
         var createReq = new CreatePurchaseOrderRequest(
             [separationOrderId],
-            [new CreatePurchaseItemRequest(Guid.NewGuid(), PurchaseItemType.Part, "Filtro de óleo", 1m, 25.00m)]);
+            [new CreatePurchaseItemRequest(Guid.NewGuid(), AppPurchaseItemType.Part, "Filtro de óleo", 1m, 25.00m)]);
         var createResp = await _client.PostAsJsonAsync("/purchase-orders", createReq);
         createResp.EnsureSuccessStatusCode();
         var purchaseOrder = (await createResp.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions))!;
@@ -220,7 +221,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(PurchaseOrderStatus.Completed);
+        body!.Status.Should().Be(AppPurchaseOrderStatus.Completed);
         body.CompletedAt.Should().NotBeNull();
     }
 
@@ -287,7 +288,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var separation = await CreateSeparationOrderInWaitingPurchase();
         var createReq = new CreatePurchaseOrderRequest(
             [separation.Id],
-            [new CreatePurchaseItemRequest(Guid.NewGuid(), PurchaseItemType.Part, "Filtro", 1m, 10m)]);
+            [new CreatePurchaseItemRequest(Guid.NewGuid(), AppPurchaseItemType.Part, "Filtro", 1m, 10m)]);
         var createResp = await _client.PostAsJsonAsync("/purchase-orders", createReq);
         createResp.EnsureSuccessStatusCode();
         var purchaseOrder = (await createResp.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions))!;

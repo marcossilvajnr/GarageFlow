@@ -11,6 +11,8 @@ using GarageFlow.Domain.ValueObjects;
 using GarageFlow.Tests.Application.Employees;
 using GarageFlow.Tests.Application.Stock;
 using GarageFlow.Tests.Application.Suppliers;
+using AppPurchaseItemType = GarageFlow.Application.Purchasing.Enums.PurchaseItemType;
+using AppPurchaseOrderStatus = GarageFlow.Application.Purchasing.Enums.PurchaseOrderStatus;
 
 namespace GarageFlow.Tests.Application.Purchasing;
 
@@ -19,7 +21,7 @@ public sealed class PurchaseOrderHandlersTests
     private static CreatePurchaseOrderCommand ValidCreateCommand(IReadOnlyList<Guid>? separationIds = null) =>
         new(
             separationIds ?? [Guid.NewGuid()],
-            [new CreatePurchaseItemCommand(Guid.NewGuid(), PurchaseItemType.Part, "Filtro de óleo", 2m, 15.50m)]);
+            [new CreatePurchaseItemCommand(Guid.NewGuid(), AppPurchaseItemType.Part, "Filtro de óleo", 2m, 15.50m)]);
 
     private static Supplier ValidSupplier()
     {
@@ -58,7 +60,7 @@ public sealed class PurchaseOrderHandlersTests
 
         dto.Should().NotBeNull();
         dto.Id.Should().NotBeEmpty();
-        dto.Status.Should().Be(PurchaseOrderStatus.Created);
+        dto.Status.Should().Be(AppPurchaseOrderStatus.Created);
         dto.SeparationOrderIds.Should().HaveCount(1);
         dto.Items.Should().HaveCount(1);
         dto.SupplierId.Should().BeNull();
@@ -71,7 +73,7 @@ public sealed class PurchaseOrderHandlersTests
         var handler = new CreatePurchaseOrderHandler(repo);
         var command = new CreatePurchaseOrderCommand(
             [],
-            [new CreatePurchaseItemCommand(Guid.NewGuid(), PurchaseItemType.Part, "Filtro", 1m, 10m)]);
+            [new CreatePurchaseItemCommand(Guid.NewGuid(), AppPurchaseItemType.Part, "Filtro", 1m, 10m)]);
 
         var act = async () => await handler.HandleAsync(command);
 
@@ -97,7 +99,7 @@ public sealed class PurchaseOrderHandlersTests
         var handler = new CreatePurchaseOrderHandler(repo);
         var command = new CreatePurchaseOrderCommand(
             [Guid.NewGuid()],
-            [new CreatePurchaseItemCommand(Guid.Empty, PurchaseItemType.Part, "Filtro", 1m, 10m)]);
+            [new CreatePurchaseItemCommand(Guid.Empty, AppPurchaseItemType.Part, "Filtro", 1m, 10m)]);
 
         var act = async () => await handler.HandleAsync(command);
 
@@ -231,7 +233,7 @@ public sealed class PurchaseOrderHandlersTests
         var startHandler = new StartPurchaseOrderHandler(purchaseRepo);
         var result = await startHandler.HandleAsync(new StartPurchaseOrderCommand(dto.Id));
 
-        result.Status.Should().Be(PurchaseOrderStatus.Started);
+        result.Status.Should().Be(AppPurchaseOrderStatus.Started);
         result.StartedAt.Should().NotBeNull();
     }
 
@@ -336,7 +338,7 @@ public sealed class PurchaseOrderHandlersTests
         var completeHandler = new CompletePurchaseOrderHandler(purchaseRepo, separationRepo, stockRepo);
         var result = await completeHandler.HandleAsync(new CompletePurchaseOrderCommand(dto.Id));
 
-        result.Status.Should().Be(PurchaseOrderStatus.Completed);
+        result.Status.Should().Be(AppPurchaseOrderStatus.Completed);
         result.CompletedAt.Should().NotBeNull();
     }
 

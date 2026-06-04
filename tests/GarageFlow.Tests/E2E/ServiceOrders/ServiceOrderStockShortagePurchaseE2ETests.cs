@@ -6,6 +6,8 @@ using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
 using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationType;
 using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
+using AppPurchaseItemType = GarageFlow.Application.Purchasing.Enums.PurchaseItemType;
+using AppPurchaseOrderStatus = GarageFlow.Application.Purchasing.Enums.PurchaseOrderStatus;
 using GarageFlow.Api.Customers.DTOs;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Executions.DTOs;
@@ -16,7 +18,6 @@ using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Suppliers.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.E2E.Infrastructure;
@@ -157,10 +158,10 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
             "/purchase-orders",
             new CreatePurchaseOrderRequest(
                 [separationOrder.Id],
-                [new CreatePurchaseItemRequest(part.Id, PurchaseItemType.Part, part.Name, 2m, part.UnitPrice)]));
+                [new CreatePurchaseItemRequest(part.Id, AppPurchaseItemType.Part, part.Name, 2m, part.UnitPrice)]));
         createPurchaseResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var purchaseOrder = await ReadAsync<PurchaseOrderResponse>(createPurchaseResponse);
-        purchaseOrder.Status.Should().Be(PurchaseOrderStatus.Created);
+        purchaseOrder.Status.Should().Be(AppPurchaseOrderStatus.Created);
 
         var assignSupplierResponse = await _client.PostAsJsonAsync(
             $"/purchase-orders/{purchaseOrder.Id}/assign-supplier",
@@ -173,7 +174,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
             $"/purchase-orders/{purchaseOrder.Id}/start", null);
         startPurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var startedPurchaseOrder = await ReadAsync<PurchaseOrderResponse>(startPurchaseResponse);
-        startedPurchaseOrder.Status.Should().Be(PurchaseOrderStatus.Started);
+        startedPurchaseOrder.Status.Should().Be(AppPurchaseOrderStatus.Started);
 
         // Simula chegada do item comprado ao estoque antes da conclusão da compra.
         await SeedStockAsync(part.Id, AppStockItemType.Part, 10m);
@@ -182,7 +183,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
             $"/purchase-orders/{purchaseOrder.Id}/complete", null);
         completePurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var completedPurchaseOrder = await ReadAsync<PurchaseOrderResponse>(completePurchaseResponse);
-        completedPurchaseOrder.Status.Should().Be(PurchaseOrderStatus.Completed);
+        completedPurchaseOrder.Status.Should().Be(AppPurchaseOrderStatus.Completed);
         completedPurchaseOrder.CompletedAt.Should().NotBeNull();
 
         var separationAfterPurchaseResponse = await _client.GetAsync($"/separation-orders/{separationOrder.Id}");

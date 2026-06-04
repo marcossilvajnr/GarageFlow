@@ -8,12 +8,13 @@ using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationT
 using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
+using AppPurchaseItemType = GarageFlow.Application.Purchasing.Enums.PurchaseItemType;
+using AppPurchaseOrderStatus = GarageFlow.Application.Purchasing.Enums.PurchaseOrderStatus;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Purchasing.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Suppliers.DTOs;
-using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.Integration;
 
@@ -78,7 +79,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     private static CreatePurchaseOrderRequest ValidCreateRequest(IReadOnlyList<Guid>? separationIds = null) =>
         new(
             separationIds ?? [Guid.NewGuid()],
-            [new CreatePurchaseItemRequest(Guid.NewGuid(), PurchaseItemType.Part, "Filtro de óleo", 2m, 15.50m)]);
+            [new CreatePurchaseItemRequest(Guid.NewGuid(), AppPurchaseItemType.Part, "Filtro de óleo", 2m, 15.50m)]);
 
     private async Task<PurchaseOrderResponse> CreatePurchaseOrder(CreatePurchaseOrderRequest? request = null)
     {
@@ -160,7 +161,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var body = await response.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions);
         body.Should().NotBeNull();
-        body!.Status.Should().Be(PurchaseOrderStatus.Created);
+        body!.Status.Should().Be(AppPurchaseOrderStatus.Created);
         body.SeparationOrderIds.Should().HaveCount(1);
         body.Items.Should().HaveCount(1);
         body.SupplierId.Should().BeNull();
@@ -171,7 +172,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     {
         var request = new CreatePurchaseOrderRequest(
             [],
-            [new CreatePurchaseItemRequest(Guid.NewGuid(), PurchaseItemType.Part, "Filtro", 1m, 10m)]);
+            [new CreatePurchaseItemRequest(Guid.NewGuid(), AppPurchaseItemType.Part, "Filtro", 1m, 10m)]);
 
         var response = await _client.PostAsJsonAsync("/purchase-orders", request);
 
@@ -181,7 +182,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     [Fact]
     public async Task CreatePurchaseOrder_WithNullSeparationOrderIds_Returns400()
     {
-        var request = new CreatePurchaseOrderRequest(null, [new CreatePurchaseItemRequest(Guid.NewGuid(), PurchaseItemType.Part, "Filtro", 1m, 10m)]);
+        var request = new CreatePurchaseOrderRequest(null, [new CreatePurchaseItemRequest(Guid.NewGuid(), AppPurchaseItemType.Part, "Filtro", 1m, 10m)]);
 
         var response = await _client.PostAsJsonAsync("/purchase-orders", request);
 
@@ -203,7 +204,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     {
         var request = new CreatePurchaseOrderRequest(
             [Guid.NewGuid()],
-            [new CreatePurchaseItemRequest(Guid.Empty, PurchaseItemType.Part, "Filtro", 1m, 10m)]);
+            [new CreatePurchaseItemRequest(Guid.Empty, AppPurchaseItemType.Part, "Filtro", 1m, 10m)]);
 
         var response = await _client.PostAsJsonAsync("/purchase-orders", request);
 
@@ -213,7 +214,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     [Fact]
     public async Task CreatePurchaseOrder_WithInvalidItemType_Returns400()
     {
-        var invalidType = (PurchaseItemType)99;
+        var invalidType = (AppPurchaseItemType)99;
         var request = new CreatePurchaseOrderRequest(
             [Guid.NewGuid()],
             [new CreatePurchaseItemRequest(Guid.NewGuid(), invalidType, "Filtro", 1m, 10m)]);
@@ -336,7 +337,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(PurchaseOrderStatus.Started);
+        body!.Status.Should().Be(AppPurchaseOrderStatus.Started);
     }
 
     [Fact]
@@ -411,7 +412,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(PurchaseOrderStatus.Completed);
+        body!.Status.Should().Be(AppPurchaseOrderStatus.Completed);
         body.CompletedAt.Should().NotBeNull();
     }
 

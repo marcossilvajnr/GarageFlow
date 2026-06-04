@@ -1,4 +1,4 @@
-using GarageFlow.Domain.Purchasing;
+using GarageFlow.Application.Purchasing.Enums;
 
 namespace GarageFlow.Application.Purchasing.Commands;
 

@@ -10,6 +10,8 @@ using GarageFlow.Domain.ValueObjects;
 using GarageFlow.Tests.Application.Employees;
 using GarageFlow.Tests.Application.Stock;
 using GarageFlow.Tests.Application.Suppliers;
+using AppPurchaseItemType = GarageFlow.Application.Purchasing.Enums.PurchaseItemType;
+using AppPurchaseOrderStatus = GarageFlow.Application.Purchasing.Enums.PurchaseOrderStatus;
 
 namespace GarageFlow.Tests.Application.Purchasing;
 
@@ -24,7 +26,7 @@ public sealed class PurchaseOrderSeparationIntegrationTests
     private static CreatePurchaseOrderCommand CreateCommandForSeparations(IReadOnlyList<Guid> separationIds) =>
         new(
             separationIds,
-            [new CreatePurchaseItemCommand(Guid.NewGuid(), PurchaseItemType.Part, "Filtro de óleo", 2m, 15.50m)]);
+            [new CreatePurchaseItemCommand(Guid.NewGuid(), AppPurchaseItemType.Part, "Filtro de óleo", 2m, 15.50m)]);
 
     private static async Task<Employee> SeedEmployeeAsync(
         FakeEmployeeRepository employeeRepo,
@@ -111,7 +113,7 @@ public sealed class PurchaseOrderSeparationIntegrationTests
 
         var result = await handler.HandleAsync(new CompletePurchaseOrderCommand(purchaseOrderId));
 
-        result.Status.Should().Be(PurchaseOrderStatus.Completed);
+        result.Status.Should().Be(AppPurchaseOrderStatus.Completed);
         result.CompletedAt.Should().NotBeNull();
         separationOrder.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
     }
@@ -137,7 +139,7 @@ public sealed class PurchaseOrderSeparationIntegrationTests
 
         var result = await handler.HandleAsync(new CompletePurchaseOrderCommand(purchaseOrderId));
 
-        result.Status.Should().Be(PurchaseOrderStatus.Completed);
+        result.Status.Should().Be(AppPurchaseOrderStatus.Completed);
         sep1.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
         sep2.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
     }
