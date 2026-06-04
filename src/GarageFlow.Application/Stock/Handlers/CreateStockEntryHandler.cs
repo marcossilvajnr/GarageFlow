@@ -1,5 +1,6 @@
 using GarageFlow.Application.Stock.Commands;
 using GarageFlow.Application.Stock.DTOs;
+using GarageFlow.Application.Stock.Mappers;
 using GarageFlow.Domain.Parts;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Supplies;
@@ -14,18 +15,20 @@ public sealed class CreateStockEntryHandler(
 {
     public async Task<StockPositionDto> HandleAsync(CreateStockEntryCommand command, CancellationToken cancellationToken = default)
     {
+        var itemType = StockItemTypeMapper.ToDomain(command.ItemType);
+
         await StockItemExistenceValidator.EnsureExistsAsync(
             command.ItemId,
-            command.ItemType,
+            itemType,
             partRepository,
             supplyRepository,
             cancellationToken);
 
-        var stock = await stockRepository.GetByItemAsync(command.ItemId, command.ItemType, cancellationToken);
+        var stock = await stockRepository.GetByItemAsync(command.ItemId, itemType, cancellationToken);
 
         if (stock is null)
         {
-            stock = DomainStock.Create(command.ItemId, command.ItemType, 0, command.MinimumQuantity);
+            stock = DomainStock.Create(command.ItemId, itemType, 0, command.MinimumQuantity);
             stock.Entry(command.Quantity, command.Reason, command.ReferenceId);
             await stockRepository.AddAsync(stock, cancellationToken);
         }

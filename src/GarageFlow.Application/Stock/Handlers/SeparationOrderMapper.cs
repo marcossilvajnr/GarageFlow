@@ -1,4 +1,5 @@
 using GarageFlow.Application.Stock.DTOs;
+using GarageFlow.Application.Stock.Mappers;
 using GarageFlow.Domain.Stock;
 
 namespace GarageFlow.Application.Stock.Handlers;
@@ -9,7 +10,7 @@ internal static class SeparationOrderMapper
         new(
             separationOrder.Id,
             separationOrder.ExecutionOrderId,
-            separationOrder.Status,
+            SeparationOrderStatusMapper.ToApplication(separationOrder.Status),
             separationOrder.Parts.Select(ToPartItemDto).ToList(),
             separationOrder.Supplies.Select(ToSupplyItemDto).ToList(),
             separationOrder.StockistId,
@@ -21,5 +22,5 @@ internal static class SeparationOrderMapper
         new(item.PartId, item.PartName, item.Quantity, item.IsReserved);
 
     private static SeparationSupplyItemDto ToSupplyItemDto(SeparationSupplyItem item) =>
-        new(item.SupplyId, item.SupplyName, item.Quantity, item.Unit, item.IsReserved);
+        new(item.SupplyId, item.SupplyName, item.Quantity, SupplyUnitMapper.ToApplication(item.Unit), item.IsReserved);
 }

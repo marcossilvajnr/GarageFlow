@@ -1,5 +1,3 @@
-using GarageFlow.Domain.Supplies;
-
 namespace GarageFlow.Api.Stock.DTOs;
 
 public sealed record CreateSeparationOrderRequest(

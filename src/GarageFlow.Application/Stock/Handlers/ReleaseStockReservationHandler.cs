@@ -1,5 +1,6 @@
 using GarageFlow.Application.Stock.Commands;
 using GarageFlow.Application.Stock.DTOs;
+using GarageFlow.Application.Stock.Mappers;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Parts;
 using GarageFlow.Domain.Shared;
@@ -16,21 +17,23 @@ public sealed class ReleaseStockReservationHandler(
 {
     public async Task<StockPositionDto> HandleAsync(ReleaseStockReservationCommand command, CancellationToken cancellationToken = default)
     {
+        var itemType = StockItemTypeMapper.ToDomain(command.ItemType);
+
         await StockItemExistenceValidator.EnsureExistsAsync(
             command.ItemId,
-            command.ItemType,
+            itemType,
             partRepository,
             supplyRepository,
             cancellationToken);
 
-        var stock = await stockRepository.GetByItemAsync(command.ItemId, command.ItemType, cancellationToken);
+        var stock = await stockRepository.GetByItemAsync(command.ItemId, itemType, cancellationToken);
         if (stock is null)
-            throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(command.ItemType, command.ItemId));
+            throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(itemType, command.ItemId));
 
         // RN-033 / task-033: detect post-custody state and enforce mandatory reference fields.
         // Post-custody = at least one completed SeparationOrder exists for this stock item.
         var isPostCustody = await separationOrderRepository
-            .HasCompletedOrderForItemAsync(command.ItemId, command.ItemType, cancellationToken);
+            .HasCompletedOrderForItemAsync(command.ItemId, itemType, cancellationToken);
 
         if (isPostCustody)
         {

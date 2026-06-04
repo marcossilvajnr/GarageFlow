@@ -2,6 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppSeparationOrderStatus = GarageFlow.Application.Stock.Enums.SeparationOrderStatus;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
+using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationType;
+using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
@@ -292,7 +296,7 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
         var part = (await partResp.Content.ReadFromJsonAsync<PartResponse>(JsonOptions))!;
 
         var stockResp = await _client.PostAsJsonAsync("/stock/entries",
-            new CreateStockEntryRequest(part.Id, StockItemType.Part, quantity, 0m, "Seed integração execução", null));
+            new CreateStockEntryRequest(part.Id, AppStockItemType.Part, quantity, 0m, "Seed integração execução", null));
         stockResp.EnsureSuccessStatusCode();
 
         return part.Id;

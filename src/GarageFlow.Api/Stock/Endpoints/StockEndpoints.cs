@@ -2,11 +2,11 @@ using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Application.Stock;
 using GarageFlow.Application.Stock.Commands;
 using GarageFlow.Application.Stock.DTOs;
+using GarageFlow.Application.Stock.Enums;
 using GarageFlow.Application.Stock.Handlers;
 using GarageFlow.Application.Stock.Queries;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Shared;
-using GarageFlow.Domain.Stock;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Stock.Endpoints;

@@ -1,4 +1,5 @@
 using GarageFlow.Application.Stock.DTOs;
+using GarageFlow.Application.Stock.Mappers;
 using GarageFlow.Domain.Stock;
 using DomainStock = GarageFlow.Domain.Stock.Stock;
 
@@ -10,7 +11,7 @@ internal static class StockMapper
         new(
             stock.Id,
             stock.ItemId,
-            stock.ItemType,
+            StockItemTypeMapper.ToApplication(stock.ItemType),
             stock.TotalQuantity,
             stock.ReservedQuantity,
             stock.AvailableQuantity,
@@ -21,7 +22,7 @@ internal static class StockMapper
     public static StockOperationDto ToOperationDto(StockOperation operation) =>
         new(
             operation.Id,
-            operation.Type,
+            StockOperationTypeMapper.ToApplication(operation.Type),
             operation.Quantity,
             operation.Reason,
             operation.ReferenceId,

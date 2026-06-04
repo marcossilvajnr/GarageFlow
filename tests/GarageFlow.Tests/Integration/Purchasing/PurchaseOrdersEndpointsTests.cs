@@ -2,6 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppSeparationOrderStatus = GarageFlow.Application.Stock.Enums.SeparationOrderStatus;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
+using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationType;
+using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
@@ -138,7 +142,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
         return body!.Id;
     }
 
-    private async Task CreateStockEntry(Guid itemId, StockItemType itemType, decimal initialQuantity)
+    private async Task CreateStockEntry(Guid itemId, AppStockItemType itemType, decimal initialQuantity)
     {
         var response = await _client.PostAsJsonAsync(
             "/stock/entries",
@@ -374,7 +378,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     private async Task<SeparationOrderResponse> CreateSeparationOrderInWaitingPurchase()
     {
         var partId = await CreatePart();
-        await CreateStockEntry(partId, StockItemType.Part, 100m);
+        await CreateStockEntry(partId, AppStockItemType.Part, 100m);
 
         var createReq = new CreateSeparationOrderRequest(
             Guid.NewGuid(),
@@ -427,7 +431,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
         var separationResp = await _client.GetAsync($"/separation-orders/{separation.Id}");
         separationResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var separationBody = await separationResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
-        separationBody!.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
+        separationBody!.Status.Should().Be(AppSeparationOrderStatus.WaitingPickup);
     }
 
     [Fact]

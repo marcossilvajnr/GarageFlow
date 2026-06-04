@@ -13,6 +13,8 @@ using GarageFlow.Domain.ValueObjects;
 using GarageFlow.Tests.Application.Employees;
 using GarageFlow.Tests.Application.Executions;
 using GarageFlow.Tests.Application.ServiceOrders;
+using AppSeparationOrderStatus = GarageFlow.Application.Stock.Enums.SeparationOrderStatus;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
 using DomainStock = GarageFlow.Domain.Stock.Stock;
 
 namespace GarageFlow.Tests.Application.Stock;
@@ -68,7 +70,7 @@ public sealed class SeparationExecutionIntegrationTests
         var handler = new ConfirmSeparationMechanicReceiptHandler(separationRepo, executionRepo);
         var result = await handler.HandleAsync(new ConfirmSeparationMechanicReceiptCommand(separation.Id));
 
-        result.Status.Should().Be(SeparationOrderStatus.Completed);
+        result.Status.Should().Be(AppSeparationOrderStatus.Completed);
         execution.Status.Should().Be(ExecutionOrderStatus.Ready);
     }
 

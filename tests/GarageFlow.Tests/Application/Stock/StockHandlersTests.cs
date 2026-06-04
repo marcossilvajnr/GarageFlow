@@ -8,6 +8,7 @@ using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Tests.Application.Parts;
 using GarageFlow.Tests.Application.Supplies;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
 
 namespace GarageFlow.Tests.Application.Stock;
 
@@ -29,7 +30,7 @@ public sealed class StockHandlersTests
         await partRepo.AddAsync(part);
 
         var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
-        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, initialQty, 0m, null, null));
+        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, AppStockItemType.Part, initialQty, 0m, null, null));
 
         // Create a separation order that goes all the way to Completed
         var partItem = SeparationPartItem.Create(part.Id, part.Name, separatedQty);
@@ -64,7 +65,7 @@ public sealed class StockHandlersTests
         await partRepo.AddAsync(part);
 
         var handler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
-        var result = await handler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, 10m, 2m, null, null));
+        var result = await handler.HandleAsync(new CreateStockEntryCommand(part.Id, AppStockItemType.Part, 10m, 2m, null, null));
 
         result.TotalQuantity.Should().Be(10m);
         result.AvailableQuantity.Should().Be(10m);
@@ -81,10 +82,10 @@ public sealed class StockHandlersTests
         await partRepo.AddAsync(part);
 
         var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
-        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, 5m, 0m, null, null));
+        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, AppStockItemType.Part, 5m, 0m, null, null));
 
         var reserveHandler = new ReserveStockHandler(stockRepo, partRepo, supplyRepo);
-        var act = async () => await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, StockItemType.Part, 8m, null, null));
+        var act = async () => await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, AppStockItemType.Part, 8m, null, null));
 
         await act.Should().ThrowAsync<StockQuantityConflictException>();
     }
@@ -101,13 +102,13 @@ public sealed class StockHandlersTests
         await supplyRepo.AddAsync(supply);
 
         var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
-        await createHandler.HandleAsync(new CreateStockEntryCommand(supply.Id, StockItemType.Supply, 20m, 0m, null, null));
+        await createHandler.HandleAsync(new CreateStockEntryCommand(supply.Id, AppStockItemType.Supply, 20m, 0m, null, null));
 
         var reserveHandler = new ReserveStockHandler(stockRepo, partRepo, supplyRepo);
-        await reserveHandler.HandleAsync(new ReserveStockCommand(supply.Id, StockItemType.Supply, 5m, null, null));
+        await reserveHandler.HandleAsync(new ReserveStockCommand(supply.Id, AppStockItemType.Supply, 5m, null, null));
 
         var releaseHandler = BuildReleaseHandler(stockRepo, partRepo, supplyRepo, separationRepo);
-        var result = await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(supply.Id, StockItemType.Supply, 1m, "Ajuste manual", "operador.teste", null, null));
+        var result = await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(supply.Id, AppStockItemType.Supply, 1m, "Ajuste manual", "operador.teste", null, null));
 
         result.ReservedQuantity.Should().Be(4m);
         result.AvailableQuantity.Should().Be(16m);
@@ -125,13 +126,13 @@ public sealed class StockHandlersTests
         await partRepo.AddAsync(part);
 
         var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
-        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, 5m, 0m, null, null));
+        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, AppStockItemType.Part, 5m, 0m, null, null));
 
         var reserveHandler = new ReserveStockHandler(stockRepo, partRepo, supplyRepo);
-        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, StockItemType.Part, 2m, null, null));
+        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, AppStockItemType.Part, 2m, null, null));
 
         var releaseHandler = BuildReleaseHandler(stockRepo, partRepo, supplyRepo, separationRepo);
-        var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(part.Id, StockItemType.Part, 1m, null, "operador.teste", null, null));
+        var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(part.Id, AppStockItemType.Part, 1m, null, "operador.teste", null, null));
 
         await act.Should().ThrowAsync<DomainException>();
     }
@@ -148,13 +149,13 @@ public sealed class StockHandlersTests
         await partRepo.AddAsync(part);
 
         var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
-        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, 5m, 0m, null, null));
+        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, AppStockItemType.Part, 5m, 0m, null, null));
 
         var reserveHandler = new ReserveStockHandler(stockRepo, partRepo, supplyRepo);
-        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, StockItemType.Part, 2m, null, null));
+        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, AppStockItemType.Part, 2m, null, null));
 
         var releaseHandler = BuildReleaseHandler(stockRepo, partRepo, supplyRepo, separationRepo);
-        var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(part.Id, StockItemType.Part, 1m, "Ajuste manual", null, null, null));
+        var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(part.Id, AppStockItemType.Part, 1m, "Ajuste manual", null, null, null));
 
         await act.Should().ThrowAsync<DomainException>();
     }
@@ -171,15 +172,15 @@ public sealed class StockHandlersTests
         await partRepo.AddAsync(part);
 
         var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
-        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, 10m, 0m, null, null));
+        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, AppStockItemType.Part, 10m, 0m, null, null));
 
         var reserveHandler = new ReserveStockHandler(stockRepo, partRepo, supplyRepo);
-        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, StockItemType.Part, 3m, null, null));
+        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, AppStockItemType.Part, 3m, null, null));
 
         var referenceId = Guid.NewGuid();
         var releaseHandler = BuildReleaseHandler(stockRepo, partRepo, supplyRepo, separationRepo);
         await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(
-            part.Id, StockItemType.Part, 2m, "Cancelamento manual", "gestor.estoque", referenceId, "SeparationOrder"));
+            part.Id, AppStockItemType.Part, 2m, "Cancelamento manual", "gestor.estoque", referenceId, "SeparationOrder"));
 
         var stock = await stockRepo.GetByItemAsync(part.Id, StockItemType.Part);
         var releaseOp = stock!.Operations.Last();
@@ -203,13 +204,13 @@ public sealed class StockHandlersTests
         await partRepo.AddAsync(part);
 
         var createHandler = new CreateStockEntryHandler(stockRepo, partRepo, supplyRepo);
-        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, StockItemType.Part, 15m, 0m, "Entrada inicial", null));
+        await createHandler.HandleAsync(new CreateStockEntryCommand(part.Id, AppStockItemType.Part, 15m, 0m, "Entrada inicial", null));
 
         var reserveHandler = new ReserveStockHandler(stockRepo, partRepo, supplyRepo);
-        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, StockItemType.Part, 3m, "Reserva", null));
+        await reserveHandler.HandleAsync(new ReserveStockCommand(part.Id, AppStockItemType.Part, 3m, "Reserva", null));
 
         var listHandler = new ListStockOperationsHandler(stockRepo);
-        var result = await listHandler.HandleAsync(new ListStockOperationsQuery(part.Id, StockItemType.Part, null, null, 1, 20));
+        var result = await listHandler.HandleAsync(new ListStockOperationsQuery(part.Id, AppStockItemType.Part, null, null, 1, 20));
 
         result.Items.Should().HaveCount(2);
         result.TotalCount.Should().Be(2);
@@ -233,7 +234,7 @@ public sealed class StockHandlersTests
 
         var releaseHandler = BuildReleaseHandler(stockRepo, partRepo, supplyRepo, separationRepo);
         var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(
-            part.Id, StockItemType.Part, 1m, "Ajuste excepcional", "admin.user", null, null));
+            part.Id, AppStockItemType.Part, 1m, "Ajuste excepcional", "admin.user", null, null));
 
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("*obrigatória*");
@@ -252,7 +253,7 @@ public sealed class StockHandlersTests
 
         var releaseHandler = BuildReleaseHandler(stockRepo, partRepo, supplyRepo, separationRepo);
         var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(
-            part.Id, StockItemType.Part, 1m, "Ajuste excepcional", "admin.user", Guid.NewGuid(), null));
+            part.Id, AppStockItemType.Part, 1m, "Ajuste excepcional", "admin.user", Guid.NewGuid(), null));
 
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("*obrigatório*");
@@ -275,7 +276,7 @@ public sealed class StockHandlersTests
 
         var releaseHandler = BuildReleaseHandler(stockRepo, partRepo, supplyRepo, separationRepo);
         var result = await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(
-            part.Id, StockItemType.Part, 2m, "Ajuste excepcional pós-custódia", "admin.user",
+            part.Id, AppStockItemType.Part, 2m, "Ajuste excepcional pós-custódia", "admin.user",
             completedOrder!.Id, "SeparationOrder"));
 
         result.ReservedQuantity.Should().Be(2m);
@@ -296,7 +297,7 @@ public sealed class StockHandlersTests
 
         var releaseHandler = BuildReleaseHandler(stockRepo, partRepo, supplyRepo, separationRepo);
         var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(
-            part.Id, StockItemType.Part, 1m, "Ajuste excepcional", "admin.user",
+            part.Id, AppStockItemType.Part, 1m, "Ajuste excepcional", "admin.user",
             Guid.NewGuid(), "SeparationOrder")); // non-existent referenceId
 
         await act.Should().ThrowAsync<EntityNotFoundException>();
@@ -318,7 +319,7 @@ public sealed class StockHandlersTests
 
         var releaseHandler = BuildReleaseHandler(stockRepo, partRepo, supplyRepo, separationRepo);
         var act = async () => await releaseHandler.HandleAsync(new ReleaseStockReservationCommand(
-            part.Id, StockItemType.Part, 1m, "Ajuste excepcional", "admin.user",
+            part.Id, AppStockItemType.Part, 1m, "Ajuste excepcional", "admin.user",
             completedOrder!.Id, "ServiceOrder"));
 
         await act.Should().ThrowAsync<DomainException>()

@@ -2,6 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppSeparationOrderStatus = GarageFlow.Application.Stock.Enums.SeparationOrderStatus;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
+using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationType;
+using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
@@ -117,7 +121,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         var partName = "Filtro Ar";
 
         // Ensure stock exists and has reserved quantity
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 20m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 20m, 0m, null, null));
 
         // Create separation order
         var executionOrderId = await CreateExecutionOrder();
@@ -151,7 +155,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     public async Task CreateStockEntry_WithValidPart_Returns200()
     {
         var partId = await CreatePart();
-        var request = new CreateStockEntryRequest(partId, StockItemType.Part, 20m, 5m, "Entrada inicial", null);
+        var request = new CreateStockEntryRequest(partId, AppStockItemType.Part, 20m, 5m, "Entrada inicial", null);
 
         var response = await _client.PostAsJsonAsync("/stock/entries", request);
 
@@ -165,9 +169,9 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     public async Task ReserveStock_WithInsufficientAvailability_Returns409()
     {
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 2m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 2m, 0m, null, null));
 
-        var response = await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 5m, null, null));
+        var response = await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 5m, null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
@@ -176,14 +180,14 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     public async Task ConsumeStock_FullFlow_ShouldUpdatePosition()
     {
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
-        var reserveResponse = await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 4m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 10m, 0m, null, null));
+        var reserveResponse = await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 4m, null, null));
         reserveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var consumeResponse = await _client.PostAsJsonAsync("/stock/consumptions", new ConsumeStockRequest(partId, StockItemType.Part, 3m, null, null));
+        var consumeResponse = await _client.PostAsJsonAsync("/stock/consumptions", new ConsumeStockRequest(partId, AppStockItemType.Part, 3m, null, null));
         consumeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var positionResponse = await _client.GetAsync($"/stock/{StockItemType.Part}/{partId}");
+        var positionResponse = await _client.GetAsync($"/stock/{AppStockItemType.Part}/{partId}");
         positionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var position = await positionResponse.Content.ReadFromJsonAsync<StockPositionResponse>(JsonOptions);
 
@@ -197,10 +201,10 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         var adminClient = CreateClientWithRole("Administrative");
         var supplyId = await CreateSupply();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(supplyId, StockItemType.Supply, 10m, 0m, null, null));
-        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(supplyId, StockItemType.Supply, 2m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(supplyId, AppStockItemType.Supply, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(supplyId, AppStockItemType.Supply, 2m, null, null));
 
-        var response = await adminClient.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(supplyId, StockItemType.Supply, 1m, "Ajuste manual", "operador.teste", null, null));
+        var response = await adminClient.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(supplyId, AppStockItemType.Supply, 1m, "Ajuste manual", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -210,10 +214,10 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         var adminClient = CreateClientWithRole("Administrative");
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
-        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 2m, null, null));
 
-        var response = await adminClient.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, null, "operador.teste", null, null));
+        var response = await adminClient.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 1m, null, "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -223,10 +227,10 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         var adminClient = CreateClientWithRole("Administrative");
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
-        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 2m, null, null));
 
-        var response = await adminClient.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste manual", null, null, null));
+        var response = await adminClient.PostAsJsonAsync("/stock/releases", new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 1m, "Ajuste manual", null, null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -236,21 +240,21 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         var adminClient = CreateClientWithRole("Administrative");
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 15m, 0m, null, null));
-        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 5m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 15m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 5m, null, null));
 
         var referenceId = Guid.NewGuid();
         var releaseResponse = await adminClient.PostAsJsonAsync("/stock/releases",
-            new ReleaseStockReservationRequest(partId, StockItemType.Part, 2m, "Cancelamento manual", "gestor.estoque", referenceId, "SeparationOrder"));
+            new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 2m, "Cancelamento manual", "gestor.estoque", referenceId, "SeparationOrder"));
 
         releaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var opsClient = CreateClientWithRole("Administrative");
-        var opsResponse = await opsClient.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
+        var opsResponse = await opsClient.GetAsync($"/stock/{AppStockItemType.Part}/{partId}/operations?page=1&pageSize=20");
         opsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await opsResponse.Content.ReadFromJsonAsync<PagedStockOperationsResponse>(JsonOptions);
 
-        var releaseOp = body!.Items.Single(o => o.Type == StockOperationType.Release);
+        var releaseOp = body!.Items.Single(o => o.Type == AppStockOperationType.Release);
         releaseOp.PerformedBy.Should().Be("gestor.estoque");
         releaseOp.Reason.Should().Be("Cancelamento manual");
         releaseOp.ReferenceId.Should().Be(referenceId);
@@ -262,11 +266,11 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         var adminClient = CreateClientWithRole("Administrative");
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
-        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 2m, null, null));
 
         var response = await adminClient.PostAsJsonAsync("/stock/releases",
-            new ReleaseStockReservationRequest(partId, StockItemType.Part, 5m, "Ajuste manual", "operador.teste", null, null));
+            new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 5m, "Ajuste manual", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
@@ -276,7 +280,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         var adminClient = CreateClientWithRole("Administrative");
         var response = await adminClient.PostAsJsonAsync("/stock/releases",
-            new ReleaseStockReservationRequest(Guid.NewGuid(), StockItemType.Part, 1m, "Ajuste", "operador.teste", null, null));
+            new ReleaseStockReservationRequest(Guid.NewGuid(), AppStockItemType.Part, 1m, "Ajuste", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -285,14 +289,14 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     public async Task ReleaseStock_WithoutToken_Returns401()
     {
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
-        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 2m, null, null));
 
         var anonymousClient = factory.CreateClient();
         anonymousClient.DefaultRequestHeaders.Add(TestAuthHandler.ForceAnonymousHeader, "true");
 
         var response = await anonymousClient.PostAsJsonAsync("/stock/releases",
-            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste manual", "operador.teste", null, null));
+            new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 1m, "Ajuste manual", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -302,11 +306,11 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         var stockistClient = CreateClientWithRole("Stockist");
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
-        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 2m, null, null));
 
         var response = await stockistClient.PostAsJsonAsync("/stock/releases",
-            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste manual", "operador.teste", null, null));
+            new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 1m, "Ajuste manual", "operador.teste", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
@@ -316,11 +320,11 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         var adminClient = CreateClientWithRole("Administrative");
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 10m, 0m, null, null));
-        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 3m, null, null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 10m, 0m, null, null));
+        await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 3m, null, null));
 
         var response = await adminClient.PostAsJsonAsync("/stock/releases",
-            new ReleaseStockReservationRequest(partId, StockItemType.Part, 2m, "Liberação administrativa", "admin.usuario", null, null));
+            new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 2m, "Liberação administrativa", "admin.usuario", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -329,12 +333,12 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     public async Task ListStockOperations_ShouldReturnOperations()
     {
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 12m, 0m, "Entrada", null));
-        var reserveResponse = await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, StockItemType.Part, 2m, "Reserva", null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 12m, 0m, "Entrada", null));
+        var reserveResponse = await _client.PostAsJsonAsync("/stock/reservations", new ReserveStockRequest(partId, AppStockItemType.Part, 2m, "Reserva", null));
         reserveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var adminClient = CreateClientWithRole("Administrative");
-        var response = await adminClient.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
+        var response = await adminClient.GetAsync($"/stock/{AppStockItemType.Part}/{partId}/operations?page=1&pageSize=20");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<PagedStockOperationsResponse>(JsonOptions);
@@ -347,7 +351,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     {
         var response = await _client.PostAsJsonAsync(
             "/stock/entries",
-            new CreateStockEntryRequest(Guid.NewGuid(), StockItemType.Part, 10m, 0m, null, null));
+            new CreateStockEntryRequest(Guid.NewGuid(), AppStockItemType.Part, 10m, 0m, null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -356,12 +360,12 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     public async Task ListStockOperations_WithoutToken_Returns401()
     {
         var partId = await CreatePart();
-        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, StockItemType.Part, 8m, 0m, "Entrada", null));
+        await _client.PostAsJsonAsync("/stock/entries", new CreateStockEntryRequest(partId, AppStockItemType.Part, 8m, 0m, "Entrada", null));
 
         var anonymousClient = factory.CreateClient();
         anonymousClient.DefaultRequestHeaders.Add(TestAuthHandler.ForceAnonymousHeader, "true");
 
-        var response = await anonymousClient.GetAsync($"/stock/{StockItemType.Part}/{partId}/operations?page=1&pageSize=20");
+        var response = await anonymousClient.GetAsync($"/stock/{AppStockItemType.Part}/{partId}/operations?page=1&pageSize=20");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -378,11 +382,11 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
 
         // The separation order reserved 5 units; add more reserved quantity to release
         await _client.PostAsJsonAsync("/stock/reservations",
-            new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+            new ReserveStockRequest(partId, AppStockItemType.Part, 2m, null, null));
 
         // Attempt release without referenceId/referenceType — must fail because item is post-custody
         var response = await adminClient.PostAsJsonAsync("/stock/releases",
-            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste excepcional", "admin.user", null, null));
+            new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 1m, "Ajuste excepcional", "admin.user", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -395,12 +399,12 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
 
         // Add more reserved quantity to release (the separation order reserved 5 units)
         await _client.PostAsJsonAsync("/stock/reservations",
-            new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+            new ReserveStockRequest(partId, AppStockItemType.Part, 2m, null, null));
 
         // Exceptional post-custody adjustment with all mandatory fields
         var response = await adminClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(
-                partId, StockItemType.Part, 2m,
+                partId, AppStockItemType.Part, 2m,
                 "Ajuste excepcional pós-custódia autorizado",
                 "admin.user",
                 separationOrderId, "SeparationOrder"));
@@ -429,11 +433,11 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         var (separationOrderId, partId) = await CreateCompletedSeparationOrderAsync();
 
         await _client.PostAsJsonAsync("/stock/reservations",
-            new ReserveStockRequest(partId, StockItemType.Part, 2m, null, null));
+            new ReserveStockRequest(partId, AppStockItemType.Part, 2m, null, null));
 
         var response = await adminClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(
-                partId, StockItemType.Part, 1m,
+                partId, AppStockItemType.Part, 1m,
                 "Ajuste excepcional pós-custódia",
                 "admin.user",
                 separationOrderId, "ServiceOrder"));

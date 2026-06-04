@@ -11,6 +11,8 @@ using GarageFlow.Domain.Supplies;
 using GarageFlow.Domain.ValueObjects;
 using GarageFlow.Tests.Application.Employees;
 using GarageFlow.Tests.Application.Executions;
+using AppSeparationOrderStatus = GarageFlow.Application.Stock.Enums.SeparationOrderStatus;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
 using DomainStock = GarageFlow.Domain.Stock.Stock;
 
 namespace GarageFlow.Tests.Application.Stock;
@@ -79,7 +81,7 @@ public sealed class SeparationOrderHandlersTests
         dto.Should().NotBeNull();
         dto.Id.Should().NotBeEmpty();
         dto.ExecutionOrderId.Should().Be(command.ExecutionOrderId);
-        dto.Status.Should().Be(SeparationOrderStatus.Pending);
+        dto.Status.Should().Be(AppSeparationOrderStatus.Pending);
         dto.Parts.Should().HaveCount(1);
         dto.Supplies.Should().BeEmpty();
     }
@@ -147,7 +149,7 @@ public sealed class SeparationOrderHandlersTests
         var result = await new ReserveSeparationOrderHandler(repo, stockRepo)
             .HandleAsync(new ReserveSeparationOrderCommand(dto.Id));
 
-        result.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
+        result.Status.Should().Be(AppSeparationOrderStatus.WaitingPickup);
     }
 
     [Fact]
@@ -245,7 +247,7 @@ public sealed class SeparationOrderHandlersTests
         var waitHandler = new WaitSeparationOrderPurchaseHandler(repo);
         var result = await waitHandler.HandleAsync(new WaitSeparationOrderPurchaseCommand(dto.Id));
 
-        result.Status.Should().Be(SeparationOrderStatus.WaitingPurchase);
+        result.Status.Should().Be(AppSeparationOrderStatus.WaitingPurchase);
     }
 
     [Fact]
@@ -275,7 +277,7 @@ public sealed class SeparationOrderHandlersTests
         var result = await new ResumeSeparationOrderAfterPurchaseHandler(repo, stockRepo)
             .HandleAsync(new ResumeSeparationOrderAfterPurchaseCommand(dto.Id));
 
-        result.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
+        result.Status.Should().Be(AppSeparationOrderStatus.WaitingPickup);
     }
 
     [Fact]
@@ -351,7 +353,7 @@ public sealed class SeparationOrderHandlersTests
         var result = await new ConfirmSeparationStockistWithdrawalHandler(repo, stockRepo, employeeRepo)
             .HandleAsync(new ConfirmSeparationStockistWithdrawalCommand(dto.Id, stockist.Id));
 
-        result.Status.Should().Be(SeparationOrderStatus.Separated);
+        result.Status.Should().Be(AppSeparationOrderStatus.Separated);
         result.StockistId.Should().NotBeNull();
         result.ConfirmedByStockistAt.Should().NotBeNull();
     }
@@ -465,7 +467,7 @@ public sealed class SeparationOrderHandlersTests
         var result = await new ReturnSeparationOrderTotalHandler(repo, stockRepo)
             .HandleAsync(new ReturnSeparationOrderTotalCommand(createDto.Id));
 
-        result.Status.Should().Be(SeparationOrderStatus.Pending);
+        result.Status.Should().Be(AppSeparationOrderStatus.Pending);
         result.StockistId.Should().BeNull();
         result.ConfirmedByStockistAt.Should().BeNull();
 
@@ -519,7 +521,7 @@ public sealed class SeparationOrderHandlersTests
         var result = await new ConfirmSeparationMechanicReceiptHandler(repo, executionRepo)
             .HandleAsync(new ConfirmSeparationMechanicReceiptCommand(dto.Id));
 
-        result.Status.Should().Be(SeparationOrderStatus.Completed);
+        result.Status.Should().Be(AppSeparationOrderStatus.Completed);
         result.ConfirmedByMechanicAt.Should().NotBeNull();
         executionOrder.Status.Should().Be(ExecutionOrderStatus.Ready);
     }

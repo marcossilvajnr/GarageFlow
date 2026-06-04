@@ -1,5 +1,6 @@
 using GarageFlow.Application.Stock.Commands;
 using GarageFlow.Application.Stock.DTOs;
+using GarageFlow.Application.Stock.Mappers;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Parts;
 using GarageFlow.Domain.Shared;
@@ -15,16 +16,18 @@ public sealed class ConsumeStockHandler(
 {
     public async Task<StockPositionDto> HandleAsync(ConsumeStockCommand command, CancellationToken cancellationToken = default)
     {
+        var itemType = StockItemTypeMapper.ToDomain(command.ItemType);
+
         await StockItemExistenceValidator.EnsureExistsAsync(
             command.ItemId,
-            command.ItemType,
+            itemType,
             partRepository,
             supplyRepository,
             cancellationToken);
 
-        var stock = await stockRepository.GetByItemAsync(command.ItemId, command.ItemType, cancellationToken);
+        var stock = await stockRepository.GetByItemAsync(command.ItemId, itemType, cancellationToken);
         if (stock is null)
-            throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(command.ItemType, command.ItemId));
+            throw new EntityNotFoundException(DomainErrorMessages.StockNotFound(itemType, command.ItemId));
 
         stock.Consume(command.Quantity, command.Reason, command.ReferenceId);
 

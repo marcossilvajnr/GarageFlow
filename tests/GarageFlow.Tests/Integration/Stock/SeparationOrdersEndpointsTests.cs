@@ -2,6 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppSeparationOrderStatus = GarageFlow.Application.Stock.Enums.SeparationOrderStatus;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
+using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationType;
+using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
@@ -113,7 +117,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         {
             var response = await _client.PostAsJsonAsync(
                 "/stock/entries",
-                new CreateStockEntryRequest(part.PartId, StockItemType.Part, initialQuantity, 0m, "Seed integração separação", null));
+                new CreateStockEntryRequest(part.PartId, AppStockItemType.Part, initialQuantity, 0m, "Seed integração separação", null));
             response.EnsureSuccessStatusCode();
         }
 
@@ -121,7 +125,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         {
             var response = await _client.PostAsJsonAsync(
                 "/stock/entries",
-                new CreateStockEntryRequest(supply.SupplyId, StockItemType.Supply, initialQuantity, 0m, "Seed integração separação", null));
+                new CreateStockEntryRequest(supply.SupplyId, AppStockItemType.Supply, initialQuantity, 0m, "Seed integração separação", null));
             response.EnsureSuccessStatusCode();
         }
     }
@@ -146,7 +150,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
         body.Should().NotBeNull();
-        body!.Status.Should().Be(SeparationOrderStatus.Pending);
+        body!.Status.Should().Be(AppSeparationOrderStatus.Pending);
         body.Parts.Should().HaveCount(1);
         body.Supplies.Should().BeEmpty();
     }
@@ -230,7 +234,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
+        body!.Status.Should().Be(AppSeparationOrderStatus.WaitingPickup);
     }
 
     [Fact]
@@ -263,7 +267,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(SeparationOrderStatus.WaitingPurchase);
+        body!.Status.Should().Be(AppSeparationOrderStatus.WaitingPurchase);
     }
 
     [Fact]
@@ -297,7 +301,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
+        body!.Status.Should().Be(AppSeparationOrderStatus.WaitingPickup);
     }
 
     [Fact]
@@ -331,7 +335,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(SeparationOrderStatus.Separated);
+        body!.Status.Should().Be(AppSeparationOrderStatus.Separated);
     }
 
     [Fact]
@@ -370,7 +374,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         // Manually release part of the reservation to simulate insufficient reserved stock
         var adminClient = CreateClientWithRole("Administrative");
         await adminClient.PostAsJsonAsync("/stock/releases",
-            new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste operacional de teste", "sistema", null, null));
+            new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 1m, "Ajuste operacional de teste", "sistema", null, null));
 
         var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(AppEmployeeRole.Stockist));
         var response = await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
@@ -425,7 +429,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(SeparationOrderStatus.Pending);
+        body!.Status.Should().Be(AppSeparationOrderStatus.Pending);
         body.StockistId.Should().BeNull();
         body.ConfirmedByStockistAt.Should().BeNull();
     }
@@ -464,7 +468,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(SeparationOrderStatus.Completed);
+        body!.Status.Should().Be(AppSeparationOrderStatus.Completed);
     }
 
     [Fact]

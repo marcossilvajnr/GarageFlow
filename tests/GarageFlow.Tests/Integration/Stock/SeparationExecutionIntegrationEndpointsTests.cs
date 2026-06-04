@@ -2,6 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppSeparationOrderStatus = GarageFlow.Application.Stock.Enums.SeparationOrderStatus;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
+using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationType;
+using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
@@ -115,7 +119,7 @@ public sealed class SeparationExecutionIntegrationEndpointsTests(GarageFlowWebAp
         var separatedResponse = await _client.GetAsync($"/separation-orders/{separation.Id}");
         separatedResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var separated = (await separatedResponse.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
-        separated.Status.Should().Be(SeparationOrderStatus.Separated);
+        separated.Status.Should().Be(AppSeparationOrderStatus.Separated);
 
         return separated;
     }
@@ -126,7 +130,7 @@ public sealed class SeparationExecutionIntegrationEndpointsTests(GarageFlowWebAp
         {
             var response = await _client.PostAsJsonAsync(
                 "/stock/entries",
-                new CreateStockEntryRequest(part.PartId, StockItemType.Part, initialQuantity, 0m, "Seed integração separação", null));
+                new CreateStockEntryRequest(part.PartId, AppStockItemType.Part, initialQuantity, 0m, "Seed integração separação", null));
             response.EnsureSuccessStatusCode();
         }
 
@@ -134,7 +138,7 @@ public sealed class SeparationExecutionIntegrationEndpointsTests(GarageFlowWebAp
         {
             var response = await _client.PostAsJsonAsync(
                 "/stock/entries",
-                new CreateStockEntryRequest(supply.SupplyId, StockItemType.Supply, initialQuantity, 0m, "Seed integração separação", null));
+                new CreateStockEntryRequest(supply.SupplyId, AppStockItemType.Supply, initialQuantity, 0m, "Seed integração separação", null));
             response.EnsureSuccessStatusCode();
         }
     }

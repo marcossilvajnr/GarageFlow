@@ -1,4 +1,4 @@
-using GarageFlow.Domain.Stock;
+using GarageFlow.Application.Stock.Enums;
 
 namespace GarageFlow.Application.Stock.Queries;
 

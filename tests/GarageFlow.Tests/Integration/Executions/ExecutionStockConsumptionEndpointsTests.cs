@@ -2,6 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppSeparationOrderStatus = GarageFlow.Application.Stock.Enums.SeparationOrderStatus;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
+using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationType;
+using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
@@ -87,7 +91,7 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
         var part = (await partResp.Content.ReadFromJsonAsync<PartResponse>(JsonOptions))!;
 
         var stockResp = await _client.PostAsJsonAsync("/stock/entries",
-            new CreateStockEntryRequest(part.Id, StockItemType.Part, initialQuantity, 0m, "Seed consumo", null));
+            new CreateStockEntryRequest(part.Id, AppStockItemType.Part, initialQuantity, 0m, "Seed consumo", null));
         stockResp.EnsureSuccessStatusCode();
 
         return part.Id;
@@ -102,7 +106,7 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
         var supply = (await supplyResp.Content.ReadFromJsonAsync<SupplyResponse>(JsonOptions))!;
 
         var stockResp = await _client.PostAsJsonAsync("/stock/entries",
-            new CreateStockEntryRequest(supply.Id, StockItemType.Supply, initialQuantity, 0m, "Seed consumo", null));
+            new CreateStockEntryRequest(supply.Id, AppStockItemType.Supply, initialQuantity, 0m, "Seed consumo", null));
         stockResp.EnsureSuccessStatusCode();
 
         return supply.Id;
@@ -131,7 +135,7 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
             new CreateSeparationOrderRequest(
                 executionOrderId,
                 [],
-                [new CreateSeparationSupplyItemRequest(supplyId, "Óleo 5W30", 2m, SupplyUnit.Liter)]));
+                [new CreateSeparationSupplyItemRequest(supplyId, "Óleo 5W30", 2m, AppSupplyUnit.Liter)]));
         createResp.EnsureSuccessStatusCode();
         var separation = (await createResp.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
 

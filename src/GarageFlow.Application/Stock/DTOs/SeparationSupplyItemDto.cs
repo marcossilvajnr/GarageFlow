@@ -1,4 +1,4 @@
-using GarageFlow.Domain.Supplies;
+using GarageFlow.Application.Stock.Enums;
 
 namespace GarageFlow.Application.Stock.DTOs;
 

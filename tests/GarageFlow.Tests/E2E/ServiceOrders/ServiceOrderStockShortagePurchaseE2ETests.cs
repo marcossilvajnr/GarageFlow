@@ -1,6 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using AppSeparationOrderStatus = GarageFlow.Application.Stock.Enums.SeparationOrderStatus;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
+using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationType;
+using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Customers.DTOs;
 using GarageFlow.Api.Employees.DTOs;
@@ -125,7 +129,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         var executionOrder = await ReadAsync<ExecutionOrderResponse>(createExecutionResponse);
         executionOrder.Status.Should().Be(AppExecutionOrderStatus.Pending);
 
-        await SeedStockAsync(part.Id, StockItemType.Part, 1m);
+        await SeedStockAsync(part.Id, AppStockItemType.Part, 1m);
 
         var createSeparationResponse = await _client.PostAsJsonAsync(
             "/separation-orders",
@@ -135,7 +139,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
                 []));
         createSeparationResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var separationOrder = await ReadAsync<SeparationOrderResponse>(createSeparationResponse);
-        separationOrder.Status.Should().Be(SeparationOrderStatus.Pending);
+        separationOrder.Status.Should().Be(AppSeparationOrderStatus.Pending);
 
         var reserveWithShortageResponse = await _client.PostAsync($"/separation-orders/{separationOrder.Id}/reserve", null);
         reserveWithShortageResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -143,7 +147,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         var waitPurchaseResponse = await _client.PostAsync($"/separation-orders/{separationOrder.Id}/wait-purchase", null);
         waitPurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var waitingPurchaseOrder = await ReadAsync<SeparationOrderResponse>(waitPurchaseResponse);
-        waitingPurchaseOrder.Status.Should().Be(SeparationOrderStatus.WaitingPurchase);
+        waitingPurchaseOrder.Status.Should().Be(AppSeparationOrderStatus.WaitingPurchase);
 
         var startBeforeReadyResponse = await _client.PostAsync(
             $"/execution-orders/{executionOrder.Id}/start", null);
@@ -172,7 +176,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         startedPurchaseOrder.Status.Should().Be(PurchaseOrderStatus.Started);
 
         // Simula chegada do item comprado ao estoque antes da conclusão da compra.
-        await SeedStockAsync(part.Id, StockItemType.Part, 10m);
+        await SeedStockAsync(part.Id, AppStockItemType.Part, 10m);
 
         var completePurchaseResponse = await _client.PostAsync(
             $"/purchase-orders/{purchaseOrder.Id}/complete", null);
@@ -184,7 +188,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         var separationAfterPurchaseResponse = await _client.GetAsync($"/separation-orders/{separationOrder.Id}");
         separationAfterPurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var separationAfterPurchase = await ReadAsync<SeparationOrderResponse>(separationAfterPurchaseResponse);
-        separationAfterPurchase.Status.Should().Be(SeparationOrderStatus.WaitingPickup);
+        separationAfterPurchase.Status.Should().Be(AppSeparationOrderStatus.WaitingPickup);
 
         var mechanicBeforeStockistResponse = await _client.PostAsync(
             $"/separation-orders/{separationOrder.Id}/confirm-mechanic-receipt",
@@ -196,14 +200,14 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
             new ConfirmSeparationStockistWithdrawalRequest(stockistEmployeeId));
         confirmStockistResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var separatedOrder = await ReadAsync<SeparationOrderResponse>(confirmStockistResponse);
-        separatedOrder.Status.Should().Be(SeparationOrderStatus.Separated);
+        separatedOrder.Status.Should().Be(AppSeparationOrderStatus.Separated);
 
         var confirmMechanicResponse = await _client.PostAsync(
             $"/separation-orders/{separationOrder.Id}/confirm-mechanic-receipt",
             null);
         confirmMechanicResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var completedSeparationOrder = await ReadAsync<SeparationOrderResponse>(confirmMechanicResponse);
-        completedSeparationOrder.Status.Should().Be(SeparationOrderStatus.Completed);
+        completedSeparationOrder.Status.Should().Be(AppSeparationOrderStatus.Completed);
 
         var readyExecutionOrderResponse = await _client.GetAsync($"/execution-orders/{executionOrder.Id}");
         readyExecutionOrderResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -244,7 +248,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         var finalSeparationResponse = await _client.GetAsync($"/separation-orders/{separationOrder.Id}");
         finalSeparationResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var finalSeparationOrder = await ReadAsync<SeparationOrderResponse>(finalSeparationResponse);
-        finalSeparationOrder.Status.Should().Be(SeparationOrderStatus.Completed);
+        finalSeparationOrder.Status.Should().Be(AppSeparationOrderStatus.Completed);
 
         var finalExecutionResponse = await _client.GetAsync($"/execution-orders/{executionOrder.Id}");
         finalExecutionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -370,7 +374,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         return employee.Id;
     }
 
-    private async Task SeedStockAsync(Guid itemId, StockItemType itemType, decimal quantity)
+    private async Task SeedStockAsync(Guid itemId, AppStockItemType itemType, decimal quantity)
     {
         var response = await _client.PostAsJsonAsync(
             "/stock/entries",
