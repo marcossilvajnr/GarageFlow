@@ -3,8 +3,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentAssertions;
-using GarageFlow.Api.DTOs.Services;
-using GarageFlow.Api.DTOs.Supplies;
+using GarageFlow.Api.Services.DTOs;
+using GarageFlow.Api.Supplies.DTOs;
 using GarageFlow.Tests.Integration;
 
 namespace GarageFlow.Tests.Integration.Services;
@@ -223,9 +223,9 @@ public sealed class ServiceSupplyCompositionEndpointsTests(GarageFlowWebApplicat
         // Add a part
         var partCode = UniqueCode("SSC-PRT");
         var createPartResp = await _client.PostAsJsonAsync("/parts",
-            new GarageFlow.Api.DTOs.Parts.CreatePartRequest($"Peça {partCode}", partCode, $"SKU-{partCode}", "UN", 30.00m));
+            new GarageFlow.Api.Parts.DTOs.CreatePartRequest($"Peça {partCode}", partCode, $"SKU-{partCode}", "UN", 30.00m));
         createPartResp.StatusCode.Should().Be(HttpStatusCode.Created);
-        var part = (await createPartResp.Content.ReadFromJsonAsync<GarageFlow.Api.DTOs.Parts.PartResponse>(JsonOptions))!;
+        var part = (await createPartResp.Content.ReadFromJsonAsync<GarageFlow.Api.Parts.DTOs.PartResponse>(JsonOptions))!;
 
         await _client.PostAsJsonAsync(
             $"/services/{service.Id}/parts",

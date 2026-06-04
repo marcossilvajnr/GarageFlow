@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.IO;
-using GarageFlow.Api.DTOs.Auth;
+using GarageFlow.Api.Auth.DTOs;
 
 namespace GarageFlow.Tests.E2E.Infrastructure;
 

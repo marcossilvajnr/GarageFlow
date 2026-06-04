@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
-using GarageFlow.Api.DTOs.Customers;
+using GarageFlow.Api.Customers.DTOs;
 using GarageFlow.Domain.Customers;
 using GarageFlow.Tests.Integration;
 
