@@ -9,10 +9,12 @@ using GarageFlow.Api.ServiceOrders.DTOs;
 using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Tests.E2E.Infrastructure;
+
+using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using DomainCustomerDocumentType = GarageFlow.Domain.Customers.CustomerDocumentType;
 
 namespace GarageFlow.Tests.E2E.ServiceOrders;
 
@@ -136,7 +138,7 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
             "/customers",
             new CreateCustomerRequest(
                 "Cliente E2E Cancelamento",
-                CustomerDocumentType.Cpf,
+                AppCustomerDocumentType.Cpf,
                 GenerateValidCpf(),
                 $"cliente-cancelamento-{Guid.NewGuid():N}@garageflow.test",
                 "11987654321",
@@ -191,7 +193,7 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
             "/employees",
             new CreateEmployeeRequest(
                 $"Funcionario E2E Cancelamento {seed}",
-                CustomerDocumentType.Cpf,
+                DomainCustomerDocumentType.Cpf,
                 GenerateValidCpf(),
                 $"funcionario-e2e-cancelamento-{seed}@garageflow.test",
                 $"1190{seed % 1_0000:D4}321",

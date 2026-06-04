@@ -1,4 +1,4 @@
-using GarageFlow.Domain.Customers;
+using GarageFlow.Application.Customers.Enums;
 
 namespace GarageFlow.Application.Customers.Commands;
 

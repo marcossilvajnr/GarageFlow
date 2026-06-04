@@ -1,5 +1,6 @@
 using GarageFlow.Application.Customers.Commands;
 using GarageFlow.Application.Customers.DTOs;
+using GarageFlow.Application.Customers.Mappers;
 using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.ValueObjects;
 
@@ -15,7 +16,7 @@ public sealed class CreateCustomerHandler(ICustomerRepository repository)
 
         var customer = Customer.Create(
             command.Name,
-            command.DocumentType,
+            CustomerDocumentTypeMapper.ToDomain(command.DocumentType),
             command.Document,
             command.Email,
             command.PhoneNumber,

@@ -7,10 +7,12 @@ using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.ServiceOrders.DTOs;
 using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Tests.Integration;
+
+using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using DomainCustomerDocumentType = GarageFlow.Domain.Customers.CustomerDocumentType;
 
 namespace GarageFlow.Tests.Integration.ServiceOrders;
 
@@ -31,7 +33,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     private async Task<CustomerResponse> CreateCustomer(string document)
     {
         var request = new CreateCustomerRequest(
-            "João Silva", CustomerDocumentType.Cpf, document,
+            "João Silva", AppCustomerDocumentType.Cpf, document,
             "joao@email.com", "11987654321",
             "Rua das Flores", "100", null, "Centro", "São Paulo", "SP", "01310100");
 
@@ -125,7 +127,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var seed = Interlocked.Increment(ref _employeeSeed);
         var request = new CreateEmployeeRequest(
             $"Funcionario {seed}",
-            CustomerDocumentType.Cpf,
+            DomainCustomerDocumentType.Cpf,
             GenerateValidCpf(),
             $"funcionario-{seed}@garageflow.test",
             $"1198{seed % 1_0000:D4}321",

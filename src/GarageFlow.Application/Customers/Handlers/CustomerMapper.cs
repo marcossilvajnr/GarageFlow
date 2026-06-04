@@ -1,4 +1,5 @@
 using GarageFlow.Application.Customers.DTOs;
+using GarageFlow.Application.Customers.Mappers;
 using GarageFlow.Domain.Customers;
 
 namespace GarageFlow.Application.Customers.Handlers;
@@ -8,7 +9,7 @@ internal static class CustomerMapper
     internal static CustomerDto ToDto(Customer customer) => new(
         customer.Id,
         customer.Name,
-        customer.DocumentType,
+        CustomerDocumentTypeMapper.ToApplication(customer.DocumentType),
         customer.DocumentType == Domain.Customers.CustomerDocumentType.Cpf
             ? customer.Cpf!.Value
             : customer.Cnpj!.Value,

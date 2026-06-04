@@ -1,7 +1,7 @@
 using FluentAssertions;
 using GarageFlow.Application.Customers.Commands;
+using GarageFlow.Application.Customers.Enums;
 using GarageFlow.Application.Customers.Handlers;
-using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Exceptions;
 
 namespace GarageFlow.Tests.Application.Customers;

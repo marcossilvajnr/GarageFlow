@@ -11,13 +11,15 @@ using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Suppliers.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.E2E.Infrastructure;
+
+using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using DomainCustomerDocumentType = GarageFlow.Domain.Customers.CustomerDocumentType;
 
 namespace GarageFlow.Tests.E2E.ServiceOrders;
 
@@ -257,7 +259,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
             "/customers",
             new CreateCustomerRequest(
                 "Cliente E2E Ruptura",
-                CustomerDocumentType.Cpf,
+                AppCustomerDocumentType.Cpf,
                 GenerateValidCpf(),
                 $"cliente-ruptura-{Guid.NewGuid():N}@garageflow.test",
                 "11987654321",
@@ -351,7 +353,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
             "/employees",
             new CreateEmployeeRequest(
                 $"Funcionario E2E Ruptura {seed}",
-                CustomerDocumentType.Cpf,
+                DomainCustomerDocumentType.Cpf,
                 GenerateValidCpf(),
                 $"funcionario-e2e-ruptura-{seed}@garageflow.test",
                 $"1191{seed % 1_0000:D4}321",

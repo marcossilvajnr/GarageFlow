@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 using GarageFlow.Api.Customers.DTOs;
 using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.Customers;
+using GarageFlow.Application.Customers.Enums;
 using GarageFlow.Tests.E2E.Infrastructure;
 
 namespace GarageFlow.Tests.E2E.Builders;

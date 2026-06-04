@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.Customers.DTOs;
-using GarageFlow.Domain.Customers;
+using GarageFlow.Application.Customers.Enums;
 using GarageFlow.Tests.Integration;
 
 namespace GarageFlow.Tests.Integration.Customers;
