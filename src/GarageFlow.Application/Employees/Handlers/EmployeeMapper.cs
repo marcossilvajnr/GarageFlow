@@ -1,5 +1,6 @@
 using GarageFlow.Application.Customers.DTOs;
 using GarageFlow.Application.Employees.DTOs;
+using GarageFlow.Application.Employees.Mappers;
 using GarageFlow.Domain.Employees;
 
 namespace GarageFlow.Application.Employees.Handlers;
@@ -9,7 +10,7 @@ internal static class EmployeeMapper
     internal static EmployeeDto ToDto(Employee employee) => new(
         employee.Id,
         employee.Name,
-        employee.DocumentType,
+        EmployeeDocumentTypeMapper.ToApplication(employee.DocumentType),
         ResolveDocument(employee),
         employee.Email.Value,
         employee.PhoneNumber.Value,
@@ -21,7 +22,7 @@ internal static class EmployeeMapper
             employee.Address.City,
             employee.Address.State,
             employee.Address.ZipCode),
-        employee.Role,
+        EmployeeRoleMapper.ToApplication(employee.Role),
         employee.IsActive,
         employee.CreatedAt,
         employee.UpdatedAt);

@@ -1,7 +1,8 @@
 using FluentAssertions;
+using GarageFlow.Application.Customers.Enums;
 using GarageFlow.Application.Employees.Commands;
+using GarageFlow.Application.Employees.Enums;
 using GarageFlow.Application.Employees.Handlers;
-using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
 
 namespace GarageFlow.Tests.Application.Employees;
@@ -10,7 +11,7 @@ public sealed class CreateEmployeeHandlerTests
 {
     private static CreateEmployeeCommand ValidCommand(string document = "529.982.247-25") => new(
         "Maria Silva",
-        GarageFlow.Domain.Customers.CustomerDocumentType.Cpf,
+        CustomerDocumentType.Cpf,
         document,
         "maria@email.com",
         "11987654321",
@@ -27,7 +28,7 @@ public sealed class CreateEmployeeHandlerTests
 
         dto.Should().NotBeNull();
         dto.Name.Should().Be("Maria Silva");
-        dto.DocumentType.Should().Be(GarageFlow.Domain.Customers.CustomerDocumentType.Cpf);
+        dto.DocumentType.Should().Be(CustomerDocumentType.Cpf);
         dto.Document.Should().Be("52998224725");
         dto.Role.Should().Be(EmployeeRole.Mechanic);
         dto.IsActive.Should().BeTrue();

@@ -1,4 +1,4 @@
-using GarageFlow.Domain.Employees;
+using GarageFlow.Application.Employees.Enums;
 
 namespace GarageFlow.Api.Employees.DTOs;
 

@@ -2,12 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Executions.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Stock.DTOs;
-using GarageFlow.Domain.Customers;
-using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
@@ -51,14 +51,14 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
         return mod < 2 ? 0 : 11 - mod;
     }
 
-    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    private async Task<Guid> CreateEmployee(AppEmployeeRole role)
     {
         var seed = Interlocked.Increment(ref _employeeSeed);
         var response = await _client.PostAsJsonAsync(
             "/employees",
             new CreateEmployeeRequest(
                 $"Employee Execution {seed}",
-                CustomerDocumentType.Cpf,
+                AppCustomerDocumentType.Cpf,
                 GenerateValidCpf(),
                 $"execution-test-{seed}@garageflow.test",
                 $"1198{seed % 1_0000:D4}000",

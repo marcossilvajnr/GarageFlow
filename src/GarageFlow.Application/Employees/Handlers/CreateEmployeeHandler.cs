@@ -1,5 +1,6 @@
 using GarageFlow.Application.Employees.Commands;
 using GarageFlow.Application.Employees.DTOs;
+using GarageFlow.Application.Employees.Mappers;
 using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.ValueObjects;
 
@@ -15,12 +16,12 @@ public sealed class CreateEmployeeHandler(IEmployeeRepository repository)
 
         var employee = Employee.Create(
             command.Name,
-            command.DocumentType,
+            EmployeeDocumentTypeMapper.ToDomain(command.DocumentType),
             command.Document,
             command.Email,
             command.PhoneNumber,
             address,
-            command.Role);
+            EmployeeRoleMapper.ToDomain(command.Role));
 
         await repository.AddAsync(employee, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);

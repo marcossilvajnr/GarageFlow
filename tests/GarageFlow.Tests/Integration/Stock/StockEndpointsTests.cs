@@ -2,13 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Executions.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Supplies.DTOs;
-using GarageFlow.Domain.Customers;
-using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.Integration;
 
@@ -48,14 +48,14 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
         return mod < 2 ? 0 : 11 - mod;
     }
 
-    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    private async Task<Guid> CreateEmployee(AppEmployeeRole role)
     {
         var seed = Interlocked.Increment(ref _employeeSeed);
         var response = await _client.PostAsJsonAsync(
             "/employees",
             new CreateEmployeeRequest(
                 $"Employee Stock {seed}",
-                CustomerDocumentType.Cpf,
+                AppCustomerDocumentType.Cpf,
                 GenerateValidCpf(),
                 $"stock-test-{seed}@garageflow.test",
                 $"1196{seed % 1_0000:D4}002",
@@ -112,7 +112,7 @@ public sealed class StockEndpointsTests(GarageFlowWebApplicationFactory factory)
     /// </summary>
     private async Task<(Guid SeparationOrderId, Guid PartId)> CreateCompletedSeparationOrderAsync()
     {
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
         var partId = await CreatePart();
         var partName = "Filtro Ar";
 

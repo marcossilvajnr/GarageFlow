@@ -1,8 +1,11 @@
 using FluentAssertions;
+using GarageFlow.Application.Employees.Enums;
 using GarageFlow.Application.Employees.Handlers;
 using GarageFlow.Application.Employees.Queries;
-using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.ValueObjects;
+
+using DomainEmployee = GarageFlow.Domain.Employees.Employee;
+using DomainEmployeeRole = GarageFlow.Domain.Employees.EmployeeRole;
 
 namespace GarageFlow.Tests.Application.Employees;
 
@@ -13,14 +16,14 @@ public sealed class GetEmployeeByIdHandlerTests
     {
         var repo = new FakeEmployeeRepository();
         var address = Address.Create("Rua das Flores", "100", null, "Centro", "São Paulo", "SP", "01310100");
-        var employee = Employee.Create(
+        var employee = DomainEmployee.Create(
             "Maria Silva",
             GarageFlow.Domain.Customers.CustomerDocumentType.Cpf,
             "529.982.247-25",
             "maria@email.com",
             "11987654321",
             address,
-            EmployeeRole.Mechanic);
+            DomainEmployeeRole.Mechanic);
 
         await repo.AddAsync(employee);
         var handler = new GetEmployeeByIdHandler(repo);

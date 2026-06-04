@@ -1,5 +1,6 @@
 using GarageFlow.Application.Employees.Commands;
 using GarageFlow.Application.Employees.DTOs;
+using GarageFlow.Application.Employees.Mappers;
 using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Shared;
@@ -19,7 +20,7 @@ public sealed class UpdateEmployeeHandler(IEmployeeRepository repository)
             command.Street, command.Number, command.Complement,
             command.Neighborhood, command.City, command.State, command.ZipCode);
 
-        employee.Update(command.Name, command.Email, command.PhoneNumber, address, command.Role);
+        employee.Update(command.Name, command.Email, command.PhoneNumber, address, EmployeeRoleMapper.ToDomain(command.Role));
 
         repository.Update(employee);
         await repository.SaveChangesAsync(cancellationToken);

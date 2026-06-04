@@ -2,14 +2,14 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Executions.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Purchasing.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Suppliers.DTOs;
-using GarageFlow.Domain.Customers;
-using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.ServiceOrders;
@@ -96,12 +96,12 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         return supplier.Id;
     }
 
-    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    private async Task<Guid> CreateEmployee(AppEmployeeRole role)
     {
         var seed = Interlocked.Increment(ref _employeeSeed);
         var request = new CreateEmployeeRequest(
             $"Employee Chain {seed}",
-            CustomerDocumentType.Cpf,
+            AppCustomerDocumentType.Cpf,
             GenerateValidCpf(),
             $"chain-employee-{seed}@garageflow.test",
             $"1196{seed % 1_0000:D4}321",
@@ -194,7 +194,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var purchaseOrder = (await createResp.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions))!;
 
         var supplierId = await CreateSupplier();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
         await _client.PostAsJsonAsync(
             $"/purchase-orders/{purchaseOrder.Id}/assign-supplier",
             new AssignPurchaseOrderSupplierRequest(supplierId, stockistId));
@@ -210,7 +210,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     {
         var separation = await CreateSeparationOrderInWaitingPurchase();
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         var response = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
@@ -225,7 +225,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     {
         var separation = await CreateSeparationOrderInWaitingPurchase();
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
@@ -242,7 +242,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     {
         var nonExistentSeparationId = Guid.NewGuid();
         var purchaseOrder = await CreateStartedPurchaseOrder(nonExistentSeparationId);
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         var response = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
@@ -268,7 +268,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         await _client.PostAsync($"/separation-orders/{separation.Id}/reserve", null);
 
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         var response = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
@@ -287,7 +287,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var createResp = await _client.PostAsJsonAsync("/purchase-orders", createReq);
         createResp.EnsureSuccessStatusCode();
         var purchaseOrder = (await createResp.Content.ReadFromJsonAsync<PurchaseOrderResponse>(JsonOptions))!;
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         var response = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
 
@@ -299,7 +299,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
     [Fact]
     public async Task CompletePurchaseOrder_WhenPurchaseOrderNotFound_Returns404()
     {
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
         var response = await _client.PostAsync($"/purchase-orders/{Guid.NewGuid()}/complete", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -311,8 +311,8 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var execution = await CreateExecutionOrder();
         var separation = await CreateSeparationOrderInWaitingPurchase(execution.Id);
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
-        var mechanicId = await CreateEmployee(EmployeeRole.Mechanic);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
+        var mechanicId = await CreateEmployee(AppEmployeeRole.Mechanic);
 
         var completePurchaseResponse = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
         completePurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -329,9 +329,9 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var execution = await CreateExecutionOrder();
         var separation = await CreateSeparationOrderInWaitingPurchase(execution.Id);
         var purchaseOrder = await CreateStartedPurchaseOrder(separation.Id);
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
-        var secondStockistId = await CreateEmployee(EmployeeRole.Stockist);
-        var mechanicId = await CreateEmployee(EmployeeRole.Mechanic);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
+        var secondStockistId = await CreateEmployee(AppEmployeeRole.Stockist);
+        var mechanicId = await CreateEmployee(AppEmployeeRole.Mechanic);
 
         var completePurchaseResponse = await _client.PostAsync($"/purchase-orders/{purchaseOrder.Id}/complete", null);
         completePurchaseResponse.StatusCode.Should().Be(HttpStatusCode.OK);

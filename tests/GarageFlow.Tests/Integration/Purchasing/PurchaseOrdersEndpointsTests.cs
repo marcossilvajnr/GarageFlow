@@ -2,13 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Purchasing.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Suppliers.DTOs;
-using GarageFlow.Domain.Customers;
-using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.Integration;
@@ -105,12 +105,12 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
         return supplier.Id;
     }
 
-    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    private async Task<Guid> CreateEmployee(AppEmployeeRole role)
     {
         var seed = Interlocked.Increment(ref _employeeSeed);
         var request = new CreateEmployeeRequest(
             $"Employee Purchase {seed}",
-            CustomerDocumentType.Cpf,
+            AppCustomerDocumentType.Cpf,
             GenerateValidCpf(),
             $"purchase-employee-{seed}@garageflow.test",
             $"1197{seed % 1_0000:D4}321",
@@ -266,7 +266,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     {
         var created = await CreatePurchaseOrder();
         var supplierId = await CreateSupplier();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         var request = new AssignPurchaseOrderSupplierRequest(supplierId, stockistId);
         var response = await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/assign-supplier", request);
@@ -280,7 +280,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     public async Task AssignSupplier_WithNonExistentOrder_Returns404()
     {
         var supplierId = await CreateSupplier();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
         var request = new AssignPurchaseOrderSupplierRequest(supplierId, stockistId);
 
         var response = await _client.PostAsJsonAsync($"/purchase-orders/{Guid.NewGuid()}/assign-supplier", request);
@@ -292,7 +292,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     public async Task AssignSupplier_WithNonExistentSupplier_Returns400()
     {
         var created = await CreatePurchaseOrder();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
         var request = new AssignPurchaseOrderSupplierRequest(Guid.NewGuid(), stockistId);
 
         var response = await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/assign-supplier", request);
@@ -305,7 +305,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     {
         var created = await CreatePurchaseOrder();
         var supplierId = await CreateSupplier();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         var assignRequest = new AssignPurchaseOrderSupplierRequest(supplierId, stockistId);
         await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/assign-supplier", assignRequest);
@@ -323,7 +323,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     {
         var created = await CreatePurchaseOrder();
         var supplierId = await CreateSupplier();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/assign-supplier",
             new AssignPurchaseOrderSupplierRequest(supplierId, stockistId));
@@ -339,7 +339,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     public async Task StartPurchaseOrder_WithoutSupplier_Returns400()
     {
         var created = await CreatePurchaseOrder();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         var response = await _client.PostAsync($"/purchase-orders/{created.Id}/start", null);
 
@@ -349,7 +349,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     [Fact]
     public async Task StartPurchaseOrder_WhenNotFound_Returns404()
     {
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
         var response = await _client.PostAsync($"/purchase-orders/{Guid.NewGuid()}/start", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -360,7 +360,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     {
         var created = await CreatePurchaseOrder();
         var supplierId = await CreateSupplier();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/assign-supplier",
             new AssignPurchaseOrderSupplierRequest(supplierId, stockistId));
@@ -397,7 +397,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
         var separation = await CreateSeparationOrderInWaitingPurchase();
         var created = await CreatePurchaseOrder(ValidCreateRequest([separation.Id]));
         var supplierId = await CreateSupplier();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/assign-supplier",
             new AssignPurchaseOrderSupplierRequest(supplierId, stockistId));
@@ -417,7 +417,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
         var separation = await CreateSeparationOrderInWaitingPurchase();
         var created = await CreatePurchaseOrder(ValidCreateRequest([separation.Id]));
         var supplierId = await CreateSupplier();
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         await _client.PostAsJsonAsync($"/purchase-orders/{created.Id}/assign-supplier",
             new AssignPurchaseOrderSupplierRequest(supplierId, stockistId));
@@ -435,7 +435,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     {
         var separation = await CreateSeparationOrderInWaitingPurchase();
         var created = await CreatePurchaseOrder(ValidCreateRequest([separation.Id]));
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
 
         var response = await _client.PostAsync($"/purchase-orders/{created.Id}/complete", null);
 
@@ -445,7 +445,7 @@ public sealed class PurchaseOrdersEndpointsTests(GarageFlowWebApplicationFactory
     [Fact]
     public async Task CompletePurchaseOrder_WhenNotFound_Returns404()
     {
-        var stockistId = await CreateEmployee(EmployeeRole.Stockist);
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
         var response = await _client.PostAsync($"/purchase-orders/{Guid.NewGuid()}/complete", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

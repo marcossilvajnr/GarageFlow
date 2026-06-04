@@ -2,8 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
-using GarageFlow.Domain.Employees;
 using GarageFlow.Tests.Integration;
 
 namespace GarageFlow.Tests.Integration.Employees;
@@ -27,12 +28,12 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
 
     private static CreateEmployeeRequest ValidRequest(string document = "529.982.247-25") => new(
         "Maria Silva",
-        GarageFlow.Domain.Customers.CustomerDocumentType.Cpf,
+        AppCustomerDocumentType.Cpf,
         document,
         "maria@email.com",
         "11987654321",
         "Rua das Flores", "100", null, "Centro", "São Paulo", "SP", "01310100",
-        EmployeeRole.Mechanic);
+        AppEmployeeRole.Mechanic);
 
     [Fact]
     public async Task PostEmployee_WithValidData_Returns201()
@@ -44,7 +45,7 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
         body!.Id.Should().NotBeEmpty();
         body.IsActive.Should().BeTrue();
         body.Name.Should().Be("Maria Silva");
-        body.Role.Should().Be(EmployeeRole.Mechanic);
+        body.Role.Should().Be(AppEmployeeRole.Mechanic);
     }
 
     [Fact]
@@ -88,14 +89,14 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
         var updateRequest = new UpdateEmployeeRequest(
             "Maria Santos", "maria.santos@email.com", "11912345678",
             "Av. Paulista", "1000", "Ap 1", "Bela Vista", "São Paulo", "SP", "01310100",
-            EmployeeRole.Stockist);
+            AppEmployeeRole.Stockist);
 
         var response = await _client.PutAsJsonAsync($"/employees/{created.Id}", updateRequest);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<EmployeeResponse>(JsonOptions);
         body!.Name.Should().Be("Maria Santos");
-        body.Role.Should().Be(EmployeeRole.Stockist);
+        body.Role.Should().Be(AppEmployeeRole.Stockist);
     }
 
     [Fact]
@@ -161,7 +162,7 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
         var updateRequest = new UpdateEmployeeRequest(
             "Maria Santos", "maria.santos@email.com", "11912345678",
             "Av. Paulista", "1000", "Ap 1", "Bela Vista", "São Paulo", "SP", "01310100",
-            EmployeeRole.Stockist);
+            AppEmployeeRole.Stockist);
 
         var response = await _client.PutAsJsonAsync($"/employees/{Guid.NewGuid()}", updateRequest);
 

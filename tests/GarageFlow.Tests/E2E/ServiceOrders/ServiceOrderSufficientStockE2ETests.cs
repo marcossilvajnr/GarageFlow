@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Customers.DTOs;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Executions.DTOs;
@@ -10,7 +11,6 @@ using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Supplies.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
@@ -18,7 +18,6 @@ using GarageFlow.Domain.Supplies;
 using GarageFlow.Tests.E2E.Infrastructure;
 
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
-using DomainCustomerDocumentType = GarageFlow.Domain.Customers.CustomerDocumentType;
 
 namespace GarageFlow.Tests.E2E.ServiceOrders;
 
@@ -60,9 +59,9 @@ public sealed class ServiceOrderSufficientStockE2ETests : E2ETestBase
         forbiddenResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
 
         await AuthenticateAsAsync(_client, E2ERole.Administrative);
-        var frontDeskEmployeeId = await CreateEmployeeAsync(EmployeeRole.Attendant);
-        var mechanicEmployeeId = await CreateEmployeeAsync(EmployeeRole.Mechanic);
-        var stockistEmployeeId = await CreateEmployeeAsync(EmployeeRole.Stockist);
+        var frontDeskEmployeeId = await CreateEmployeeAsync(AppEmployeeRole.Attendant);
+        var mechanicEmployeeId = await CreateEmployeeAsync(AppEmployeeRole.Mechanic);
+        var stockistEmployeeId = await CreateEmployeeAsync(AppEmployeeRole.Stockist);
 
         var customer = await CreateCustomerAsync();
         var vehicle = await CreateVehicleAsync(customer.Id);
@@ -275,14 +274,14 @@ public sealed class ServiceOrderSufficientStockE2ETests : E2ETestBase
         return await ReadAsync<PartResponse>(response);
     }
 
-    private async Task<Guid> CreateEmployeeAsync(EmployeeRole role)
+    private async Task<Guid> CreateEmployeeAsync(AppEmployeeRole role)
     {
         var seed = Interlocked.Increment(ref _employeeSeed);
         var response = await _client.PostAsJsonAsync(
             "/employees",
             new CreateEmployeeRequest(
                 $"Funcionario E2E {seed}",
-                DomainCustomerDocumentType.Cpf,
+                AppCustomerDocumentType.Cpf,
                 GenerateValidCpf(),
                 $"funcionario-e2e-{seed}@garageflow.test",
                 $"1192{seed % 1_0000:D4}321",

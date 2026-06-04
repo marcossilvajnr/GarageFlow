@@ -2,12 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Executions.DTOs;
-using GarageFlow.Domain.Customers;
-using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Tests.Integration;
@@ -54,12 +54,12 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         return mod < 2 ? 0 : 11 - mod;
     }
 
-    private async Task<Guid> CreateEmployee(EmployeeRole role)
+    private async Task<Guid> CreateEmployee(AppEmployeeRole role)
     {
         var seed = Interlocked.Increment(ref _employeeSeed);
         var request = new CreateEmployeeRequest(
             $"Employee Separation {seed}",
-            CustomerDocumentType.Cpf,
+            AppCustomerDocumentType.Cpf,
             GenerateValidCpf(),
             $"separation-employee-{seed}@garageflow.test",
             $"1195{seed % 1_0000:D4}321",
@@ -326,7 +326,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         var created = await CreateSeparationOrder();
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
 
-        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(AppEmployeeRole.Stockist));
         var response = await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -347,7 +347,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
 
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
 
-        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(AppEmployeeRole.Stockist));
         await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
 
         var stockResponse = await _client.GetAsync($"/stock/Part/{partId}");
@@ -372,7 +372,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         await adminClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(partId, StockItemType.Part, 1m, "Ajuste operacional de teste", "sistema", null, null));
 
-        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(AppEmployeeRole.Stockist));
         var response = await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -383,7 +383,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     {
         var created = await CreateSeparationOrder();
 
-        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(AppEmployeeRole.Stockist));
         var response = await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -404,7 +404,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
     [Fact]
     public async Task ConfirmStockistWithdrawal_WhenNotFound_Returns404()
     {
-        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist));
+        var request = new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(AppEmployeeRole.Stockist));
         var response = await _client.PostAsJsonAsync($"/separation-orders/{Guid.NewGuid()}/confirm-stockist-withdrawal", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -419,7 +419,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
         await _client.PostAsJsonAsync(
             $"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
-            new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist)));
+            new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(AppEmployeeRole.Stockist)));
 
         var response = await _client.PostAsync($"/separation-orders/{created.Id}/return-total", null);
 
@@ -458,7 +458,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         var created = await CreateSeparationOrder(request);
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
         await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
-            new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist)));
+            new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(AppEmployeeRole.Stockist)));
 
         var response = await _client.PostAsync($"/separation-orders/{created.Id}/confirm-mechanic-receipt", null);
 
@@ -473,7 +473,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         var created = await CreateSeparationOrder();
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
         await _client.PostAsJsonAsync($"/separation-orders/{created.Id}/confirm-stockist-withdrawal",
-            new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(EmployeeRole.Stockist)));
+            new ConfirmSeparationStockistWithdrawalRequest(await CreateEmployee(AppEmployeeRole.Stockist)));
 
         var response = await _client.PostAsync($"/separation-orders/{created.Id}/confirm-mechanic-receipt", null);
 
