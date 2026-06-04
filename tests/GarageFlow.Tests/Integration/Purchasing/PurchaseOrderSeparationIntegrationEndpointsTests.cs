@@ -10,13 +10,13 @@ using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Purchasing.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Suppliers.DTOs;
-using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Tests.Integration;
 using Microsoft.Extensions.DependencyInjection;
+using AppExecutionOrderStatus = GarageFlow.Application.Executions.Enums.ExecutionOrderStatus;
 
 namespace GarageFlow.Tests.Integration.Purchasing;
 
@@ -349,7 +349,7 @@ public sealed class PurchaseOrderSeparationIntegrationEndpointsTests(GarageFlowW
         var executionGetResponse = await _client.GetAsync($"/execution-orders/{execution.Id}");
         executionGetResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var executionBody = await executionGetResponse.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
-        executionBody!.Status.Should().Be(ExecutionOrderStatus.Ready);
+        executionBody!.Status.Should().Be(AppExecutionOrderStatus.Ready);
 
         var startExecutionResponse = await _client.PostAsync(
             $"/execution-orders/{execution.Id}/start", null);

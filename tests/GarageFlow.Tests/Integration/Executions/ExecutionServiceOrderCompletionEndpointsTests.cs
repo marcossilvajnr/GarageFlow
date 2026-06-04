@@ -9,7 +9,6 @@ using GarageFlow.Api.Executions.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.ServiceOrders.DTOs;
 using GarageFlow.Api.Stock.DTOs;
-using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Infrastructure.Persistence;

@@ -4,11 +4,11 @@ using GarageFlow.Application.Executions.Commands;
 using GarageFlow.Application.Executions.Handlers;
 using GarageFlow.Application.Executions.Queries;
 using GarageFlow.Domain.Exceptions;
-using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.Application.ServiceOrders;
 using GarageFlow.Tests.Application.Stock;
+using AppExecutionOrderStatus = GarageFlow.Application.Executions.Enums.ExecutionOrderStatus;
 using DomainStock = GarageFlow.Domain.Stock.Stock;
 
 namespace GarageFlow.Tests.Application.Executions;
@@ -45,7 +45,7 @@ public sealed class ExecutionOrderHandlersTests
         dto.ServiceOrderId.Should().Be(command.ServiceOrderId);
         dto.ServiceId.Should().Be(command.ServiceId);
         dto.MechanicId.Should().Be(command.MechanicId);
-        dto.Status.Should().Be(ExecutionOrderStatus.Pending);
+        dto.Status.Should().Be(AppExecutionOrderStatus.Pending);
         dto.StartedAt.Should().BeNull();
         dto.CompletedAt.Should().BeNull();
         dto.ActualTimeMinutes.Should().BeNull();
@@ -168,7 +168,7 @@ public sealed class ExecutionOrderHandlersTests
         var markReadyHandler = new MarkExecutionOrderReadyHandler(repo);
         var result = await markReadyHandler.HandleAsync(new MarkExecutionOrderReadyCommand(created.Id));
 
-        result.Status.Should().Be(ExecutionOrderStatus.Ready);
+        result.Status.Should().Be(AppExecutionOrderStatus.Ready);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public sealed class ExecutionOrderHandlersTests
         var startHandler = new StartExecutionOrderHandler(repo, soRepo);
         var result = await startHandler.HandleAsync(new StartExecutionOrderCommand(created.Id));
 
-        result.Status.Should().Be(ExecutionOrderStatus.InExecution);
+        result.Status.Should().Be(AppExecutionOrderStatus.InExecution);
         result.MechanicId.Should().Be(command.MechanicId);
         result.StartedAt.Should().NotBeNull();
     }
@@ -287,7 +287,7 @@ public sealed class ExecutionOrderHandlersTests
         var completeHandler = new CompleteExecutionOrderHandler(repo, soRepo, separationRepo);
         var result = await completeHandler.HandleAsync(new CompleteExecutionOrderCommand(executionOrderId));
 
-        result.Status.Should().Be(ExecutionOrderStatus.Completed);
+        result.Status.Should().Be(AppExecutionOrderStatus.Completed);
         result.CompletedAt.Should().NotBeNull();
         result.ActualTimeMinutes.Should().NotBeNull();
         result.ActualTimeMinutes!.Value.Should().BeGreaterThanOrEqualTo(0m);

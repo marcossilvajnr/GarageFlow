@@ -8,9 +8,9 @@ using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Executions.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Stock.DTOs;
-using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.Integration;
+using AppExecutionOrderStatus = GarageFlow.Application.Executions.Enums.ExecutionOrderStatus;
 
 namespace GarageFlow.Tests.Integration.Stock;
 
@@ -143,7 +143,7 @@ public sealed class SeparationExecutionIntegrationEndpointsTests(GarageFlowWebAp
     public async Task ConfirmMechanicReceipt_MarksExecutionAsReady()
     {
         var execution = await CreateExecutionOrder();
-        execution.Status.Should().Be(ExecutionOrderStatus.Pending);
+        execution.Status.Should().Be(AppExecutionOrderStatus.Pending);
 
         var separation = await CreateSeparatedSeparationOrder(execution.Id);
 
@@ -157,7 +157,7 @@ public sealed class SeparationExecutionIntegrationEndpointsTests(GarageFlowWebAp
         executionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var updatedExecution = await executionResponse.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
 
-        updatedExecution!.Status.Should().Be(ExecutionOrderStatus.Ready);
+        updatedExecution!.Status.Should().Be(AppExecutionOrderStatus.Ready);
     }
 
     [Fact]

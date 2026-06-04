@@ -9,13 +9,13 @@ using GarageFlow.Api.Executions.DTOs;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Supplies.DTOs;
-using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Tests.Integration;
 using Microsoft.Extensions.DependencyInjection;
+using AppExecutionOrderStatus = GarageFlow.Application.Executions.Enums.ExecutionOrderStatus;
 
 namespace GarageFlow.Tests.Integration.Executions;
 
@@ -198,7 +198,7 @@ public sealed class ExecutionStockConsumptionEndpointsTests(GarageFlowWebApplica
 
         completeResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await completeResp.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(ExecutionOrderStatus.Completed);
+        body!.Status.Should().Be(AppExecutionOrderStatus.Completed);
 
         var stockAfter = (await (await _client.GetAsync($"/stock/Part/{partId}"))
             .Content.ReadFromJsonAsync<StockPositionResponse>(JsonOptions))!;

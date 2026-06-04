@@ -12,13 +12,13 @@ using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Suppliers.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.Executions;
 using GarageFlow.Domain.Purchasing;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Tests.E2E.Infrastructure;
 
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
+using AppExecutionOrderStatus = GarageFlow.Application.Executions.Enums.ExecutionOrderStatus;
 
 namespace GarageFlow.Tests.E2E.ServiceOrders;
 
@@ -123,7 +123,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
             new CreateExecutionOrderRequest(serviceOrder.Id, service.Id, mechanicEmployeeId));
         createExecutionResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var executionOrder = await ReadAsync<ExecutionOrderResponse>(createExecutionResponse);
-        executionOrder.Status.Should().Be(ExecutionOrderStatus.Pending);
+        executionOrder.Status.Should().Be(AppExecutionOrderStatus.Pending);
 
         await SeedStockAsync(part.Id, StockItemType.Part, 1m);
 
@@ -208,13 +208,13 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         var readyExecutionOrderResponse = await _client.GetAsync($"/execution-orders/{executionOrder.Id}");
         readyExecutionOrderResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var readyExecutionOrder = await ReadAsync<ExecutionOrderResponse>(readyExecutionOrderResponse);
-        readyExecutionOrder.Status.Should().Be(ExecutionOrderStatus.Ready);
+        readyExecutionOrder.Status.Should().Be(AppExecutionOrderStatus.Ready);
 
         var startExecutionResponse = await _client.PostAsync(
             $"/execution-orders/{executionOrder.Id}/start", null);
         startExecutionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var inExecutionOrder = await ReadAsync<ExecutionOrderResponse>(startExecutionResponse);
-        inExecutionOrder.Status.Should().Be(ExecutionOrderStatus.InExecution);
+        inExecutionOrder.Status.Should().Be(AppExecutionOrderStatus.InExecution);
 
         var serviceOrderInExecution = await GetServiceOrderAsync(serviceOrder.Id);
         serviceOrderInExecution.Status.Should().Be(ServiceOrderStatus.InExecution);
@@ -229,7 +229,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
             null);
         completeExecutionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var completedExecutionOrder = await ReadAsync<ExecutionOrderResponse>(completeExecutionResponse);
-        completedExecutionOrder.Status.Should().Be(ExecutionOrderStatus.Completed);
+        completedExecutionOrder.Status.Should().Be(AppExecutionOrderStatus.Completed);
 
         var finishedServiceOrder = await GetServiceOrderAsync(serviceOrder.Id);
         finishedServiceOrder.Status.Should().Be(ServiceOrderStatus.Finished);
@@ -249,7 +249,7 @@ public sealed class ServiceOrderStockShortagePurchaseE2ETests : E2ETestBase
         var finalExecutionResponse = await _client.GetAsync($"/execution-orders/{executionOrder.Id}");
         finalExecutionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var finalExecutionOrder = await ReadAsync<ExecutionOrderResponse>(finalExecutionResponse);
-        finalExecutionOrder.Status.Should().Be(ExecutionOrderStatus.Completed);
+        finalExecutionOrder.Status.Should().Be(AppExecutionOrderStatus.Completed);
     }
 
     private async Task<CustomerResponse> CreateCustomerAsync()

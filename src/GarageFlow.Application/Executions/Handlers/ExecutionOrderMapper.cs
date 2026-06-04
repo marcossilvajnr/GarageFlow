@@ -1,4 +1,5 @@
 using GarageFlow.Application.Executions.DTOs;
+using GarageFlow.Application.Executions.Mappers;
 using GarageFlow.Domain.Executions;
 
 namespace GarageFlow.Application.Executions.Handlers;
@@ -11,7 +12,7 @@ internal static class ExecutionOrderMapper
             executionOrder.ServiceOrderId,
             executionOrder.ServiceId,
             executionOrder.MechanicId,
-            executionOrder.Status,
+            ExecutionOrderStatusMapper.ToApplication(executionOrder.Status),
             executionOrder.StartedAt,
             executionOrder.CompletedAt,
             executionOrder.ActualTimeMinutes,
