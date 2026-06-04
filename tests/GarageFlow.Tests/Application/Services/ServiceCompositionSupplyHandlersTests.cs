@@ -4,6 +4,7 @@ using GarageFlow.Application.Services.Handlers;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Tests.Application.Supplies;
+using AppSupplyUnit = GarageFlow.Application.Services.Enums.SupplyUnit;
 
 namespace GarageFlow.Tests.Application.Services;
 
@@ -36,7 +37,7 @@ public sealed class AddServiceSupplyHandlerTests
         dto.Supplies[0].SupplyId.Should().Be(supplyId);
         dto.Supplies[0].SupplyName.Should().Be("Óleo Motor");
         dto.Supplies[0].Quantity.Should().Be(1.5m);
-        dto.Supplies[0].Unit.Should().Be(SupplyUnit.Liter);
+        dto.Supplies[0].Unit.Should().Be(AppSupplyUnit.Liter);
     }
 
     [Fact]
