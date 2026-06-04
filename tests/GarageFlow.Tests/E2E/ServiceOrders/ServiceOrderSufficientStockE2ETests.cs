@@ -15,7 +15,8 @@ using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Supplies.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.ServiceOrders;
+using AppQuoteStatus = GarageFlow.Application.ServiceOrders.Enums.QuoteStatus;
+using AppServiceOrderStatus = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderStatus;
 using GarageFlow.Domain.Stock;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Tests.E2E.Infrastructure;
@@ -88,14 +89,14 @@ public sealed class ServiceOrderSufficientStockE2ETests : E2ETestBase
             new CreateServiceOrderRequest(customer.Id, vehicle.Id, frontDeskEmployeeId));
         createServiceOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var serviceOrder = await ReadAsync<ServiceOrderResponse>(createServiceOrderResponse);
-        serviceOrder.Status.Should().Be(ServiceOrderStatus.Received);
+        serviceOrder.Status.Should().Be(AppServiceOrderStatus.Received);
 
         var startDiagnosticResponse = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/start",
             new StartDiagnosticRequest(mechanicEmployeeId));
         startDiagnosticResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var serviceOrderInDiagnostic = await ReadAsync<ServiceOrderResponse>(startDiagnosticResponse);
-        serviceOrderInDiagnostic.Status.Should().Be(ServiceOrderStatus.InDiagnostic);
+        serviceOrderInDiagnostic.Status.Should().Be(AppServiceOrderStatus.InDiagnostic);
 
         var addDiagnosticServiceResponse = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/services",
@@ -117,17 +118,17 @@ public sealed class ServiceOrderSufficientStockE2ETests : E2ETestBase
             null);
         generateQuoteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var generatedQuote = await ReadAsync<QuoteResponse>(generateQuoteResponse);
-        generatedQuote.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
+        generatedQuote.Status.Should().Be(AppQuoteStatus.WaitingCustomerApproval);
 
         var acceptQuoteResponse = await _client.PostAsync(
             $"/service-orders/{serviceOrder.Id}/quote/accept",
             null);
         acceptQuoteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var acceptedQuote = await ReadAsync<QuoteResponse>(acceptQuoteResponse);
-        acceptedQuote.Status.Should().Be(QuoteStatus.CustomerApproved);
+        acceptedQuote.Status.Should().Be(AppQuoteStatus.CustomerApproved);
 
         var approvedServiceOrder = await GetServiceOrderAsync(serviceOrder.Id);
-        approvedServiceOrder.Status.Should().Be(ServiceOrderStatus.Approved);
+        approvedServiceOrder.Status.Should().Be(AppServiceOrderStatus.Approved);
 
         var createExecutionResponse = await _client.PostAsJsonAsync(
             "/execution-orders",
@@ -189,7 +190,7 @@ public sealed class ServiceOrderSufficientStockE2ETests : E2ETestBase
         inExecutionOrder.Status.Should().Be(AppExecutionOrderStatus.InExecution);
 
         var serviceOrderInExecution = await GetServiceOrderAsync(serviceOrder.Id);
-        serviceOrderInExecution.Status.Should().Be(ServiceOrderStatus.InExecution);
+        serviceOrderInExecution.Status.Should().Be(AppServiceOrderStatus.InExecution);
 
         var deliverBeforeFinishResponse = await _client.PostAsync(
             $"/service-orders/{serviceOrder.Id}/deliver",
@@ -204,14 +205,14 @@ public sealed class ServiceOrderSufficientStockE2ETests : E2ETestBase
         completedExecutionOrder.Status.Should().Be(AppExecutionOrderStatus.Completed);
 
         var finishedServiceOrder = await GetServiceOrderAsync(serviceOrder.Id);
-        finishedServiceOrder.Status.Should().Be(ServiceOrderStatus.Finished);
+        finishedServiceOrder.Status.Should().Be(AppServiceOrderStatus.Finished);
 
         var deliverResponse = await _client.PostAsync(
             $"/service-orders/{serviceOrder.Id}/deliver",
             null);
         deliverResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var deliveredServiceOrder = await ReadAsync<ServiceOrderResponse>(deliverResponse);
-        deliveredServiceOrder.Status.Should().Be(ServiceOrderStatus.Delivered);
+        deliveredServiceOrder.Status.Should().Be(AppServiceOrderStatus.Delivered);
 
         var finalSeparationResponse = await _client.GetAsync($"/separation-orders/{separationOrder.Id}");
         finalSeparationResponse.StatusCode.Should().Be(HttpStatusCode.OK);

@@ -1,4 +1,5 @@
 using GarageFlow.Application.ServiceOrders.DTOs;
+using GarageFlow.Application.ServiceOrders.Mappers;
 using GarageFlow.Domain.ServiceOrders;
 
 namespace GarageFlow.Application.ServiceOrders.Handlers;
@@ -11,7 +12,7 @@ internal static class ServiceOrderMapper
             serviceOrder.CustomerId,
             serviceOrder.VehicleId,
             serviceOrder.FrontDeskEmployeeId,
-            serviceOrder.Status,
+            ServiceOrderStatusMapper.ToApplication(serviceOrder.Status),
             serviceOrder.Diagnostic is not null ? ToDiagnosticDto(serviceOrder.Diagnostic) : null,
             serviceOrder.Quote is not null ? ToQuoteDto(serviceOrder.Quote) : null,
             serviceOrder.CreatedAt,
@@ -25,7 +26,7 @@ internal static class ServiceOrderMapper
             quote.ServiceOrderId,
             quote.Items.Select(ToQuoteItemDto).ToList(),
             quote.TotalAmount,
-            quote.Status,
+            QuoteStatusMapper.ToApplication(quote.Status),
             quote.GeneratedAt,
             quote.AcceptedAt,
             quote.RejectedAt,
@@ -49,13 +50,13 @@ internal static class ServiceOrderMapper
             diagnostic.SelectedServices,
             diagnostic.StartedAt,
             diagnostic.CompletedAt,
-            diagnostic.Status);
+            DiagnosticStatusMapper.ToApplication(diagnostic.Status));
 
     private static ServiceOrderServiceItemDto ToServiceItemDto(ServiceOrderServiceItem item) =>
         new(
             item.Id,
             item.ServiceId,
-            item.Source,
+            ServiceSourceMapper.ToApplication(item.Source),
             item.AddedByActorId,
             item.AddedAt,
             item.IsActive,
@@ -67,8 +68,8 @@ internal static class ServiceOrderMapper
         new(
             history.Id,
             history.ServiceId,
-            history.Action,
-            history.Source,
+            ServiceOrderServiceActionMapper.ToApplication(history.Action),
+            ServiceSourceMapper.ToApplication(history.Source),
             history.ActorId,
             history.OccurredAt,
             history.Reason);

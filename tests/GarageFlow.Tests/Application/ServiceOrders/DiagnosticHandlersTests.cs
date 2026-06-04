@@ -9,6 +9,10 @@ using GarageFlow.Domain.Services;
 using GarageFlow.Domain.ValueObjects;
 using GarageFlow.Tests.Application.Employees;
 using GarageFlow.Tests.Application.Services;
+using AppDiagnosticStatus = GarageFlow.Application.ServiceOrders.Enums.DiagnosticStatus;
+using AppServiceOrderServiceAction = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderServiceAction;
+using AppServiceOrderStatus = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderStatus;
+using AppServiceSource = GarageFlow.Application.ServiceOrders.Enums.ServiceSource;
 
 namespace GarageFlow.Tests.Application.ServiceOrders;
 
@@ -53,8 +57,8 @@ public sealed class DiagnosticHandlersTests
 
         dto.Diagnostic.Should().NotBeNull();
         dto.Diagnostic!.MechanicId.Should().Be(mechanic.Id);
-        dto.Diagnostic.Status.Should().Be(DiagnosticStatus.InProgress);
-        dto.Status.Should().Be(ServiceOrderStatus.InDiagnostic);
+        dto.Diagnostic.Status.Should().Be(AppDiagnosticStatus.InProgress);
+        dto.Status.Should().Be(AppServiceOrderStatus.InDiagnostic);
     }
 
     [Fact]
@@ -282,7 +286,7 @@ public sealed class DiagnosticHandlersTests
 
         var dto = await handler.HandleAsync(command);
 
-        dto.Diagnostic!.Status.Should().Be(DiagnosticStatus.Completed);
+        dto.Diagnostic!.Status.Should().Be(AppDiagnosticStatus.Completed);
         dto.Diagnostic.Description.Should().Be("Motor com desgaste nas buchas.");
         dto.Diagnostic.CompletedAt.Should().NotBeNull();
     }
@@ -371,8 +375,8 @@ public sealed class DiagnosticHandlersTests
         dto.Services.Should().ContainSingle(s => s.ServiceId == serviceId && s.IsActive);
         dto.ServiceHistory.Should().ContainSingle(h =>
             h.ServiceId == serviceId &&
-            h.Action == ServiceOrderServiceAction.Added &&
-            h.Source == ServiceSource.Diagnostic);
+            h.Action == AppServiceOrderServiceAction.Added &&
+            h.Source == AppServiceSource.Diagnostic);
     }
 
     [Fact]

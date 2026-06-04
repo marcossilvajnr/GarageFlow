@@ -8,6 +8,7 @@ using GarageFlow.Domain.Services;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Domain.ValueObjects;
 using GarageFlow.Tests.Application.Services;
+using AppServiceOrderServiceAction = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderServiceAction;
 
 namespace GarageFlow.Tests.Application.ServiceOrders;
 
@@ -47,7 +48,7 @@ public sealed class ServiceOrderServiceHandlersTests
         dto.Services.Should().HaveCount(1);
         dto.Services.Single().ServiceId.Should().Be(service.Id);
         dto.ServiceHistory.Should().HaveCount(1);
-        dto.ServiceHistory.Single().Action.Should().Be(ServiceOrderServiceAction.Added);
+        dto.ServiceHistory.Single().Action.Should().Be(AppServiceOrderServiceAction.Added);
     }
 
     [Fact]

@@ -10,7 +10,8 @@ using GarageFlow.Api.ServiceOrders.DTOs;
 using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.ServiceOrders;
+using AppQuoteStatus = GarageFlow.Application.ServiceOrders.Enums.QuoteStatus;
+using AppServiceOrderStatus = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderStatus;
 using GarageFlow.Tests.E2E.Infrastructure;
 
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
@@ -49,14 +50,14 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
             new CreateServiceOrderRequest(customer.Id, vehicle.Id, frontDeskEmployeeId));
         createServiceOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var serviceOrder = await ReadAsync<ServiceOrderResponse>(createServiceOrderResponse);
-        serviceOrder.Status.Should().Be(ServiceOrderStatus.Received);
+        serviceOrder.Status.Should().Be(AppServiceOrderStatus.Received);
 
         var startDiagnosticResponse = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/start",
             new StartDiagnosticRequest(mechanicEmployeeId));
         startDiagnosticResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var inDiagnosticOrder = await ReadAsync<ServiceOrderResponse>(startDiagnosticResponse);
-        inDiagnosticOrder.Status.Should().Be(ServiceOrderStatus.InDiagnostic);
+        inDiagnosticOrder.Status.Should().Be(AppServiceOrderStatus.InDiagnostic);
 
         var addDiagnosticServiceResponse = await _client.PostAsJsonAsync(
             $"/service-orders/{serviceOrder.Id}/diagnostic/services",
@@ -78,10 +79,10 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
             null);
         generateQuoteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var generatedQuote = await ReadAsync<QuoteResponse>(generateQuoteResponse);
-        generatedQuote.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
+        generatedQuote.Status.Should().Be(AppQuoteStatus.WaitingCustomerApproval);
 
         var waitingApprovalOrder = await GetServiceOrderAsync(serviceOrder.Id);
-        waitingApprovalOrder.Status.Should().Be(ServiceOrderStatus.WaitingApproval);
+        waitingApprovalOrder.Status.Should().Be(AppServiceOrderStatus.WaitingApproval);
 
         // Last allowed cancellation stage in current API/canonical implementation:
         // customer quote rejection while waiting approval.
@@ -91,12 +92,12 @@ public sealed class ServiceOrderCancellationLatestStageE2ETests : E2ETestBase
             new RejectQuoteRequest(rejectionReason));
         rejectQuoteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var rejectedQuote = await ReadAsync<QuoteResponse>(rejectQuoteResponse);
-        rejectedQuote.Status.Should().Be(QuoteStatus.CustomerRejected);
+        rejectedQuote.Status.Should().Be(AppQuoteStatus.CustomerRejected);
         rejectedQuote.RejectionReason.Should().Be(rejectionReason);
         rejectedQuote.RejectedAt.Should().NotBeNull();
 
         var rejectedServiceOrder = await GetServiceOrderAsync(serviceOrder.Id);
-        rejectedServiceOrder.Status.Should().Be(ServiceOrderStatus.Rejected);
+        rejectedServiceOrder.Status.Should().Be(AppServiceOrderStatus.Rejected);
 
         // Forward progression must be blocked after cancellation.
         var acceptAfterRejectResponse = await _client.PostAsync(

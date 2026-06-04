@@ -8,7 +8,11 @@ using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.ServiceOrders.DTOs;
 using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
-using GarageFlow.Domain.ServiceOrders;
+using AppDiagnosticStatus = GarageFlow.Application.ServiceOrders.Enums.DiagnosticStatus;
+using AppQuoteStatus = GarageFlow.Application.ServiceOrders.Enums.QuoteStatus;
+using AppServiceOrderServiceAction = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderServiceAction;
+using AppServiceOrderStatus = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderStatus;
+using AppServiceSource = GarageFlow.Application.ServiceOrders.Enums.ServiceSource;
 using GarageFlow.Tests.Integration;
 
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
@@ -168,7 +172,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         body!.Id.Should().NotBeEmpty();
         body.CustomerId.Should().Be(customer.Id);
         body.VehicleId.Should().Be(vehicle.Id);
-        body.Status.Should().Be(ServiceOrderStatus.Received);
+        body.Status.Should().Be(AppServiceOrderStatus.Received);
         body.Services.Should().BeEmpty();
         body.ServiceHistory.Should().BeEmpty();
     }
@@ -241,7 +245,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
         body!.Id.Should().Be(created.Id);
-        body.Status.Should().Be(ServiceOrderStatus.Received);
+        body.Status.Should().Be(AppServiceOrderStatus.Received);
         body.Services.Should().NotBeNull();
         body.ServiceHistory.Should().NotBeNull();
     }
@@ -325,7 +329,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         body.Services.Single().ServiceId.Should().Be(service.Id);
         body.Services.Single().IsActive.Should().BeTrue();
         body.ServiceHistory.Should().HaveCount(1);
-        body.ServiceHistory.Single().Action.Should().Be(ServiceOrderServiceAction.Added);
+        body.ServiceHistory.Single().Action.Should().Be(AppServiceOrderServiceAction.Added);
     }
 
     [Fact]
@@ -587,10 +591,10 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(ServiceOrderStatus.InDiagnostic);
+        body!.Status.Should().Be(AppServiceOrderStatus.InDiagnostic);
         body.Diagnostic.Should().NotBeNull();
         body.Diagnostic!.MechanicId.Should().Be(mechanicId);
-        body.Diagnostic.Status.Should().Be(DiagnosticStatus.InProgress);
+        body.Diagnostic.Status.Should().Be(AppDiagnosticStatus.InProgress);
         body.Diagnostic.SelectedServices.Should().BeEmpty();
     }
 
@@ -799,7 +803,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
-        body!.Diagnostic!.Status.Should().Be(DiagnosticStatus.Completed);
+        body!.Diagnostic!.Status.Should().Be(AppDiagnosticStatus.Completed);
         body.Diagnostic.Description.Should().Be("Problema na injeção eletrônica identificado.");
         body.Diagnostic.CompletedAt.Should().NotBeNull();
     }
@@ -893,7 +897,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
         body!.Diagnostic.Should().NotBeNull();
         body.Diagnostic!.MechanicId.Should().Be(mechanicId);
-        body.Diagnostic.Status.Should().Be(DiagnosticStatus.InProgress);
+        body.Diagnostic.Status.Should().Be(AppDiagnosticStatus.InProgress);
     }
 
     // Task-016: Consolidate diagnostic services integration tests
@@ -925,12 +929,12 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
         body!.Services.Should().ContainSingle(s => s.ServiceId == service.Id && s.IsActive);
-        body.Services.Single().Source.Should().Be(ServiceSource.Diagnostic);
+        body.Services.Single().Source.Should().Be(AppServiceSource.Diagnostic);
         body.Services.Single().AddedByActorId.Should().Be(mechanicId);
         body.ServiceHistory.Should().ContainSingle(h =>
             h.ServiceId == service.Id &&
-            h.Action == ServiceOrderServiceAction.Added &&
-            h.Source == ServiceSource.Diagnostic);
+            h.Action == AppServiceOrderServiceAction.Added &&
+            h.Source == AppServiceSource.Diagnostic);
     }
 
     [Fact]
@@ -1010,8 +1014,8 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         body!.Services.Should().ContainSingle(s => s.ServiceId == service.Id && s.IsActive);
         body.ServiceHistory.Should().ContainSingle(h =>
             h.ServiceId == service.Id &&
-            h.Action == ServiceOrderServiceAction.Added &&
-            h.Source == ServiceSource.Diagnostic);
+            h.Action == AppServiceOrderServiceAction.Added &&
+            h.Source == AppServiceSource.Diagnostic);
     }
 
     [Fact]
@@ -1071,7 +1075,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
-        quote!.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
+        quote!.Status.Should().Be(AppQuoteStatus.WaitingCustomerApproval);
         quote.Items.Should().HaveCount(1);
         quote.TotalAmount.Should().Be(quote.Items.Sum(i => i.Subtotal));
         quote.ServiceOrderId.Should().Be(so.Id);
@@ -1119,7 +1123,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
-        quote!.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
+        quote!.Status.Should().Be(AppQuoteStatus.WaitingCustomerApproval);
         quote.ServiceOrderId.Should().Be(so.Id);
     }
 
@@ -1153,7 +1157,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
-        quote!.Status.Should().Be(QuoteStatus.CustomerApproved);
+        quote!.Status.Should().Be(AppQuoteStatus.CustomerApproved);
         quote.AcceptedAt.Should().NotBeNull();
     }
 
@@ -1200,7 +1204,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var quote = await response.Content.ReadFromJsonAsync<QuoteResponse>(JsonOptions);
-        quote!.Status.Should().Be(QuoteStatus.CustomerRejected);
+        quote!.Status.Should().Be(AppQuoteStatus.CustomerRejected);
         quote.RejectedAt.Should().NotBeNull();
         quote.RejectionReason.Should().Be("Valor acima do orçamento esperado");
     }
@@ -1265,7 +1269,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
         body!.Quote.Should().NotBeNull();
-        body.Quote!.Status.Should().Be(QuoteStatus.WaitingCustomerApproval);
+        body.Quote!.Status.Should().Be(AppQuoteStatus.WaitingCustomerApproval);
     }
 
     // Task-018: Quote Decision Status Gate
@@ -1281,7 +1285,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(ServiceOrderStatus.Approved);
+        body!.Status.Should().Be(AppServiceOrderStatus.Approved);
     }
 
     [Fact]
@@ -1296,7 +1300,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
-        body!.Status.Should().Be(ServiceOrderStatus.Rejected);
+        body!.Status.Should().Be(AppServiceOrderStatus.Rejected);
     }
 
     [Fact]
@@ -1312,7 +1316,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var body = await response.Content.ReadFromJsonAsync<PagedServiceOrderResponse>(JsonOptions);
         var entry = body!.Items.FirstOrDefault(i => i.Id == so.Id);
         entry.Should().NotBeNull();
-        entry!.Status.Should().Be(ServiceOrderStatus.Approved);
+        entry!.Status.Should().Be(AppServiceOrderStatus.Approved);
     }
 
     [Fact]

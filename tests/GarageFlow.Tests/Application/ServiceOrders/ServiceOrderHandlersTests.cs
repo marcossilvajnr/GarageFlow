@@ -9,6 +9,7 @@ using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.ValueObjects;
 using GarageFlow.Domain.Vehicles;
 using GarageFlow.Tests.Application.Employees;
+using AppServiceOrderStatus = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderStatus;
 
 namespace GarageFlow.Tests.Application.ServiceOrders;
 
@@ -65,7 +66,7 @@ public sealed class ServiceOrderHandlersTests
         dto.Id.Should().NotBeEmpty();
         dto.CustomerId.Should().Be(customer.Id);
         dto.VehicleId.Should().Be(vehicle.Id);
-        dto.Status.Should().Be(ServiceOrderStatus.Received);
+        dto.Status.Should().Be(AppServiceOrderStatus.Received);
         dto.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
@@ -182,7 +183,7 @@ public sealed class ServiceOrderHandlersTests
 
         dto.Should().NotBeNull();
         dto.Id.Should().Be(serviceOrder.Id);
-        dto.Status.Should().Be(ServiceOrderStatus.Received);
+        dto.Status.Should().Be(AppServiceOrderStatus.Received);
     }
 
     [Fact]

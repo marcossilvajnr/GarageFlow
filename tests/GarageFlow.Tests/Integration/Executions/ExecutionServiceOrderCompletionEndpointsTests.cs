@@ -8,6 +8,7 @@ using AppStockOperationType = GarageFlow.Application.Stock.Enums.StockOperationT
 using AppSupplyUnit = GarageFlow.Application.Stock.Enums.SupplyUnit;
 using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerDocumentType;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
+using AppServiceOrderStatus = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderStatus;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Executions.DTOs;
 using GarageFlow.Api.Parts.DTOs;
@@ -182,7 +183,7 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
         var soResponse = await _client.GetAsync($"/service-orders/{serviceOrderId}");
         soResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var so = await soResponse.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
-        so!.Status.Should().Be(ServiceOrderStatus.InExecution);
+        so!.Status.Should().Be(AppServiceOrderStatus.InExecution);
     }
 
     // --- POST /execution-orders/{id}/complete com última execução leva OS ao status final ---
@@ -203,7 +204,7 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
         var soResponse = await _client.GetAsync($"/service-orders/{serviceOrderId}");
         soResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var so = await soResponse.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
-        so!.Status.Should().Be(ServiceOrderStatus.Finished);
+        so!.Status.Should().Be(AppServiceOrderStatus.Finished);
     }
 
     [Fact]
@@ -225,7 +226,7 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
         await _client.PostAsync($"/execution-orders/{first.Id}/complete", null);
         var soAfterFirst = await (await _client.GetAsync($"/service-orders/{serviceOrderId}"))
             .Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
-        soAfterFirst!.Status.Should().Be(ServiceOrderStatus.InExecution);
+        soAfterFirst!.Status.Should().Be(AppServiceOrderStatus.InExecution);
 
         // Complete second — SO transitions to Finished
         var lastCompleteResponse = await _client.PostAsync($"/execution-orders/{second.Id}/complete", null);
@@ -233,7 +234,7 @@ public sealed class ExecutionServiceOrderCompletionEndpointsTests(GarageFlowWebA
 
         var soAfterLast = await (await _client.GetAsync($"/service-orders/{serviceOrderId}"))
             .Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
-        soAfterLast!.Status.Should().Be(ServiceOrderStatus.Finished);
+        soAfterLast!.Status.Should().Be(AppServiceOrderStatus.Finished);
     }
 
     // --- Erros: 404 para execução inexistente ---

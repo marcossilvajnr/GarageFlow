@@ -1,5 +1,3 @@
-using GarageFlow.Domain.ServiceOrders;
-
 namespace GarageFlow.Application.ServiceOrders.DTOs;
 
 public sealed record QuoteItemDto(
