@@ -1,4 +1,5 @@
 using System.Text;
+using GarageFlow.Api.ErrorHandling;
 using GarageFlow.Api.Health.Endpoints;
 using GarageFlow.Api.Development.Endpoints;
 using GarageFlow.Api.Auth.Endpoints;
@@ -28,6 +29,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GarageFlowExceptionHandler>();
 builder.Services.AddSwaggerGen(options =>
 {
     // Prevent schema id collisions for DTOs with the same type name in different namespaces.
@@ -126,6 +129,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.Use(async (context, next) =>
 {
