@@ -5,14 +5,14 @@ using GarageFlow.Application.Stock.DTOs;
 using GarageFlow.Application.Stock.Enums;
 using GarageFlow.Application.Stock.Handlers;
 using GarageFlow.Application.Stock.Queries;
-using GarageFlow.Domain.Exceptions;
-using GarageFlow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Stock.Endpoints;
 
 public static class StockEndpoints
 {
+    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
+
     public static IEndpointRouteBuilder MapStockEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/stock").WithTags("Stock");
@@ -88,31 +88,16 @@ public static class StockEndpoints
         CreateStockEntryHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateStockEntryCommand(
-                request.ItemId,
-                request.ItemType,
-                request.Quantity,
-                request.MinimumQuantity,
-                request.Reason,
-                request.ReferenceId);
+        var command = new CreateStockEntryCommand(
+            request.ItemId,
+            request.ItemType,
+            request.Quantity,
+            request.MinimumQuantity,
+            request.Reason,
+            request.ReferenceId);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(ToPositionResponse(dto));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(ToProblem("Não encontrado", ex.Message, 404));
-        }
-        catch (DuplicateStockDataException ex)
-        {
-            return Results.Conflict(ToProblem("Conflito", ex.Message, 409));
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(ToProblem("Erro de validação", ex.Message, 400));
-        }
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(ToPositionResponse(dto));
     }
 
     private static async Task<IResult> ReserveStock(
@@ -120,26 +105,11 @@ public static class StockEndpoints
         ReserveStockHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(
-                new ReserveStockCommand(request.ItemId, request.ItemType, request.Quantity, request.Reason, request.ReferenceId),
-                cancellationToken);
+        var dto = await handler.HandleAsync(
+            new ReserveStockCommand(request.ItemId, request.ItemType, request.Quantity, request.Reason, request.ReferenceId),
+            cancellationToken);
 
-            return Results.Ok(ToPositionResponse(dto));
-        }
-        catch (StockQuantityConflictException ex)
-        {
-            return Results.Conflict(ToProblem("Conflito", ex.Message, 409));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(ToProblem("Não encontrado", ex.Message, 404));
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(ToProblem("Erro de validação", ex.Message, 400));
-        }
+        return Results.Ok(ToPositionResponse(dto));
     }
 
     private static async Task<IResult> ReleaseStockReservation(
@@ -147,33 +117,18 @@ public static class StockEndpoints
         ReleaseStockReservationHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(
-                new ReleaseStockReservationCommand(
-                    request.ItemId,
-                    request.ItemType,
-                    request.Quantity,
-                    request.Reason,
-                    request.PerformedBy,
-                    request.ReferenceId,
-                    request.ReferenceType),
-                cancellationToken);
+        var dto = await handler.HandleAsync(
+            new ReleaseStockReservationCommand(
+                request.ItemId,
+                request.ItemType,
+                request.Quantity,
+                request.Reason,
+                request.PerformedBy,
+                request.ReferenceId,
+                request.ReferenceType),
+            cancellationToken);
 
-            return Results.Ok(ToPositionResponse(dto));
-        }
-        catch (StockQuantityConflictException ex)
-        {
-            return Results.Conflict(ToProblem("Conflito", ex.Message, 409));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(ToProblem("Não encontrado", ex.Message, 404));
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(ToProblem("Erro de validação", ex.Message, 400));
-        }
+        return Results.Ok(ToPositionResponse(dto));
     }
 
     private static async Task<IResult> ConsumeStock(
@@ -181,26 +136,11 @@ public static class StockEndpoints
         ConsumeStockHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(
-                new ConsumeStockCommand(request.ItemId, request.ItemType, request.Quantity, request.Reason, request.ReferenceId),
-                cancellationToken);
+        var dto = await handler.HandleAsync(
+            new ConsumeStockCommand(request.ItemId, request.ItemType, request.Quantity, request.Reason, request.ReferenceId),
+            cancellationToken);
 
-            return Results.Ok(ToPositionResponse(dto));
-        }
-        catch (StockQuantityConflictException ex)
-        {
-            return Results.Conflict(ToProblem("Conflito", ex.Message, 409));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(ToProblem("Não encontrado", ex.Message, 404));
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(ToProblem("Erro de validação", ex.Message, 400));
-        }
+        return Results.Ok(ToPositionResponse(dto));
     }
 
     private static async Task<IResult> AdjustStock(
@@ -208,26 +148,11 @@ public static class StockEndpoints
         AdjustStockHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(
-                new AdjustStockCommand(request.ItemId, request.ItemType, request.QuantityDelta, request.Reason, request.ReferenceId),
-                cancellationToken);
+        var dto = await handler.HandleAsync(
+            new AdjustStockCommand(request.ItemId, request.ItemType, request.QuantityDelta, request.Reason, request.ReferenceId),
+            cancellationToken);
 
-            return Results.Ok(ToPositionResponse(dto));
-        }
-        catch (StockQuantityConflictException ex)
-        {
-            return Results.Conflict(ToProblem("Conflito", ex.Message, 409));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(ToProblem("Não encontrado", ex.Message, 404));
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(ToProblem("Erro de validação", ex.Message, 400));
-        }
+        return Results.Ok(ToPositionResponse(dto));
     }
 
     private static async Task<IResult> GetStockPosition(
@@ -236,15 +161,8 @@ public static class StockEndpoints
         GetStockPositionHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new GetStockPositionQuery(itemId, itemType), cancellationToken);
-            return Results.Ok(ToPositionResponse(dto));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(ToProblem("Não encontrado", ex.Message, 404));
-        }
+        var dto = await handler.HandleAsync(new GetStockPositionQuery(itemId, itemType), cancellationToken);
+        return Results.Ok(ToPositionResponse(dto));
     }
 
     private static async Task<IResult> ListStockOperations(
@@ -259,28 +177,22 @@ public static class StockEndpoints
     {
         if (page < 1 || pageSize < 1 || pageSize > StockPaginationDefaults.MaxPageSize)
         {
-            return Results.BadRequest(ToProblem("Erro de validação", DomainErrorMessages.InvalidPaginationParameters, 400));
+            return Results.BadRequest(new ProblemDetails
+            {
+                Title = "Erro de validação",
+                Detail = InvalidPaginationParameters,
+                Status = 400
+            });
         }
 
         var query = new ListStockOperationsQuery(itemId, itemType, from, to, page, pageSize);
-
-        try
-        {
-            var result = await handler.HandleAsync(query, cancellationToken);
-            return Results.Ok(new PagedStockOperationsResponse(
-                result.Items.Select(ToOperationResponse).ToList(),
-                result.Page,
-                result.PageSize,
-                result.TotalCount));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(ToProblem("Não encontrado", ex.Message, 404));
-        }
+        var result = await handler.HandleAsync(query, cancellationToken);
+        return Results.Ok(new PagedStockOperationsResponse(
+            result.Items.Select(ToOperationResponse).ToList(),
+            result.Page,
+            result.PageSize,
+            result.TotalCount));
     }
-
-    private static ProblemDetails ToProblem(string title, string detail, int status)
-        => new() { Title = title, Detail = detail, Status = status };
 
     private static StockPositionResponse ToPositionResponse(StockPositionDto dto) =>
         new(
