@@ -3,14 +3,14 @@ using GarageFlow.Application.Stock.Commands;
 using GarageFlow.Application.Stock.DTOs;
 using GarageFlow.Application.Stock.Handlers;
 using GarageFlow.Application.Stock.Queries;
-using GarageFlow.Domain.Exceptions;
-using GarageFlow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Stock.Endpoints;
 
 public static class SeparationOrdersEndpoints
 {
+    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
+
     public static IEndpointRouteBuilder MapSeparationOrderEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/separation-orders").WithTags("SeparationOrders");
@@ -91,25 +91,18 @@ public static class SeparationOrdersEndpoints
         CreateSeparationOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateSeparationOrderCommand(
-                request.ExecutionOrderId,
-                (request.Parts ?? [])
-                    .Select(p => new CreateSeparationPartItemCommand(p.PartId, p.PartName, p.Quantity))
-                    .ToList(),
-                (request.Supplies ?? [])
-                    .Select(s => new CreateSeparationSupplyItemCommand(s.SupplyId, s.SupplyName, s.Quantity, s.Unit))
-                    .ToList());
+        var command = new CreateSeparationOrderCommand(
+            request.ExecutionOrderId,
+            (request.Parts ?? [])
+                .Select(p => new CreateSeparationPartItemCommand(p.PartId, p.PartName, p.Quantity))
+                .ToList(),
+            (request.Supplies ?? [])
+                .Select(s => new CreateSeparationSupplyItemCommand(s.SupplyId, s.SupplyName, s.Quantity, s.Unit))
+                .ToList());
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            var response = MapToResponse(dto);
-            return Results.Created($"/separation-orders/{dto.Id}", response);
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        var response = MapToResponse(dto);
+        return Results.Created($"/separation-orders/{dto.Id}", response);
     }
 
     private static async Task<IResult> GetSeparationOrderById(
@@ -117,15 +110,8 @@ public static class SeparationOrdersEndpoints
         GetSeparationOrderByIdHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new GetSeparationOrderByIdQuery(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new GetSeparationOrderByIdQuery(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ListSeparationOrders(
@@ -139,7 +125,7 @@ public static class SeparationOrdersEndpoints
             return Results.BadRequest(new ProblemDetails
             {
                 Title = "Parâmetros de paginação inválidos",
-                Detail = DomainErrorMessages.InvalidPaginationParameters,
+                Detail = InvalidPaginationParameters,
                 Status = 400
             });
         }
@@ -159,23 +145,8 @@ public static class SeparationOrdersEndpoints
         ReserveSeparationOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new ReserveSeparationOrderCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (StockQuantityConflictException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Estoque insuficiente", Detail = ex.Message, Status = 409 });
-        }
-        catch (InvalidSeparationOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new ReserveSeparationOrderCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> WaitSeparationOrderPurchase(
@@ -183,19 +154,8 @@ public static class SeparationOrdersEndpoints
         WaitSeparationOrderPurchaseHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new WaitSeparationOrderPurchaseCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (InvalidSeparationOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new WaitSeparationOrderPurchaseCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ReturnSeparationOrderTotal(
@@ -203,27 +163,8 @@ public static class SeparationOrdersEndpoints
         ReturnSeparationOrderTotalHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new ReturnSeparationOrderTotalCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (SeparationOrderCustodyPreconditionException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (StockQuantityConflictException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estoque", Detail = ex.Message, Status = 409 });
-        }
-        catch (InvalidSeparationOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new ReturnSeparationOrderTotalCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ResumeSeparationOrderAfterPurchase(
@@ -231,23 +172,8 @@ public static class SeparationOrdersEndpoints
         ResumeSeparationOrderAfterPurchaseHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new ResumeSeparationOrderAfterPurchaseCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (StockQuantityConflictException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Estoque insuficiente", Detail = ex.Message, Status = 409 });
-        }
-        catch (InvalidSeparationOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new ResumeSeparationOrderAfterPurchaseCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ConfirmStockistWithdrawal(
@@ -256,32 +182,9 @@ public static class SeparationOrdersEndpoints
         ConfirmSeparationStockistWithdrawalHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new ConfirmSeparationStockistWithdrawalCommand(id, request.StockistId);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (StockQuantityConflictException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estoque", Detail = ex.Message, Status = 409 });
-        }
-        catch (SeparationOrderCustodyPreconditionException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (InvalidSeparationOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new ConfirmSeparationStockistWithdrawalCommand(id, request.StockistId);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ConfirmMechanicReceipt(
@@ -289,23 +192,8 @@ public static class SeparationOrdersEndpoints
         ConfirmSeparationMechanicReceiptHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new ConfirmSeparationMechanicReceiptCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (SeparationOrderCustodyPreconditionException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (InvalidSeparationOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new ConfirmSeparationMechanicReceiptCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static SeparationOrderResponse MapToResponse(SeparationOrderDto dto) =>
