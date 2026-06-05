@@ -2,7 +2,6 @@ using GarageFlow.Api.Customers.DTOs;
 using GarageFlow.Application.Customers.Commands;
 using GarageFlow.Application.Customers.Handlers;
 using GarageFlow.Application.Customers.Queries;
-using GarageFlow.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Customers.Endpoints;
@@ -64,27 +63,16 @@ public static class CustomersEndpoints
         CreateCustomerHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateCustomerCommand(
-                request.Name, request.DocumentType, request.Document,
-                request.Email, request.PhoneNumber,
-                request.Street, request.Number, request.Complement,
-                request.Neighborhood, request.City, request.State, request.ZipCode);
+        var command = new CreateCustomerCommand(
+            request.Name, request.DocumentType, request.Document,
+            request.Email, request.PhoneNumber,
+            request.Street, request.Number, request.Complement,
+            request.Neighborhood, request.City, request.State, request.ZipCode);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
+        var dto = await handler.HandleAsync(command, cancellationToken);
 
-            var response = MapToResponse(dto);
-            return Results.Created($"/customers/{dto.Id}", response);
-        }
-        catch (DuplicateDocumentException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var response = MapToResponse(dto);
+        return Results.Created($"/customers/{dto.Id}", response);
     }
 
     private static async Task<IResult> GetCustomerById(
@@ -128,24 +116,13 @@ public static class CustomersEndpoints
         UpdateCustomerHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UpdateCustomerCommand(
-                id, request.Name, request.Email, request.PhoneNumber,
-                request.Street, request.Number, request.Complement,
-                request.Neighborhood, request.City, request.State, request.ZipCode);
+        var command = new UpdateCustomerCommand(
+            id, request.Name, request.Email, request.PhoneNumber,
+            request.Street, request.Number, request.Complement,
+            request.Neighborhood, request.City, request.State, request.ZipCode);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> DeactivateCustomer(
@@ -153,19 +130,8 @@ public static class CustomersEndpoints
         DeactivateCustomerHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await handler.HandleAsync(new DeactivateCustomerCommand(id), cancellationToken);
-            return Results.NoContent();
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        await handler.HandleAsync(new DeactivateCustomerCommand(id), cancellationToken);
+        return Results.NoContent();
     }
 
     private static CustomerResponse MapToResponse(Application.Customers.DTOs.CustomerDto dto) => new(
