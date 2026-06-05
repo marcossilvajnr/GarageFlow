@@ -3,14 +3,14 @@ using GarageFlow.Application.ServiceOrders.Commands;
 using GarageFlow.Application.ServiceOrders.DTOs;
 using GarageFlow.Application.ServiceOrders.Handlers;
 using GarageFlow.Application.ServiceOrders.Queries;
-using GarageFlow.Domain.Exceptions;
-using GarageFlow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.ServiceOrders.Endpoints;
 
 public static class ServiceOrdersEndpoints
 {
+    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
+
     public static IEndpointRouteBuilder MapServiceOrderEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/service-orders").WithTags("ServiceOrders");
@@ -142,21 +142,10 @@ public static class ServiceOrdersEndpoints
         CreateServiceOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateServiceOrderCommand(request.CustomerId, request.VehicleId, request.FrontDeskEmployeeId);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            var response = MapToResponse(dto);
-            return Results.Created($"/service-orders/{dto.Id}", response);
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new CreateServiceOrderCommand(request.CustomerId, request.VehicleId, request.FrontDeskEmployeeId);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        var response = MapToResponse(dto);
+        return Results.Created($"/service-orders/{dto.Id}", response);
     }
 
     private static async Task<IResult> GetServiceOrderById(
@@ -164,15 +153,8 @@ public static class ServiceOrdersEndpoints
         GetServiceOrderByIdHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new GetServiceOrderByIdQuery(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new GetServiceOrderByIdQuery(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ListServiceOrders(
@@ -186,7 +168,7 @@ public static class ServiceOrdersEndpoints
             return Results.BadRequest(new ProblemDetails
             {
                 Title = "Parâmetros de paginação inválidos",
-                Detail = DomainErrorMessages.InvalidPaginationParameters,
+                Detail = InvalidPaginationParameters,
                 Status = 400
             });
         }
@@ -207,28 +189,9 @@ public static class ServiceOrdersEndpoints
         AddServiceToServiceOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new AddServiceToServiceOrderCommand(id, request.ServiceId, request.ActorId);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DuplicateServiceOrderServiceException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (InvalidServiceOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new AddServiceToServiceOrderCommand(id, request.ServiceId, request.ActorId);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> RemoveServiceFromServiceOrder(
@@ -238,24 +201,9 @@ public static class ServiceOrdersEndpoints
         RemoveServiceFromServiceOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new RemoveServiceFromServiceOrderCommand(id, serviceId, request.ActorId, request.Reason);
-            await handler.HandleAsync(command, cancellationToken);
-            return Results.NoContent();
-        }
-        catch (InvalidServiceOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new RemoveServiceFromServiceOrderCommand(id, serviceId, request.ActorId, request.Reason);
+        await handler.HandleAsync(command, cancellationToken);
+        return Results.NoContent();
     }
 
     private static async Task<IResult> StartDiagnostic(
@@ -264,24 +212,9 @@ public static class ServiceOrdersEndpoints
         StartDiagnosticHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new StartDiagnosticCommand(id, request.MechanicId);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DiagnosticAlreadyStartedException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new StartDiagnosticCommand(id, request.MechanicId);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> AddDiagnosticService(
@@ -290,28 +223,9 @@ public static class ServiceOrdersEndpoints
         AddDiagnosticServiceHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new AddDiagnosticServiceCommand(id, request.ServiceId);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DiagnosticNotInProgressException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (DuplicateDiagnosticServiceException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new AddDiagnosticServiceCommand(id, request.ServiceId);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> RemoveDiagnosticService(
@@ -320,24 +234,9 @@ public static class ServiceOrdersEndpoints
         RemoveDiagnosticServiceHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new RemoveDiagnosticServiceCommand(id, serviceId);
-            await handler.HandleAsync(command, cancellationToken);
-            return Results.NoContent();
-        }
-        catch (DiagnosticNotInProgressException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (DiagnosticLastServiceException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var command = new RemoveDiagnosticServiceCommand(id, serviceId);
+        await handler.HandleAsync(command, cancellationToken);
+        return Results.NoContent();
     }
 
     private static async Task<IResult> CompleteDiagnostic(
@@ -346,28 +245,9 @@ public static class ServiceOrdersEndpoints
         CompleteDiagnosticHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CompleteDiagnosticCommand(id, request.Description);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DiagnosticNotInProgressException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (DiagnosticNoServicesException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new CompleteDiagnosticCommand(id, request.Description);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ConsolidateDiagnosticServices(
@@ -375,24 +255,9 @@ public static class ServiceOrdersEndpoints
         ConsolidateDiagnosticServicesHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new ConsolidateDiagnosticServicesCommand(id);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DiagnosticNotCompletedException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (DiagnosticNoServicesException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var command = new ConsolidateDiagnosticServicesCommand(id);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> GenerateQuote(
@@ -400,28 +265,9 @@ public static class ServiceOrdersEndpoints
         GenerateQuoteHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new GenerateQuoteCommand(id);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToQuoteResponse(dto));
-        }
-        catch (QuoteAlreadyExistsException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (NoConsolidatedServicesException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (ServiceNotAvailableForQuoteException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var command = new GenerateQuoteCommand(id);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToQuoteResponse(dto));
     }
 
     private static async Task<IResult> GetQuote(
@@ -429,19 +275,8 @@ public static class ServiceOrdersEndpoints
         GetServiceOrderQuoteHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new GetServiceOrderQuoteQuery(id), cancellationToken);
-            return Results.Ok(MapToQuoteResponse(dto));
-        }
-        catch (QuoteNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new GetServiceOrderQuoteQuery(id), cancellationToken);
+        return Results.Ok(MapToQuoteResponse(dto));
     }
 
     private static async Task<IResult> AcceptQuote(
@@ -449,24 +284,9 @@ public static class ServiceOrdersEndpoints
         AcceptQuoteHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new AcceptQuoteCommand(id);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToQuoteResponse(dto));
-        }
-        catch (QuoteAlreadyDecidedException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (QuoteNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var command = new AcceptQuoteCommand(id);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToQuoteResponse(dto));
     }
 
     private static async Task<IResult> RejectQuote(
@@ -475,28 +295,9 @@ public static class ServiceOrdersEndpoints
         RejectQuoteHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new RejectQuoteCommand(id, request.Reason);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToQuoteResponse(dto));
-        }
-        catch (QuoteAlreadyDecidedException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (QuoteNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new RejectQuoteCommand(id, request.Reason);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToQuoteResponse(dto));
     }
 
     private static async Task<IResult> DeliverServiceOrder(
@@ -504,19 +305,8 @@ public static class ServiceOrdersEndpoints
         DeliverServiceOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new DeliverServiceOrderCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (InvalidServiceOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new DeliverServiceOrderCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static ServiceOrderResponse MapToResponse(ServiceOrderDto dto) =>
