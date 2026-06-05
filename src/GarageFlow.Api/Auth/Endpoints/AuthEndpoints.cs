@@ -1,7 +1,6 @@
 using GarageFlow.Api.Auth.DTOs;
 using GarageFlow.Application.Auth.Commands;
 using GarageFlow.Application.Auth.Handlers;
-using GarageFlow.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Auth.Endpoints;
@@ -28,30 +27,14 @@ public static class AuthEndpoints
         LoginHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var result = await handler.HandleAsync(
-                new LoginCommand(request.Username, request.Password),
-                cancellationToken);
+        var result = await handler.HandleAsync(
+            new LoginCommand(request.Username, request.Password),
+            cancellationToken);
 
-            return Results.Ok(new LoginResponse(
-                result.AccessToken,
-                result.TokenType,
-                result.ExpiresIn,
-                result.Role));
-        }
-        catch (InvalidCredentialsException)
-        {
-            return Results.Unauthorized();
-        }
-        catch (InvalidLoginPayloadException ex)
-        {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Erro de validação",
-                Detail = ex.Message,
-                Status = 400
-            });
-        }
+        return Results.Ok(new LoginResponse(
+            result.AccessToken,
+            result.TokenType,
+            result.ExpiresIn,
+            result.Role));
     }
 }
