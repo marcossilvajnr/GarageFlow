@@ -4,14 +4,14 @@ using GarageFlow.Application.Executions.Commands;
 using GarageFlow.Application.Executions.DTOs;
 using GarageFlow.Application.Executions.Handlers;
 using GarageFlow.Application.Executions.Queries;
-using GarageFlow.Domain.Exceptions;
-using GarageFlow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Executions.Endpoints;
 
 public static class ExecutionOrdersEndpoints
 {
+    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
+
     public static IEndpointRouteBuilder MapExecutionOrderEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/execution-orders").WithTags("ExecutionOrders");
@@ -67,17 +67,10 @@ public static class ExecutionOrdersEndpoints
         CreateExecutionOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateExecutionOrderCommand(request.ServiceOrderId, request.ServiceId, request.MechanicId);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            var response = MapToResponse(dto);
-            return Results.Created($"/execution-orders/{dto.Id}", response);
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new CreateExecutionOrderCommand(request.ServiceOrderId, request.ServiceId, request.MechanicId);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        var response = MapToResponse(dto);
+        return Results.Created($"/execution-orders/{dto.Id}", response);
     }
 
     private static async Task<IResult> GetExecutionOrderById(
@@ -85,15 +78,8 @@ public static class ExecutionOrdersEndpoints
         GetExecutionOrderByIdHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new GetExecutionOrderByIdQuery(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new GetExecutionOrderByIdQuery(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ListExecutionOrders(
@@ -107,7 +93,7 @@ public static class ExecutionOrdersEndpoints
             return Results.BadRequest(new ProblemDetails
             {
                 Title = "Parâmetros de paginação inválidos",
-                Detail = DomainErrorMessages.InvalidPaginationParameters,
+                Detail = InvalidPaginationParameters,
                 Status = 400
             });
         }
@@ -127,15 +113,8 @@ public static class ExecutionOrdersEndpoints
         MarkExecutionOrderReadyHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new MarkExecutionOrderReadyCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new MarkExecutionOrderReadyCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> StartExecutionOrder(
@@ -143,24 +122,9 @@ public static class ExecutionOrdersEndpoints
         StartExecutionOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new StartExecutionOrderCommand(id);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (InvalidExecutionOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new StartExecutionOrderCommand(id);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> CompleteExecutionOrder(
@@ -168,27 +132,8 @@ public static class ExecutionOrdersEndpoints
         CompleteExecutionOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new CompleteExecutionOrderCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (StockQuantityConflictException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estoque", Detail = ex.Message, Status = 409 });
-        }
-        catch (SeparationOrderCustodyPreconditionException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
-        catch (InvalidExecutionOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new CompleteExecutionOrderCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static ExecutionOrderResponse MapToResponse(ExecutionOrderDto dto) =>
