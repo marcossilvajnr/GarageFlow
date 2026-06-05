@@ -1,4 +1,3 @@
-using GarageFlow.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,7 +19,7 @@ public sealed class GarageFlowExceptionHandler(
             return false;
         }
 
-        var mapping = MapException(exception);
+        var mapping = ExceptionToProblemDetailsMapper.Map(exception);
         httpContext.Response.StatusCode = mapping.StatusCode;
 
         var problemDetails = new ProblemDetails
@@ -57,58 +56,9 @@ public sealed class GarageFlowExceptionHandler(
         });
     }
 
-    private static ExceptionMapping MapException(Exception exception) =>
-        exception switch
-        {
-            InvalidCredentialsException => new(StatusCodes.Status401Unauthorized, "Não autorizado"),
-
-            EntityNotFoundException or QuoteNotFoundException =>
-                new(StatusCodes.Status404NotFound, "Não encontrado"),
-
-            DuplicateDocumentException or
-            DuplicatePartDataException or
-            DuplicateServiceDataException or
-            DuplicateSupplierDataException or
-            DuplicateSupplyDataException or
-            DuplicateVehicleDataException or
-            DuplicateStockDataException or
-            DuplicateServiceOrderServiceException or
-            DuplicateDiagnosticServiceException or
-            DuplicateServicePartException or
-            DuplicateServiceSupplyException =>
-                new(StatusCodes.Status409Conflict, "Conflito"),
-
-            InvalidExecutionOrderStatusTransitionException or
-            InvalidPurchaseOrderStatusTransitionException or
-            InvalidSeparationOrderStatusTransitionException or
-            InvalidServiceOrderStatusTransitionException =>
-                new(StatusCodes.Status409Conflict, "Conflito de estado"),
-
-            StockQuantityConflictException or
-            DiagnosticLastServiceException or
-            DiagnosticNoServicesException or
-            DiagnosticNotCompletedException or
-            NoConsolidatedServicesException or
-            QuoteAlreadyExistsException or
-            ServiceNotAvailableForQuoteException =>
-                new(StatusCodes.Status409Conflict, "Conflito"),
-
-            InvalidLoginPayloadException or
-            DiagnosticAlreadyStartedException or
-            DiagnosticNotInProgressException or
-            QuoteAlreadyDecidedException or
-            SeparationOrderCustodyPreconditionException or
-            DomainException =>
-                new(StatusCodes.Status400BadRequest, "Erro de validação"),
-
-            _ => new(StatusCodes.Status500InternalServerError, "Erro interno")
-        };
-
     private static string GetCorrelationId(HttpContext httpContext) =>
         httpContext.Request.Headers.TryGetValue("X-Correlation-ID", out var headerValue)
             && !string.IsNullOrWhiteSpace(headerValue)
             ? headerValue.ToString()
             : httpContext.TraceIdentifier;
-
-    private sealed record ExceptionMapping(int StatusCode, string Title);
 }
