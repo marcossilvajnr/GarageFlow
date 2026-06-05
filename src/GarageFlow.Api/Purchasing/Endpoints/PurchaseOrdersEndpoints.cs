@@ -3,14 +3,14 @@ using GarageFlow.Application.Purchasing.Commands;
 using GarageFlow.Application.Purchasing.DTOs;
 using GarageFlow.Application.Purchasing.Handlers;
 using GarageFlow.Application.Purchasing.Queries;
-using GarageFlow.Domain.Exceptions;
-using GarageFlow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Purchasing.Endpoints;
 
 public static class PurchaseOrdersEndpoints
 {
+    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
+
     public static IEndpointRouteBuilder MapPurchaseOrderEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/purchase-orders").WithTags("PurchaseOrders");
@@ -68,22 +68,15 @@ public static class PurchaseOrdersEndpoints
         CreatePurchaseOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreatePurchaseOrderCommand(
-                (request.SeparationOrderIds ?? []).ToList(),
-                (request.Items ?? [])
-                    .Select(i => new CreatePurchaseItemCommand(i.ItemId, i.ItemType, i.ItemName, i.Quantity, i.UnitPrice))
-                    .ToList());
+        var command = new CreatePurchaseOrderCommand(
+            (request.SeparationOrderIds ?? []).ToList(),
+            (request.Items ?? [])
+                .Select(i => new CreatePurchaseItemCommand(i.ItemId, i.ItemType, i.ItemName, i.Quantity, i.UnitPrice))
+                .ToList());
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            var response = MapToResponse(dto);
-            return Results.Created($"/purchase-orders/{dto.Id}", response);
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        var response = MapToResponse(dto);
+        return Results.Created($"/purchase-orders/{dto.Id}", response);
     }
 
     private static async Task<IResult> GetPurchaseOrderById(
@@ -91,19 +84,8 @@ public static class PurchaseOrdersEndpoints
         GetPurchaseOrderByIdHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new GetPurchaseOrderByIdQuery(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(new GetPurchaseOrderByIdQuery(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ListPurchaseOrders(
@@ -117,7 +99,7 @@ public static class PurchaseOrdersEndpoints
             return Results.BadRequest(new ProblemDetails
             {
                 Title = "Parâmetros de paginação inválidos",
-                Detail = DomainErrorMessages.InvalidPaginationParameters,
+                Detail = InvalidPaginationParameters,
                 Status = 400
             });
         }
@@ -138,24 +120,9 @@ public static class PurchaseOrdersEndpoints
         AssignPurchaseOrderSupplierHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new AssignPurchaseOrderSupplierCommand(id, request.SupplierId, request.EmployeeId);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (InvalidPurchaseOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new AssignPurchaseOrderSupplierCommand(id, request.SupplierId, request.EmployeeId);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> StartPurchaseOrder(
@@ -163,23 +130,8 @@ public static class PurchaseOrdersEndpoints
         StartPurchaseOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new StartPurchaseOrderCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (InvalidPurchaseOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(new StartPurchaseOrderCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> CompletePurchaseOrder(
@@ -187,27 +139,8 @@ public static class PurchaseOrdersEndpoints
         CompletePurchaseOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new CompletePurchaseOrderCommand(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (InvalidSeparationOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (InvalidPurchaseOrderStatusTransitionException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de estado", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(new CompletePurchaseOrderCommand(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static PurchaseOrderResponse MapToResponse(PurchaseOrderDto dto) =>
