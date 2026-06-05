@@ -3,14 +3,14 @@ using GarageFlow.Application.Supplies;
 using GarageFlow.Application.Supplies.Commands;
 using GarageFlow.Application.Supplies.Handlers;
 using GarageFlow.Application.Supplies.Queries;
-using GarageFlow.Domain.Exceptions;
-using GarageFlow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Supplies.Endpoints;
 
 public static class SuppliesEndpoints
 {
+    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
+
     public static IEndpointRouteBuilder MapSupplyEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/supplies")
@@ -69,25 +69,14 @@ public static class SuppliesEndpoints
         CreateSupplyHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateSupplyCommand(
-                request.Name,
-                request.Code,
-                request.UnitOfMeasure,
-                request.BaseCost,
-                request.PreferredSupplierId);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Created($"/supplies/{dto.Id}", MapToResponse(dto));
-        }
-        catch (DuplicateSupplyDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new CreateSupplyCommand(
+            request.Name,
+            request.Code,
+            request.UnitOfMeasure,
+            request.BaseCost,
+            request.PreferredSupplierId);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Created($"/supplies/{dto.Id}", MapToResponse(dto));
     }
 
     private static async Task<IResult> GetSupplyById(
@@ -110,7 +99,7 @@ public static class SuppliesEndpoints
             return Results.BadRequest(new ProblemDetails
             {
                 Title = "Erro de validação",
-                Detail = DomainErrorMessages.InvalidPaginationParameters,
+                Detail = InvalidPaginationParameters,
                 Status = 400
             });
         }
@@ -131,24 +120,9 @@ public static class SuppliesEndpoints
         UpdateSupplyHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UpdateSupplyCommand(id, request.Name, request.UnitOfMeasure, request.BaseCost, request.PreferredSupplierId);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DuplicateSupplyDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new UpdateSupplyCommand(id, request.Name, request.UnitOfMeasure, request.BaseCost, request.PreferredSupplierId);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> DeactivateSupply(
@@ -156,19 +130,8 @@ public static class SuppliesEndpoints
         DeactivateSupplyHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await handler.HandleAsync(new DeactivateSupplyCommand(id), cancellationToken);
-            return Results.NoContent();
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        await handler.HandleAsync(new DeactivateSupplyCommand(id), cancellationToken);
+        return Results.NoContent();
     }
 
     private static SupplyResponse MapToResponse(Application.Supplies.DTOs.SupplyDto dto) => new(

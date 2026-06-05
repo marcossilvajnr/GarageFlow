@@ -2,7 +2,6 @@ using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Application.Employees.Commands;
 using GarageFlow.Application.Employees.Handlers;
 using GarageFlow.Application.Employees.Queries;
-using GarageFlow.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Employees.Endpoints;
@@ -65,28 +64,17 @@ public static class EmployeesEndpoints
         CreateEmployeeHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateEmployeeCommand(
-                request.Name, request.DocumentType, request.Document,
-                request.Email, request.PhoneNumber,
-                request.Street, request.Number, request.Complement,
-                request.Neighborhood, request.City, request.State, request.ZipCode,
-                request.Role);
+        var command = new CreateEmployeeCommand(
+            request.Name, request.DocumentType, request.Document,
+            request.Email, request.PhoneNumber,
+            request.Street, request.Number, request.Complement,
+            request.Neighborhood, request.City, request.State, request.ZipCode,
+            request.Role);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
+        var dto = await handler.HandleAsync(command, cancellationToken);
 
-            var response = MapToResponse(dto);
-            return Results.Created($"/employees/{dto.Id}", response);
-        }
-        catch (DuplicateDocumentException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var response = MapToResponse(dto);
+        return Results.Created($"/employees/{dto.Id}", response);
     }
 
     private static async Task<IResult> GetEmployeeById(
@@ -130,25 +118,14 @@ public static class EmployeesEndpoints
         UpdateEmployeeHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UpdateEmployeeCommand(
-                id, request.Name, request.Email, request.PhoneNumber,
-                request.Street, request.Number, request.Complement,
-                request.Neighborhood, request.City, request.State, request.ZipCode,
-                request.Role);
+        var command = new UpdateEmployeeCommand(
+            id, request.Name, request.Email, request.PhoneNumber,
+            request.Street, request.Number, request.Complement,
+            request.Neighborhood, request.City, request.State, request.ZipCode,
+            request.Role);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> DeactivateEmployee(
@@ -156,19 +133,8 @@ public static class EmployeesEndpoints
         DeactivateEmployeeHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await handler.HandleAsync(new DeactivateEmployeeCommand(id), cancellationToken);
-            return Results.NoContent();
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        await handler.HandleAsync(new DeactivateEmployeeCommand(id), cancellationToken);
+        return Results.NoContent();
     }
 
     private static EmployeeResponse MapToResponse(Application.Employees.DTOs.EmployeeDto dto) => new(

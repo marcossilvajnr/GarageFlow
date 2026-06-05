@@ -2,7 +2,6 @@ using GarageFlow.Api.Suppliers.DTOs;
 using GarageFlow.Application.Suppliers.Commands;
 using GarageFlow.Application.Suppliers.Handlers;
 using GarageFlow.Application.Suppliers.Queries;
-using GarageFlow.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Suppliers.Endpoints;
@@ -67,26 +66,15 @@ public static class SuppliersEndpoints
         CreateSupplierHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateSupplierCommand(
-                request.Name, request.Cnpj, request.Email, request.PhoneNumber,
-                request.Street, request.Number, request.Complement,
-                request.Neighborhood, request.City, request.State, request.ZipCode);
+        var command = new CreateSupplierCommand(
+            request.Name, request.Cnpj, request.Email, request.PhoneNumber,
+            request.Street, request.Number, request.Complement,
+            request.Neighborhood, request.City, request.State, request.ZipCode);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
+        var dto = await handler.HandleAsync(command, cancellationToken);
 
-            var response = MapToResponse(dto);
-            return Results.Created($"/suppliers/{dto.Id}", response);
-        }
-        catch (DuplicateSupplierDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var response = MapToResponse(dto);
+        return Results.Created($"/suppliers/{dto.Id}", response);
     }
 
     private static async Task<IResult> GetSupplierById(
@@ -130,28 +118,13 @@ public static class SuppliersEndpoints
         UpdateSupplierHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UpdateSupplierCommand(
-                id, request.Name, request.Email, request.PhoneNumber,
-                request.Street, request.Number, request.Complement,
-                request.Neighborhood, request.City, request.State, request.ZipCode);
+        var command = new UpdateSupplierCommand(
+            id, request.Name, request.Email, request.PhoneNumber,
+            request.Street, request.Number, request.Complement,
+            request.Neighborhood, request.City, request.State, request.ZipCode);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DuplicateSupplierDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> DeactivateSupplier(
@@ -159,19 +132,8 @@ public static class SuppliersEndpoints
         DeactivateSupplierHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await handler.HandleAsync(new DeactivateSupplierCommand(id), cancellationToken);
-            return Results.NoContent();
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        await handler.HandleAsync(new DeactivateSupplierCommand(id), cancellationToken);
+        return Results.NoContent();
     }
 
     private static SupplierResponse MapToResponse(Application.Suppliers.DTOs.SupplierDto dto) => new(

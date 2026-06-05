@@ -3,14 +3,14 @@ using GarageFlow.Application.Services;
 using GarageFlow.Application.Services.Commands;
 using GarageFlow.Application.Services.Handlers;
 using GarageFlow.Application.Services.Queries;
-using GarageFlow.Domain.Exceptions;
-using GarageFlow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Services.Endpoints;
 
 public static class ServicesEndpoints
 {
+    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
+
     public static IEndpointRouteBuilder MapServiceEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/services")
@@ -105,26 +105,15 @@ public static class ServicesEndpoints
         CreateServiceHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateServiceCommand(
-                request.Code,
-                request.Name,
-                request.Description,
-                request.BasePrice,
-                request.EstimatedDurationMinutes);
+        var command = new CreateServiceCommand(
+            request.Code,
+            request.Name,
+            request.Description,
+            request.BasePrice,
+            request.EstimatedDurationMinutes);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Created($"/services/{dto.Id}", MapToResponse(dto));
-        }
-        catch (DuplicateServiceDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Created($"/services/{dto.Id}", MapToResponse(dto));
     }
 
     private static async Task<IResult> GetServiceById(
@@ -147,7 +136,7 @@ public static class ServicesEndpoints
             return Results.BadRequest(new ProblemDetails
             {
                 Title = "Erro de validação",
-                Detail = DomainErrorMessages.InvalidPaginationParameters,
+                Detail = InvalidPaginationParameters,
                 Status = 400
             });
         }
@@ -168,30 +157,15 @@ public static class ServicesEndpoints
         UpdateServiceHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UpdateServiceCommand(
-                id,
-                request.Name,
-                request.Description,
-                request.BasePrice,
-                request.EstimatedDurationMinutes);
+        var command = new UpdateServiceCommand(
+            id,
+            request.Name,
+            request.Description,
+            request.BasePrice,
+            request.EstimatedDurationMinutes);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DuplicateServiceDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> DeactivateService(
@@ -199,19 +173,8 @@ public static class ServicesEndpoints
         DeactivateServiceHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await handler.HandleAsync(new DeactivateServiceCommand(id), cancellationToken);
-            return Results.NoContent();
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        await handler.HandleAsync(new DeactivateServiceCommand(id), cancellationToken);
+        return Results.NoContent();
     }
 
     private static async Task<IResult> AddServicePart(
@@ -220,24 +183,9 @@ public static class ServicesEndpoints
         AddServicePartHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new AddServicePartCommand(id, request.PartId, request.Quantity);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DuplicateServicePartException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new AddServicePartCommand(id, request.PartId, request.Quantity);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> RemoveServicePart(
@@ -246,15 +194,8 @@ public static class ServicesEndpoints
         RemoveServicePartHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await handler.HandleAsync(new RemoveServicePartCommand(id, partId), cancellationToken);
-            return Results.NoContent();
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
+        await handler.HandleAsync(new RemoveServicePartCommand(id, partId), cancellationToken);
+        return Results.NoContent();
     }
 
     private static async Task<IResult> AddServiceSupply(
@@ -263,24 +204,9 @@ public static class ServicesEndpoints
         AddServiceSupplyHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new AddServiceSupplyCommand(id, request.SupplyId, request.Quantity);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DuplicateServiceSupplyException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new AddServiceSupplyCommand(id, request.SupplyId, request.Quantity);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> RemoveServiceSupply(
@@ -289,15 +215,8 @@ public static class ServicesEndpoints
         RemoveServiceSupplyHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await handler.HandleAsync(new RemoveServiceSupplyCommand(id, supplyId), cancellationToken);
-            return Results.NoContent();
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
+        await handler.HandleAsync(new RemoveServiceSupplyCommand(id, supplyId), cancellationToken);
+        return Results.NoContent();
     }
 
     private static ServiceResponse MapToResponse(Application.Services.DTOs.ServiceDto dto) => new(

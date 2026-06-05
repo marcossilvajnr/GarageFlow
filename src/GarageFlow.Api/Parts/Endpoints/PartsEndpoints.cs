@@ -3,14 +3,14 @@ using GarageFlow.Application.Parts;
 using GarageFlow.Application.Parts.Commands;
 using GarageFlow.Application.Parts.Handlers;
 using GarageFlow.Application.Parts.Queries;
-using GarageFlow.Domain.Exceptions;
-using GarageFlow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Parts.Endpoints;
 
 public static class PartsEndpoints
 {
+    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
+
     public static IEndpointRouteBuilder MapPartEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/parts")
@@ -69,25 +69,14 @@ public static class PartsEndpoints
         CreatePartHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreatePartCommand(
-                request.Name,
-                request.Code,
-                request.Sku,
-                request.UnitOfMeasure,
-                request.UnitPrice);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Created($"/parts/{dto.Id}", MapToResponse(dto));
-        }
-        catch (DuplicatePartDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new CreatePartCommand(
+            request.Name,
+            request.Code,
+            request.Sku,
+            request.UnitOfMeasure,
+            request.UnitPrice);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Created($"/parts/{dto.Id}", MapToResponse(dto));
     }
 
     private static async Task<IResult> GetPartById(
@@ -110,7 +99,7 @@ public static class PartsEndpoints
             return Results.BadRequest(new ProblemDetails
             {
                 Title = "Erro de validação",
-                Detail = DomainErrorMessages.InvalidPaginationParameters,
+                Detail = InvalidPaginationParameters,
                 Status = 400
             });
         }
@@ -131,24 +120,9 @@ public static class PartsEndpoints
         UpdatePartHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UpdatePartCommand(id, request.Name, request.UnitOfMeasure, request.UnitPrice);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DuplicatePartDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new UpdatePartCommand(id, request.Name, request.UnitOfMeasure, request.UnitPrice);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> DeactivatePart(
@@ -156,19 +130,8 @@ public static class PartsEndpoints
         DeactivatePartHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await handler.HandleAsync(new DeactivatePartCommand(id), cancellationToken);
-            return Results.NoContent();
-        }
-        catch (EntityNotFoundException)
-        {
-            return Results.NotFound();
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        await handler.HandleAsync(new DeactivatePartCommand(id), cancellationToken);
+        return Results.NoContent();
     }
 
     private static PartResponse MapToResponse(Application.Parts.DTOs.PartDto dto) => new(

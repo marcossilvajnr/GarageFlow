@@ -2,7 +2,6 @@ using GarageFlow.Api.Vehicles.DTOs;
 using GarageFlow.Application.Vehicles.Commands;
 using GarageFlow.Application.Vehicles.Handlers;
 using GarageFlow.Application.Vehicles.Queries;
-using GarageFlow.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Vehicles.Endpoints;
@@ -72,29 +71,18 @@ public static class VehiclesEndpoints
         CreateVehicleHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateVehicleCommand(
-                request.CustomerId,
-                request.LicensePlate,
-                request.Renavam,
-                request.Make,
-                request.Model,
-                request.Year,
-                request.Color);
+        var command = new CreateVehicleCommand(
+            request.CustomerId,
+            request.LicensePlate,
+            request.Renavam,
+            request.Make,
+            request.Model,
+            request.Year,
+            request.Color);
 
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            var response = MapToResponse(dto);
-            return Results.Created($"/vehicles/{dto.Id}", response);
-        }
-        catch (DuplicateVehicleDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de duplicidade", Detail = ex.Message, Status = 409 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        var response = MapToResponse(dto);
+        return Results.Created($"/vehicles/{dto.Id}", response);
     }
 
     private static async Task<IResult> GetVehicleById(
@@ -102,15 +90,8 @@ public static class VehiclesEndpoints
         GetVehicleByIdHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var dto = await handler.HandleAsync(new GetVehicleByIdQuery(id), cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
+        var dto = await handler.HandleAsync(new GetVehicleByIdQuery(id), cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ListVehicles(
@@ -146,24 +127,9 @@ public static class VehiclesEndpoints
         UpdateVehicleHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UpdateVehicleCommand(id, request.Make, request.Model, request.Year, request.Color);
-            var dto = await handler.HandleAsync(command, cancellationToken);
-            return Results.Ok(MapToResponse(dto));
-        }
-        catch (DuplicateVehicleDataException ex)
-        {
-            return Results.Conflict(new ProblemDetails { Title = "Conflito de duplicidade", Detail = ex.Message, Status = 409 });
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de validação", Detail = ex.Message, Status = 400 });
-        }
+        var command = new UpdateVehicleCommand(id, request.Make, request.Model, request.Year, request.Color);
+        var dto = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> DeactivateVehicle(
@@ -171,19 +137,8 @@ public static class VehiclesEndpoints
         DeactivateVehicleHandler handler,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await handler.HandleAsync(new DeactivateVehicleCommand(id), cancellationToken);
-            return Results.NoContent();
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return Results.NotFound(new ProblemDetails { Title = "Não encontrado", Detail = ex.Message, Status = 404 });
-        }
-        catch (DomainException ex)
-        {
-            return Results.BadRequest(new ProblemDetails { Title = "Erro de negócio", Detail = ex.Message, Status = 400 });
-        }
+        await handler.HandleAsync(new DeactivateVehicleCommand(id), cancellationToken);
+        return Results.NoContent();
     }
 
     private static VehicleResponse MapToResponse(Application.Vehicles.DTOs.VehicleDto dto) => new(
