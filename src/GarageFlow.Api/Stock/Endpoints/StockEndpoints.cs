@@ -1,5 +1,5 @@
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Stock.DTOs;
-using GarageFlow.Application.Stock;
 using GarageFlow.Application.Stock.Commands;
 using GarageFlow.Application.Stock.DTOs;
 using GarageFlow.Application.Stock.Enums;
@@ -11,8 +11,6 @@ namespace GarageFlow.Api.Stock.Endpoints;
 
 public static class StockEndpoints
 {
-    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
-
     public static IEndpointRouteBuilder MapStockEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/stock").WithTags("Stock");
@@ -172,17 +170,12 @@ public static class StockEndpoints
         CancellationToken cancellationToken,
         DateTime? from = null,
         DateTime? to = null,
-        int page = StockPaginationDefaults.DefaultPage,
-        int pageSize = StockPaginationDefaults.DefaultPageSize)
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
     {
-        if (page < 1 || pageSize < 1 || pageSize > StockPaginationDefaults.MaxPageSize)
+        if (!ApiPagination.IsValid(page, pageSize))
         {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Erro de validação",
-                Detail = InvalidPaginationParameters,
-                Status = 400
-            });
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
         }
 
         var query = new ListStockOperationsQuery(itemId, itemType, from, to, page, pageSize);

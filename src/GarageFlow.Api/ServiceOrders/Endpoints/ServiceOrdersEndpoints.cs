@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.ServiceOrders.DTOs;
 using GarageFlow.Application.ServiceOrders.Commands;
 using GarageFlow.Application.ServiceOrders.DTOs;
@@ -9,8 +10,6 @@ namespace GarageFlow.Api.ServiceOrders.Endpoints;
 
 public static class ServiceOrdersEndpoints
 {
-    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
-
     public static IEndpointRouteBuilder MapServiceOrderEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/service-orders").WithTags("ServiceOrders");
@@ -160,17 +159,12 @@ public static class ServiceOrdersEndpoints
     private static async Task<IResult> ListServiceOrders(
         ListServiceOrdersHandler handler,
         CancellationToken cancellationToken,
-        int page = 1,
-        int pageSize = 20)
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
     {
-        if (page < 1 || pageSize < 1)
+        if (!ApiPagination.IsValid(page, pageSize))
         {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Parâmetros de paginação inválidos",
-                Detail = InvalidPaginationParameters,
-                Status = 400
-            });
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
         }
 
         var result = await handler.HandleAsync(new ListServiceOrdersQuery(page, pageSize), cancellationToken);

@@ -1,5 +1,5 @@
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Parts.DTOs;
-using GarageFlow.Application.Parts;
 using GarageFlow.Application.Parts.Commands;
 using GarageFlow.Application.Parts.Handlers;
 using GarageFlow.Application.Parts.Queries;
@@ -9,8 +9,6 @@ namespace GarageFlow.Api.Parts.Endpoints;
 
 public static class PartsEndpoints
 {
-    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
-
     public static IEndpointRouteBuilder MapPartEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/parts")
@@ -91,17 +89,12 @@ public static class PartsEndpoints
     private static async Task<IResult> ListParts(
         ListPartsHandler handler,
         CancellationToken cancellationToken,
-        int page = PartsPaginationDefaults.DefaultPage,
-        int pageSize = PartsPaginationDefaults.DefaultPageSize)
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
     {
-        if (page < 1 || pageSize < 1)
+        if (!ApiPagination.IsValid(page, pageSize))
         {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Erro de validação",
-                Detail = InvalidPaginationParameters,
-                Status = 400
-            });
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
         }
 
         var result = await handler.HandleAsync(new ListPartsQuery(page, pageSize), cancellationToken);

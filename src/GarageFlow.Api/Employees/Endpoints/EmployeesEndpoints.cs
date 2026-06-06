@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Application.Employees.Commands;
 using GarageFlow.Application.Employees.Handlers;
@@ -89,17 +90,12 @@ public static class EmployeesEndpoints
     private static async Task<IResult> ListEmployees(
         ListEmployeesHandler handler,
         CancellationToken cancellationToken,
-        int page = 1,
-        int pageSize = 20)
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
     {
-        if (page < 1 || pageSize < 1)
+        if (!ApiPagination.IsValid(page, pageSize))
         {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Erro de validação",
-                Detail = "Página e tamanho da página devem ser maiores que zero.",
-                Status = 400
-            });
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
         }
 
         var result = await handler.HandleAsync(new ListEmployeesQuery(page, pageSize), cancellationToken);

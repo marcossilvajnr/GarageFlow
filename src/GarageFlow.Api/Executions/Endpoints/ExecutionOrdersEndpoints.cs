@@ -1,5 +1,5 @@
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Executions.DTOs;
-using GarageFlow.Application.Executions;
 using GarageFlow.Application.Executions.Commands;
 using GarageFlow.Application.Executions.DTOs;
 using GarageFlow.Application.Executions.Handlers;
@@ -10,8 +10,6 @@ namespace GarageFlow.Api.Executions.Endpoints;
 
 public static class ExecutionOrdersEndpoints
 {
-    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
-
     public static IEndpointRouteBuilder MapExecutionOrderEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/execution-orders").WithTags("ExecutionOrders");
@@ -85,17 +83,12 @@ public static class ExecutionOrdersEndpoints
     private static async Task<IResult> ListExecutionOrders(
         ListExecutionOrdersHandler handler,
         CancellationToken cancellationToken,
-        int page = ExecutionOrderPaginationDefaults.DefaultPage,
-        int pageSize = ExecutionOrderPaginationDefaults.DefaultPageSize)
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
     {
-        if (page < 1 || pageSize < 1 || pageSize > ExecutionOrderPaginationDefaults.MaxPageSize)
+        if (!ApiPagination.IsValid(page, pageSize))
         {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Parâmetros de paginação inválidos",
-                Detail = InvalidPaginationParameters,
-                Status = 400
-            });
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
         }
 
         var result = await handler.HandleAsync(new ListExecutionOrdersQuery(page, pageSize), cancellationToken);

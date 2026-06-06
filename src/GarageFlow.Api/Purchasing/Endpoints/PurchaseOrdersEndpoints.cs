@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Purchasing.DTOs;
 using GarageFlow.Application.Purchasing.Commands;
 using GarageFlow.Application.Purchasing.DTOs;
@@ -9,8 +10,6 @@ namespace GarageFlow.Api.Purchasing.Endpoints;
 
 public static class PurchaseOrdersEndpoints
 {
-    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
-
     public static IEndpointRouteBuilder MapPurchaseOrderEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/purchase-orders").WithTags("PurchaseOrders");
@@ -91,17 +90,12 @@ public static class PurchaseOrdersEndpoints
     private static async Task<IResult> ListPurchaseOrders(
         ListPurchaseOrdersHandler handler,
         CancellationToken cancellationToken,
-        int page = 1,
-        int pageSize = 20)
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
     {
-        if (page < 1 || pageSize < 1)
+        if (!ApiPagination.IsValid(page, pageSize))
         {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Parâmetros de paginação inválidos",
-                Detail = InvalidPaginationParameters,
-                Status = 400
-            });
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
         }
 
         var result = await handler.HandleAsync(new ListPurchaseOrdersQuery(page, pageSize), cancellationToken);

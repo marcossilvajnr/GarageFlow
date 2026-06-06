@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Suppliers.DTOs;
 using GarageFlow.Application.Suppliers.Commands;
 using GarageFlow.Application.Suppliers.Handlers;
@@ -89,17 +90,12 @@ public static class SuppliersEndpoints
     private static async Task<IResult> ListSuppliers(
         ListSuppliersHandler handler,
         CancellationToken cancellationToken,
-        int page = 1,
-        int pageSize = 20)
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
     {
-        if (page < 1 || pageSize < 1)
+        if (!ApiPagination.IsValid(page, pageSize))
         {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Erro de validação",
-                Detail = "Página e tamanho da página devem ser maiores que zero.",
-                Status = 400
-            });
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
         }
 
         var result = await handler.HandleAsync(new ListSuppliersQuery(page, pageSize), cancellationToken);

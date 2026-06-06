@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Vehicles.DTOs;
 using GarageFlow.Application.Vehicles.Commands;
 using GarageFlow.Application.Vehicles.Handlers;
@@ -8,11 +9,6 @@ namespace GarageFlow.Api.Vehicles.Endpoints;
 
 public static class VehiclesEndpoints
 {
-    private const int MinPage = 1;
-    private const int MinPageSize = 1;
-    private const int DefaultPage = 1;
-    private const int DefaultPageSize = 20;
-
     public static IEndpointRouteBuilder MapVehicleEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/vehicles")
@@ -98,17 +94,12 @@ public static class VehiclesEndpoints
         ListVehiclesHandler handler,
         CancellationToken cancellationToken,
         Guid? customerId = null,
-        int page = DefaultPage,
-        int pageSize = DefaultPageSize)
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
     {
-        if (page < MinPage || pageSize < MinPageSize)
+        if (!ApiPagination.IsValid(page, pageSize))
         {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Parâmetros de paginação inválidos",
-                Detail = $"'page' deve ser >= {MinPage} e 'pageSize' deve ser >= {MinPageSize}",
-                Status = 400
-            });
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
         }
 
         var result = await handler.HandleAsync(new ListVehiclesQuery(customerId, page, pageSize), cancellationToken);

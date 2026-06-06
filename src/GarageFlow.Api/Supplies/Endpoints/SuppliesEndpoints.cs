@@ -1,5 +1,5 @@
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Supplies.DTOs;
-using GarageFlow.Application.Supplies;
 using GarageFlow.Application.Supplies.Commands;
 using GarageFlow.Application.Supplies.Handlers;
 using GarageFlow.Application.Supplies.Queries;
@@ -9,8 +9,6 @@ namespace GarageFlow.Api.Supplies.Endpoints;
 
 public static class SuppliesEndpoints
 {
-    private const string InvalidPaginationParameters = "Parâmetros de paginação inválidos";
-
     public static IEndpointRouteBuilder MapSupplyEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/supplies")
@@ -91,17 +89,12 @@ public static class SuppliesEndpoints
     private static async Task<IResult> ListSupplies(
         ListSuppliesHandler handler,
         CancellationToken cancellationToken,
-        int page = SuppliesPaginationDefaults.DefaultPage,
-        int pageSize = SuppliesPaginationDefaults.DefaultPageSize)
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
     {
-        if (page < 1 || pageSize < 1)
+        if (!ApiPagination.IsValid(page, pageSize))
         {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Erro de validação",
-                Detail = InvalidPaginationParameters,
-                Status = 400
-            });
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
         }
 
         var result = await handler.HandleAsync(new ListSuppliesQuery(page, pageSize), cancellationToken);
