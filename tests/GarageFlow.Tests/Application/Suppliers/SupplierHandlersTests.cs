@@ -69,15 +69,15 @@ public sealed class GetSupplierByIdHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithNonExistentId_ReturnsNull()
+    public async Task Handle_WithNonExistentId_ThrowsEntityNotFoundException()
     {
         var repo = new FakeSupplierRepository();
         var handler = new GetSupplierByIdHandler(repo);
 
-        var dto = await handler.HandleAsync(
+        var act = async () => await handler.HandleAsync(
             new GarageFlow.Application.Suppliers.Queries.GetSupplierByIdQuery(Guid.NewGuid()));
 
-        dto.Should().BeNull();
+        await act.Should().ThrowAsync<EntityNotFoundException>();
     }
 }
 

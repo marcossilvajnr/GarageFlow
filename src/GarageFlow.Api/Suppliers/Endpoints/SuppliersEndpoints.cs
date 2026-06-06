@@ -30,7 +30,7 @@ public static class SuppliersEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<SupplierResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListSuppliers)
             .WithName("ListSuppliers")
@@ -84,7 +84,7 @@ public static class SuppliersEndpoints
         CancellationToken cancellationToken)
     {
         var dto = await handler.HandleAsync(new GetSupplierByIdQuery(id), cancellationToken);
-        return dto is null ? Results.NotFound() : Results.Ok(MapToResponse(dto));
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ListSuppliers(

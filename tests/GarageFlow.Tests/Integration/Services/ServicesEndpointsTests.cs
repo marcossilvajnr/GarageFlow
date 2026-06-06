@@ -4,6 +4,7 @@ using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Tests.Integration;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Tests.Integration.Services;
 
@@ -97,6 +98,9 @@ public sealed class ServicesEndpointsTests(GarageFlowWebApplicationFactory facto
         var response = await _client.GetAsync($"/services/{Guid.NewGuid()}");
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var body = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
+        body!.Status.Should().Be(404);
+        body.Title.Should().Be("Não encontrado");
     }
 
     [Fact]

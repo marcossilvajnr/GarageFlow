@@ -70,6 +70,17 @@ public sealed class GetPartByIdHandlerTests
         dto.Should().NotBeNull();
         dto!.Sku.Should().Be("SKU-001");
     }
+
+    [Fact]
+    public async Task Handle_WithNonExistentId_ThrowsEntityNotFoundException()
+    {
+        var repo = new FakePartRepository();
+        var handler = new GetPartByIdHandler(repo);
+
+        var act = async () => await handler.HandleAsync(new GetPartByIdQuery(Guid.NewGuid()));
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
 }
 
 public sealed class ListPartsHandlerTests

@@ -2,6 +2,7 @@ using FluentAssertions;
 using GarageFlow.Application.Supplies.Commands;
 using GarageFlow.Application.Supplies.Handlers;
 using GarageFlow.Application.Supplies.Queries;
+using GarageFlow.Domain.Exceptions;
 
 namespace GarageFlow.Tests.Application.Supplies;
 
@@ -22,13 +23,13 @@ public sealed class GetSupplyByIdHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithNonExistentId_ReturnsNull()
+    public async Task Handle_WithNonExistentId_ThrowsEntityNotFoundException()
     {
         var repo = new FakeSupplyRepository();
         var handler = new GetSupplyByIdHandler(repo);
 
-        var dto = await handler.HandleAsync(new GetSupplyByIdQuery(Guid.NewGuid()));
+        var act = async () => await handler.HandleAsync(new GetSupplyByIdQuery(Guid.NewGuid()));
 
-        dto.Should().BeNull();
+        await act.Should().ThrowAsync<EntityNotFoundException>();
     }
 }

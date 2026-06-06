@@ -72,14 +72,14 @@ public sealed class GetServiceByIdHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithNonExistentId_ReturnsNull()
+    public async Task Handle_WithNonExistentId_ThrowsEntityNotFoundException()
     {
         var repo = new FakeServiceRepository();
         var handler = new GetServiceByIdHandler(repo);
 
-        var dto = await handler.HandleAsync(new GetServiceByIdQuery(Guid.NewGuid()));
+        var act = async () => await handler.HandleAsync(new GetServiceByIdQuery(Guid.NewGuid()));
 
-        dto.Should().BeNull();
+        await act.Should().ThrowAsync<EntityNotFoundException>();
     }
 }
 

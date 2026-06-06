@@ -6,6 +6,7 @@ using AppCustomerDocumentType = GarageFlow.Application.Customers.Enums.CustomerD
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Tests.Integration;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Tests.Integration.Employees;
 
@@ -64,7 +65,11 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
     public async Task GetEmployeeById_NotFound_Returns404()
     {
         var response = await _client.GetAsync($"/employees/{Guid.NewGuid()}");
+
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var body = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
+        body!.Status.Should().Be(404);
+        body.Title.Should().Be("Não encontrado");
     }
 
     [Fact]

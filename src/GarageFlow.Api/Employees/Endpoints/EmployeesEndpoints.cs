@@ -30,7 +30,7 @@ public static class EmployeesEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<EmployeeResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListEmployees)
             .WithName("ListEmployees")
@@ -84,7 +84,7 @@ public static class EmployeesEndpoints
         CancellationToken cancellationToken)
     {
         var dto = await handler.HandleAsync(new GetEmployeeByIdQuery(id), cancellationToken);
-        return dto is null ? Results.NotFound() : Results.Ok(MapToResponse(dto));
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ListEmployees(

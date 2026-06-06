@@ -30,7 +30,7 @@ public static class PartsEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<PartResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListParts)
             .WithName("ListParts")
@@ -83,7 +83,7 @@ public static class PartsEndpoints
         CancellationToken cancellationToken)
     {
         var dto = await handler.HandleAsync(new GetPartByIdQuery(id), cancellationToken);
-        return dto is null ? Results.NotFound() : Results.Ok(MapToResponse(dto));
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ListParts(

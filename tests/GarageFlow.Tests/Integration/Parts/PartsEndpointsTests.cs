@@ -4,6 +4,7 @@ using System.Text.Json;
 using FluentAssertions;
 using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Tests.Integration;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Tests.Integration.Parts;
 
@@ -51,6 +52,17 @@ public sealed class PartsEndpointsTests(GarageFlowWebApplicationFactory factory)
         var response = await _client.GetAsync("/parts?page=0&pageSize=10");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetPartById_WithNonExistentId_Returns404()
+    {
+        var response = await _client.GetAsync($"/parts/{Guid.NewGuid()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var body = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
+        body!.Status.Should().Be(404);
+        body.Title.Should().Be("Não encontrado");
     }
 
     [Fact]

@@ -30,7 +30,7 @@ public static class ServicesEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<ServiceResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListServices)
             .WithName("ListServices")
@@ -120,7 +120,7 @@ public static class ServicesEndpoints
         CancellationToken cancellationToken)
     {
         var dto = await handler.HandleAsync(new GetServiceByIdQuery(id), cancellationToken);
-        return dto is null ? Results.NotFound() : Results.Ok(MapToResponse(dto));
+        return Results.Ok(MapToResponse(dto));
     }
 
     private static async Task<IResult> ListServices(

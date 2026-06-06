@@ -5,6 +5,7 @@ using FluentAssertions;
 using GarageFlow.Api.Customers.DTOs;
 using GarageFlow.Application.Customers.Enums;
 using GarageFlow.Tests.Integration;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Tests.Integration.Customers;
 
@@ -54,7 +55,11 @@ public sealed class CustomersEndpointsTests(GarageFlowWebApplicationFactory fact
     public async Task GetCustomerById_NotFound_Returns404()
     {
         var response = await _client.GetAsync($"/customers/{Guid.NewGuid()}");
+
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var body = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
+        body!.Status.Should().Be(404);
+        body.Title.Should().Be("Não encontrado");
     }
 
     [Fact]

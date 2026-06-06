@@ -2,6 +2,7 @@ using FluentAssertions;
 using GarageFlow.Application.Employees.Enums;
 using GarageFlow.Application.Employees.Handlers;
 using GarageFlow.Application.Employees.Queries;
+using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.ValueObjects;
 
 using DomainEmployee = GarageFlow.Domain.Employees.Employee;
@@ -37,13 +38,13 @@ public sealed class GetEmployeeByIdHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithNonExistingEmployee_ReturnsNull()
+    public async Task Handle_WithNonExistingEmployee_ThrowsEntityNotFoundException()
     {
         var repo = new FakeEmployeeRepository();
         var handler = new GetEmployeeByIdHandler(repo);
 
-        var dto = await handler.HandleAsync(new GetEmployeeByIdQuery(Guid.NewGuid()));
+        var act = async () => await handler.HandleAsync(new GetEmployeeByIdQuery(Guid.NewGuid()));
 
-        dto.Should().BeNull();
+        await act.Should().ThrowAsync<EntityNotFoundException>();
     }
 }

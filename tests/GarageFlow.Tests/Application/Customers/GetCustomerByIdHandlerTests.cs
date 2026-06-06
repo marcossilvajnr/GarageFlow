@@ -3,6 +3,7 @@ using GarageFlow.Application.Customers.Commands;
 using GarageFlow.Application.Customers.Enums;
 using GarageFlow.Application.Customers.Handlers;
 using GarageFlow.Application.Customers.Queries;
+using GarageFlow.Domain.Exceptions;
 
 namespace GarageFlow.Tests.Application.Customers;
 
@@ -26,13 +27,13 @@ public sealed class GetCustomerByIdHandlerTests
     }
 
     [Fact]
-    public async Task Handle_NonExistingCustomer_ReturnsNull()
+    public async Task Handle_NonExistingCustomer_ThrowsEntityNotFoundException()
     {
         var repo = new FakeCustomerRepository();
         var handler = new GetCustomerByIdHandler(repo);
 
-        var result = await handler.HandleAsync(new GetCustomerByIdQuery(Guid.NewGuid()));
+        var act = async () => await handler.HandleAsync(new GetCustomerByIdQuery(Guid.NewGuid()));
 
-        result.Should().BeNull();
+        await act.Should().ThrowAsync<EntityNotFoundException>();
     }
 }
