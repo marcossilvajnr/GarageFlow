@@ -1,51 +1,25 @@
-using GarageFlow.Domain.Exceptions;
+using GarageFlow.Application.Common.Errors;
 
 namespace GarageFlow.Api.ErrorHandling;
 
 public static class ExceptionToProblemDetailsMapper
 {
-    public static ExceptionMapping Map(Exception exception) =>
-        exception switch
+    public static ExceptionMapping Map(ApplicationErrorDescriptor error) =>
+        error.Kind switch
         {
-            InvalidCredentialsException => new(StatusCodes.Status401Unauthorized, "Não autorizado"),
+            ApplicationErrorKind.Unauthorized =>
+                new(StatusCodes.Status401Unauthorized, "Não autorizado"),
 
-            EntityNotFoundException or QuoteNotFoundException =>
+            ApplicationErrorKind.NotFound =>
                 new(StatusCodes.Status404NotFound, "Não encontrado"),
 
-            DuplicateDocumentException or
-            DuplicatePartDataException or
-            DuplicateServiceDataException or
-            DuplicateSupplierDataException or
-            DuplicateSupplyDataException or
-            DuplicateVehicleDataException or
-            DuplicateStockDataException or
-            DuplicateServiceOrderServiceException or
-            DuplicateDiagnosticServiceException or
-            DuplicateServicePartException or
-            DuplicateServiceSupplyException =>
+            ApplicationErrorKind.Conflict =>
                 new(StatusCodes.Status409Conflict, "Conflito"),
 
-            InvalidExecutionOrderStatusTransitionException or
-            InvalidPurchaseOrderStatusTransitionException or
-            InvalidSeparationOrderStatusTransitionException or
-            InvalidServiceOrderStatusTransitionException =>
+            ApplicationErrorKind.StateConflict =>
                 new(StatusCodes.Status409Conflict, "Conflito de estado"),
 
-            StockQuantityConflictException or
-            DiagnosticLastServiceException or
-            DiagnosticNoServicesException or
-            DiagnosticNotCompletedException or
-            NoConsolidatedServicesException or
-            QuoteAlreadyExistsException or
-            ServiceNotAvailableForQuoteException =>
-                new(StatusCodes.Status409Conflict, "Conflito"),
-
-            InvalidLoginPayloadException or
-            DiagnosticAlreadyStartedException or
-            DiagnosticNotInProgressException or
-            QuoteAlreadyDecidedException or
-            SeparationOrderCustodyPreconditionException or
-            DomainException =>
+            ApplicationErrorKind.Validation =>
                 new(StatusCodes.Status400BadRequest, "Erro de validação"),
 
             _ => new(StatusCodes.Status500InternalServerError, "Erro interno")

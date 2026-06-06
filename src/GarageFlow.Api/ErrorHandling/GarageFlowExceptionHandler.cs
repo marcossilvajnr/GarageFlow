@@ -1,3 +1,4 @@
+using GarageFlow.Application.Common.Errors;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +20,8 @@ public sealed class GarageFlowExceptionHandler(
             return false;
         }
 
-        var mapping = ExceptionToProblemDetailsMapper.Map(exception);
+        var error = ApplicationExceptionMapper.Map(exception);
+        var mapping = ExceptionToProblemDetailsMapper.Map(error);
         httpContext.Response.StatusCode = mapping.StatusCode;
 
         var problemDetails = new ProblemDetails
