@@ -1,4 +1,4 @@
-namespace GarageFlow.Api.Common.ProblemDetails;
+namespace GarageFlow.Api.Common.Responses;
 
 public static class ApiProblemDetails
 {

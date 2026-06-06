@@ -1,8 +1,8 @@
-using GarageFlow.Api.Common.ProblemDetails;
+using GarageFlow.Api.Common.Responses;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
-using MvcProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Development.Endpoints;
 
@@ -26,13 +26,13 @@ public static class DevelopmentDatabaseEndpoints
             .WithName("CleanDevelopmentDatabase")
             .WithSummary("Remove todo o banco (destrutivo).")
             .Produces(StatusCodes.Status200OK)
-            .Produces<MvcProblemDetails>(StatusCodes.Status400BadRequest);
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/reset", ResetDatabase)
             .WithName("ResetDevelopmentDatabase")
             .WithSummary("Limpa e recria o banco com migrations.")
             .Produces(StatusCodes.Status200OK)
-            .Produces<MvcProblemDetails>(StatusCodes.Status400BadRequest);
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         return endpoints;
     }

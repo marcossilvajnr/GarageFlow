@@ -1,5 +1,5 @@
-using GarageFlow.Api.Common.ProblemDetails;
-using MvcProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
+using GarageFlow.Api.Common.Responses;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Common.Pagination;
 
@@ -21,6 +21,6 @@ public static class ApiPagination
     public static bool IsValid(int page, int pageSize) =>
         IsValidPage(page) && IsValidPageSize(pageSize);
 
-    public static MvcProblemDetails CreateInvalidPaginationProblemDetails() =>
+    public static ProblemDetails CreateInvalidPaginationProblemDetails() =>
         ApiProblemDetails.CreateValidationProblemDetails(InvalidPaginationDetail);
 }
