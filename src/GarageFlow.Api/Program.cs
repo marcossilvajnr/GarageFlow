@@ -1,5 +1,5 @@
 using System.Text;
-using GarageFlow.Api.ErrorHandling;
+using GarageFlow.Api.Common.ErrorHandling;
 using GarageFlow.Api.Health.Endpoints;
 using GarageFlow.Api.Development.Endpoints;
 using GarageFlow.Api.Auth.Endpoints;

@@ -1,3 +1,3 @@
-namespace GarageFlow.Api.ErrorHandling;
+namespace GarageFlow.Api.Common.ErrorHandling;
 
 public sealed record ExceptionMapping(int StatusCode, string Title);

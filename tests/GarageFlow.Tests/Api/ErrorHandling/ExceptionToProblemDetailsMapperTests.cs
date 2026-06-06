@@ -1,5 +1,5 @@
 using FluentAssertions;
-using GarageFlow.Api.ErrorHandling;
+using GarageFlow.Api.Common.ErrorHandling;
 using GarageFlow.Application.Common.Errors;
 using Microsoft.AspNetCore.Http;
 

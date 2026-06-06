@@ -1,6 +1,6 @@
 using GarageFlow.Application.Common.Errors;
 
-namespace GarageFlow.Api.ErrorHandling;
+namespace GarageFlow.Api.Common.ErrorHandling;
 
 public static class ExceptionToProblemDetailsMapper
 {

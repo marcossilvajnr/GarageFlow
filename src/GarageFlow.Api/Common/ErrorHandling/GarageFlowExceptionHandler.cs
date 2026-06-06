@@ -2,7 +2,7 @@ using GarageFlow.Application.Common.Errors;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GarageFlow.Api.ErrorHandling;
+namespace GarageFlow.Api.Common.ErrorHandling;
 
 public sealed class GarageFlowExceptionHandler(
     IProblemDetailsService problemDetailsService,
