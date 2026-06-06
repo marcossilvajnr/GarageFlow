@@ -30,7 +30,7 @@ public static class VehiclesEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<VehicleResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListVehicles)
             .WithName("ListVehicles")
@@ -47,7 +47,7 @@ public static class VehiclesEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<VehicleResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
         group.MapDelete("/{id:guid}", DeactivateVehicle)
@@ -56,7 +56,7 @@ public static class VehiclesEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         return endpoints;

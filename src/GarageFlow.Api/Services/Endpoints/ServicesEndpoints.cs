@@ -47,7 +47,7 @@ public static class ServicesEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<ServiceResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
         group.MapDelete("/{id:guid}", DeactivateService)
@@ -56,7 +56,7 @@ public static class ServicesEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/{id:guid}/parts", AddServicePart)
@@ -66,7 +66,7 @@ public static class ServicesEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<ServiceResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
         group.MapDelete("/{id:guid}/parts/{partId:guid}", RemoveServicePart)
@@ -75,7 +75,7 @@ public static class ServicesEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapPost("/{id:guid}/supplies", AddServiceSupply)
             .WithName("AddServiceSupply")
@@ -84,7 +84,7 @@ public static class ServicesEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<ServiceResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
         group.MapDelete("/{id:guid}/supplies/{supplyId:guid}", RemoveServiceSupply)
@@ -93,7 +93,7 @@ public static class ServicesEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         return endpoints;
     }

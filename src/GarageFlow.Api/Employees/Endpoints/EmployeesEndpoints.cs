@@ -46,7 +46,7 @@ public static class EmployeesEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<EmployeeResponse>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{id:guid}", DeactivateEmployee)
             .WithName("DeactivateEmployee")
@@ -54,7 +54,7 @@ public static class EmployeesEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         return endpoints;
