@@ -19,6 +19,8 @@ public static class PurchaseOrdersEndpoints
             .WithSummary("Cria uma nova Ordem de Compra.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<PurchaseOrderResponse>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapGet("/{id:guid}", GetPurchaseOrderById)
@@ -38,6 +40,8 @@ public static class PurchaseOrdersEndpoints
             .WithSummary("Atribui fornecedor à Ordem de Compra.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -47,6 +51,8 @@ public static class PurchaseOrdersEndpoints
             .WithSummary("Inicia a Ordem de Compra.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -56,6 +62,8 @@ public static class PurchaseOrdersEndpoints
             .WithSummary("Conclui a Ordem de Compra.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 

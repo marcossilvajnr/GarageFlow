@@ -19,6 +19,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Cria uma nova Ordem de Serviço.")
             .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
@@ -39,6 +41,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Adiciona um serviço à Ordem de Serviço (FrontDesk).")
             .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -48,6 +52,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Remove um serviço da Ordem de Serviço (FrontDesk).")
             .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
@@ -56,6 +62,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Inicia o diagnóstico da Ordem de Serviço.")
             .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -65,6 +73,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Adiciona um serviço ao diagnóstico da Ordem de Serviço.")
             .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -74,6 +84,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Remove um serviço do diagnóstico da Ordem de Serviço.")
             .RequireAuthorization("MechanicOrAdministrative")
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
@@ -82,6 +94,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Conclui o diagnóstico da Ordem de Serviço.")
             .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -91,6 +105,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Consolida os serviços do diagnóstico concluído na Ordem de Serviço.")
             .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
@@ -99,6 +115,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Gera o orçamento da Ordem de Serviço a partir dos serviços consolidados.")
             .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<QuoteResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
@@ -113,6 +131,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Aceita o orçamento da Ordem de Serviço.")
             .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<QuoteResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
@@ -121,6 +141,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Rejeita o orçamento da Ordem de Serviço.")
             .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<QuoteResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -130,6 +152,8 @@ public static class ServiceOrdersEndpoints
             .WithSummary("Conclui a entrega da Ordem de Serviço.")
             .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 

@@ -19,6 +19,8 @@ public static class ExecutionOrdersEndpoints
             .WithSummary("Cria uma nova Ordem de Execução.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<ExecutionOrderResponse>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapGet("/{id:guid}", GetExecutionOrderById)
@@ -38,6 +40,8 @@ public static class ExecutionOrdersEndpoints
             .WithSummary("Marca a Ordem de Execução como pronta para início.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapPost("/{id:guid}/start", StartExecutionOrder)
@@ -45,6 +49,8 @@ public static class ExecutionOrdersEndpoints
             .WithSummary("Inicia a execução da Ordem de Execução.")
             .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -54,6 +60,8 @@ public static class ExecutionOrdersEndpoints
             .WithSummary("Conclui a Ordem de Execução.")
             .RequireAuthorization("MechanicOrAdministrative")
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 

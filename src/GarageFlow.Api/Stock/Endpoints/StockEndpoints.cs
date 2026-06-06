@@ -20,6 +20,8 @@ public static class StockEndpoints
             .WithSummary("Registra entrada de estoque.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<StockPositionResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
@@ -28,6 +30,8 @@ public static class StockEndpoints
             .WithSummary("Reserva quantidade no estoque.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<StockPositionResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -48,6 +52,8 @@ public static class StockEndpoints
             .WithSummary("Consome quantidade reservada de estoque.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<StockPositionResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -57,6 +63,8 @@ public static class StockEndpoints
             .WithSummary("Ajusta saldo de estoque com motivo.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<StockPositionResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
             .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
@@ -66,6 +74,8 @@ public static class StockEndpoints
             .WithSummary("Consulta posição atual de estoque por item.")
             .RequireAuthorization("StockistOrAdministrative")
             .Produces<StockPositionResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/{itemType}/{itemId:guid}/operations", ListStockOperations)
