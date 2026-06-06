@@ -1,6 +1,7 @@
 using GarageFlow.Application.Common.Errors;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using MvcProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace GarageFlow.Api.Common.ErrorHandling;
 
@@ -24,7 +25,7 @@ public sealed class GarageFlowExceptionHandler(
         var mapping = ExceptionToProblemDetailsMapper.Map(error);
         httpContext.Response.StatusCode = mapping.StatusCode;
 
-        var problemDetails = new ProblemDetails
+        var problemDetails = new MvcProblemDetails
         {
             Status = mapping.StatusCode,
             Title = mapping.Title,

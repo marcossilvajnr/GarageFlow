@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
+using GarageFlow.Api.Common.ProblemDetails;
+using MvcProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace GarageFlow.Api.Common.Pagination;
 
@@ -20,10 +21,6 @@ public static class ApiPagination
     public static bool IsValid(int page, int pageSize) =>
         IsValidPage(page) && IsValidPageSize(pageSize);
 
-    public static ProblemDetails CreateInvalidPaginationProblemDetails() => new()
-    {
-        Status = StatusCodes.Status400BadRequest,
-        Title = "Erro de validação",
-        Detail = InvalidPaginationDetail
-    };
+    public static MvcProblemDetails CreateInvalidPaginationProblemDetails() =>
+        ApiProblemDetails.CreateValidationProblemDetails(InvalidPaginationDetail);
 }

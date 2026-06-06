@@ -1,11 +1,16 @@
+using GarageFlow.Api.Common.ProblemDetails;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
+using MvcProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace GarageFlow.Api.Development.Endpoints;
 
 public static class DevelopmentDatabaseEndpoints
 {
+    private const string DestructiveOperationBlockedDetail =
+        "Operacao destrutiva bloqueada. Envie { \"confirm\": true } para prosseguir.";
+
     public static IEndpointRouteBuilder MapDevelopmentDatabaseEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/dev/database")
@@ -21,13 +26,13 @@ public static class DevelopmentDatabaseEndpoints
             .WithName("CleanDevelopmentDatabase")
             .WithSummary("Remove todo o banco (destrutivo).")
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces<MvcProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/reset", ResetDatabase)
             .WithName("ResetDevelopmentDatabase")
             .WithSummary("Limpa e recria o banco com migrations.")
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces<MvcProblemDetails>(StatusCodes.Status400BadRequest);
 
         return endpoints;
     }
@@ -52,10 +57,7 @@ public static class DevelopmentDatabaseEndpoints
         CancellationToken cancellationToken)
     {
         if (!request.Confirm)
-            return Results.BadRequest(new
-            {
-                message = "Operacao destrutiva bloqueada. Envie { \"confirm\": true } para prosseguir."
-            });
+            return Results.BadRequest(ApiProblemDetails.CreateValidationProblemDetails(DestructiveOperationBlockedDetail));
 
         await dbContext.Database.EnsureDeletedAsync(cancellationToken);
         return Results.Ok(new
@@ -71,10 +73,7 @@ public static class DevelopmentDatabaseEndpoints
         CancellationToken cancellationToken)
     {
         if (!request.Confirm)
-            return Results.BadRequest(new
-            {
-                message = "Operacao destrutiva bloqueada. Envie { \"confirm\": true } para prosseguir."
-            });
+            return Results.BadRequest(ApiProblemDetails.CreateValidationProblemDetails(DestructiveOperationBlockedDetail));
 
         await dbContext.Database.EnsureDeletedAsync(cancellationToken);
         await dbContext.Database.MigrateAsync(cancellationToken);
