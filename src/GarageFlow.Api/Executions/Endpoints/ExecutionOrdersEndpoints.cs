@@ -26,13 +26,19 @@ public static class ExecutionOrdersEndpoints
         group.MapGet("/{id:guid}", GetExecutionOrderById)
             .WithName("GetExecutionOrderById")
             .WithSummary("Consulta Ordem de Execução por Id.")
+            .RequireAuthorization("StockistOrMechanicOrAdministrative")
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListExecutionOrders)
             .WithName("ListExecutionOrders")
             .WithSummary("Lista Ordens de Execução com paginação.")
+            .RequireAuthorization("StockistOrMechanicOrAdministrative")
             .Produces<PagedExecutionOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/{id:guid}/mark-ready", MarkExecutionOrderReady)

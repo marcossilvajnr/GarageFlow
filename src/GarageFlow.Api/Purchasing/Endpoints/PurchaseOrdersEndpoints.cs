@@ -26,13 +26,19 @@ public static class PurchaseOrdersEndpoints
         group.MapGet("/{id:guid}", GetPurchaseOrderById)
             .WithName("GetPurchaseOrderById")
             .WithSummary("Consulta Ordem de Compra por Id.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListPurchaseOrders)
             .WithName("ListPurchaseOrders")
             .WithSummary("Lista Ordens de Compra com paginação.")
+            .RequireAuthorization("StockistOrAdministrative")
             .Produces<PagedPurchaseOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/{id:guid}/assign-supplier", AssignSupplier)

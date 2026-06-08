@@ -90,6 +90,10 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser()
               .RequireRole("FrontDesk", "Administrative"));
 
+    options.AddPolicy("FrontDeskOrMechanicOrAdministrative", policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireRole("FrontDesk", "Mechanic", "Administrative"));
+
     options.AddPolicy("MechanicOrAdministrative", policy =>
         policy.RequireAuthenticatedUser()
               .RequireRole("Mechanic", "Administrative"));
@@ -97,6 +101,10 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("StockistOrAdministrative", policy =>
         policy.RequireAuthenticatedUser()
               .RequireRole("Stockist", "Administrative"));
+
+    options.AddPolicy("StockistOrMechanicOrAdministrative", policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireRole("Stockist", "Mechanic", "Administrative"));
 });
 
 var app = builder.Build();

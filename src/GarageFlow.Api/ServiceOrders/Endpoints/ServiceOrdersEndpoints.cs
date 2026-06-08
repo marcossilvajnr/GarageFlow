@@ -27,13 +27,19 @@ public static class ServiceOrdersEndpoints
         group.MapGet("/{id:guid}", GetServiceOrderById)
             .WithName("GetServiceOrderById")
             .WithSummary("Consulta Ordem de Serviço por Id.")
+            .RequireAuthorization("FrontDeskOrMechanicOrAdministrative")
             .Produces<ServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListServiceOrders)
             .WithName("ListServiceOrders")
             .WithSummary("Lista Ordens de Serviço com paginação.")
+            .RequireAuthorization("FrontDeskOrMechanicOrAdministrative")
             .Produces<PagedServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/{id:guid}/services", AddServiceToServiceOrder)
@@ -123,7 +129,10 @@ public static class ServiceOrdersEndpoints
         group.MapGet("/{id:guid}/quote", GetQuote)
             .WithName("GetQuote")
             .WithSummary("Consulta o orçamento da Ordem de Serviço.")
+            .RequireAuthorization("FrontDeskOrAdministrative")
             .Produces<QuoteResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapPost("/{id:guid}/quote/accept", AcceptQuote)

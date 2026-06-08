@@ -26,13 +26,19 @@ public static class SeparationOrdersEndpoints
         group.MapGet("/{id:guid}", GetSeparationOrderById)
             .WithName("GetSeparationOrderById")
             .WithSummary("Consulta Ordem de Separação por Id.")
+            .RequireAuthorization("StockistOrMechanicOrAdministrative")
             .Produces<SeparationOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListSeparationOrders)
             .WithName("ListSeparationOrders")
             .WithSummary("Lista Ordens de Separação com paginação.")
+            .RequireAuthorization("StockistOrMechanicOrAdministrative")
             .Produces<PagedSeparationOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/{id:guid}/reserve", ReserveSeparationOrder)
