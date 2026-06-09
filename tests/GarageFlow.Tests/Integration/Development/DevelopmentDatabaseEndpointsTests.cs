@@ -12,19 +12,33 @@ public sealed class DevelopmentDatabaseEndpointsTests(GarageFlowWebApplicationFa
     private const string DestructiveOperationBlockedDetail =
         "Operacao destrutiva bloqueada. Envie { \"confirm\": true } para prosseguir.";
 
-    private readonly HttpClient _client = factory.CreateClient();
-
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
+
+    private HttpClient CreateClientWithRole(string role)
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.RoleHeader, role);
+        return client;
+    }
+
+    private HttpClient CreateAnonymousClient()
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.ForceAnonymousHeader, bool.TrueString);
+        return client;
+    }
 
     [Theory]
     [InlineData("/dev/database/clean")]
     [InlineData("/dev/database/reset")]
     public async Task DestructiveDatabaseEndpoint_WithoutConfirmation_ReturnsValidationProblemDetails(string url)
     {
-        var response = await _client.PostAsJsonAsync(url, new { confirm = false });
+        var client = CreateClientWithRole("Administrative");
+
+        var response = await client.PostAsJsonAsync(url, new { confirm = false });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var body = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
@@ -32,5 +46,31 @@ public sealed class DevelopmentDatabaseEndpointsTests(GarageFlowWebApplicationFa
         body!.Status.Should().Be(400);
         body.Title.Should().Be("Erro de validação");
         body.Detail.Should().Be(DestructiveOperationBlockedDetail);
+    }
+
+    [Theory]
+    [InlineData("/dev/database/migrate")]
+    [InlineData("/dev/database/clean")]
+    [InlineData("/dev/database/reset")]
+    public async Task DevelopmentDatabaseEndpoint_WithoutAuthentication_Returns401(string url)
+    {
+        var client = CreateAnonymousClient();
+
+        var response = await client.PostAsJsonAsync(url, new { confirm = false });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Theory]
+    [InlineData("/dev/database/migrate")]
+    [InlineData("/dev/database/clean")]
+    [InlineData("/dev/database/reset")]
+    public async Task DevelopmentDatabaseEndpoint_WithNonAdministrativeRole_Returns403(string url)
+    {
+        var client = CreateClientWithRole("FrontDesk");
+
+        var response = await client.PostAsJsonAsync(url, new { confirm = false });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 }

@@ -32,6 +32,8 @@ public abstract class E2ETestBase
 
     internal static async Task ResetRealDatabaseAsync(HttpClient client)
     {
+        await AuthenticateAsAsync(client, E2ERole.Administrative);
+
         var response = await client.PostAsJsonAsync("/dev/database/reset", new { confirm = true });
         if (response.StatusCode != HttpStatusCode.OK)
         {
@@ -39,6 +41,8 @@ public abstract class E2ETestBase
             throw new InvalidOperationException(
                 $"Falha ao resetar banco real para E2E. Status={(int)response.StatusCode}, body={body}");
         }
+
+        ClearAuthentication(client);
     }
 
     internal static async Task AuthenticateAsAsync(HttpClient client, E2ERole role)

@@ -15,23 +15,30 @@ public static class DevelopmentDatabaseEndpoints
     {
         var group = endpoints.MapGroup("/dev/database")
             .WithTags("DevDatabase")
-            .WithDescription("Operacoes de banco para desenvolvimento local.");
+            .WithDescription("Operacoes de banco para desenvolvimento local.")
+            .RequireAuthorization("Administrative");
 
         group.MapPost("/migrate", MigrateDatabase)
             .WithName("MigrateDevelopmentDatabase")
             .WithSummary("Aplica migrations pendentes no banco.")
-            .Produces(StatusCodes.Status200OK);
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
 
         group.MapPost("/clean", CleanDatabase)
             .WithName("CleanDevelopmentDatabase")
             .WithSummary("Remove todo o banco (destrutivo).")
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/reset", ResetDatabase)
             .WithName("ResetDevelopmentDatabase")
             .WithSummary("Limpa e recria o banco com migrations.")
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         return endpoints;
