@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -30,7 +31,7 @@ public sealed class AuthEndpointsTests(GarageFlowWebApplicationFactory factory)
         body!.TokenType.Should().Be("Bearer");
         body.AccessToken.Should().NotBeNullOrWhiteSpace();
         body.ExpiresIn.Should().BeGreaterThan(0);
-        body.Role.Should().Be("Administrative");
+        body.Role.Should().Be(ApiRoles.Administrative);
     }
 
     [Fact]

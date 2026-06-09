@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -36,7 +37,7 @@ public sealed class DevelopmentDatabaseEndpointsTests(GarageFlowWebApplicationFa
     [InlineData("/dev/database/reset")]
     public async Task DestructiveDatabaseEndpoint_WithoutConfirmation_ReturnsValidationProblemDetails(string url)
     {
-        var client = CreateClientWithRole("Administrative");
+        var client = CreateClientWithRole(ApiRoles.Administrative);
 
         var response = await client.PostAsJsonAsync(url, new { confirm = false });
 
@@ -67,7 +68,7 @@ public sealed class DevelopmentDatabaseEndpointsTests(GarageFlowWebApplicationFa
     [InlineData("/dev/database/reset")]
     public async Task DevelopmentDatabaseEndpoint_WithNonAdministrativeRole_Returns403(string url)
     {
-        var client = CreateClientWithRole("FrontDesk");
+        var client = CreateClientWithRole(ApiRoles.FrontDesk);
 
         var response = await client.PostAsJsonAsync(url, new { confirm = false });
 

@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
@@ -30,7 +31,7 @@ public sealed class TestAuthHandler(
 
         var role = Request.Headers.TryGetValue(RoleHeader, out var roleValues)
             ? roleValues.ToString()
-            : "Administrative";
+            : ApiRoles.Administrative;
 
         var sub = Request.Headers.TryGetValue(SubHeader, out var subValues)
             ? subValues.ToString()

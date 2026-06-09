@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -75,7 +76,7 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
     [Fact]
     public async Task GetEmployees_Returns200WithPagination()
     {
-        var authClient = CreateClientWithRole("Administrative");
+        var authClient = CreateClientWithRole(ApiRoles.Administrative);
         await CreateEmployee("987.654.321-00");
 
         var response = await authClient.GetAsync("/employees?page=1&pageSize=10");
@@ -134,7 +135,7 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
     [Fact]
     public async Task GetEmployees_InvalidPage_Returns400()
     {
-        var authClient = CreateClientWithRole("Administrative");
+        var authClient = CreateClientWithRole(ApiRoles.Administrative);
         var response = await authClient.GetAsync("/employees?page=0&pageSize=10");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -145,7 +146,7 @@ public sealed class EmployeesEndpointsTests(GarageFlowWebApplicationFactory fact
     [Fact]
     public async Task GetEmployees_InvalidPageSize_Returns400()
     {
-        var authClient = CreateClientWithRole("Administrative");
+        var authClient = CreateClientWithRole(ApiRoles.Administrative);
         var response = await authClient.GetAsync("/employees?page=1&pageSize=-1");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);

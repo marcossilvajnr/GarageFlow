@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -372,7 +373,7 @@ public sealed class SeparationOrdersEndpointsTests(GarageFlowWebApplicationFacto
         await _client.PostAsync($"/separation-orders/{created.Id}/reserve", null);
 
         // Manually release part of the reservation to simulate insufficient reserved stock
-        var adminClient = CreateClientWithRole("Administrative");
+        var adminClient = CreateClientWithRole(ApiRoles.Administrative);
         await adminClient.PostAsJsonAsync("/stock/releases",
             new ReleaseStockReservationRequest(partId, AppStockItemType.Part, 1m, "Ajuste operacional de teste", "sistema", null, null));
 

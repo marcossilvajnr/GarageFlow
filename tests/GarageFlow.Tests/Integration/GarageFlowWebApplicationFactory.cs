@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using GarageFlow.Infrastructure.Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Authentication;
@@ -31,7 +32,7 @@ public sealed class GarageFlowWebApplicationFactory : WebApplicationFactory<Prog
                 ["Auth:SeedUsers:0:Username"] = "admin",
                 ["Auth:SeedUsers:0:Password"] = "admin123",
                 ["Auth:SeedUsers:0:DisplayName"] = "Administrador Teste",
-                ["Auth:SeedUsers:0:Role"] = "Administrative",
+                ["Auth:SeedUsers:0:Role"] = ApiRoles.Administrative,
                 ["Database:AutoMigrateOnStartup"] = "false"
             });
         });

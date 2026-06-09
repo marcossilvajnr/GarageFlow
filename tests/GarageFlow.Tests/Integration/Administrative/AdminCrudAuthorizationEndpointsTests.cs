@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
@@ -49,7 +50,7 @@ public sealed class AdminCrudAuthorizationEndpointsTests(GarageFlowWebApplicatio
     [InlineData("/supplies?page=1&pageSize=5")]
     public async Task ListEndpoints_WithNonAdministrativeRole_Return403(string url)
     {
-        var client = CreateClientWithRole("FrontDesk");
+        var client = CreateClientWithRole(ApiRoles.FrontDesk);
 
         var response = await client.GetAsync(url);
 
@@ -66,7 +67,7 @@ public sealed class AdminCrudAuthorizationEndpointsTests(GarageFlowWebApplicatio
     [InlineData("/supplies?page=1&pageSize=5")]
     public async Task ListEndpoints_WithAdministrativeRole_Return200(string url)
     {
-        var client = CreateClientWithRole("Administrative");
+        var client = CreateClientWithRole(ApiRoles.Administrative);
 
         var response = await client.GetAsync(url);
 
@@ -129,7 +130,7 @@ public sealed class AdminCrudAuthorizationEndpointsTests(GarageFlowWebApplicatio
     [InlineData("/supplies/00000000-0000-0000-0000-000000000001", "DELETE")]
     public async Task WriteEndpoints_WithNonAdministrativeRole_Return403(string url, string method)
     {
-        var client = CreateClientWithRole("FrontDesk");
+        var client = CreateClientWithRole(ApiRoles.FrontDesk);
         var request = CreateWriteRequest(url, method);
 
         var response = await client.SendAsync(request);
@@ -161,7 +162,7 @@ public sealed class AdminCrudAuthorizationEndpointsTests(GarageFlowWebApplicatio
     [InlineData("/supplies/00000000-0000-0000-0000-000000000001", "DELETE")]
     public async Task WriteEndpoints_WithAdministrativeRole_Not401Or403(string url, string method)
     {
-        var client = CreateClientWithRole("Administrative");
+        var client = CreateClientWithRole(ApiRoles.Administrative);
         var request = CreateWriteRequest(url, method);
 
         var response = await client.SendAsync(request);

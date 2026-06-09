@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using System.Text;
 using GarageFlow.Api.Common.ErrorHandling;
 using GarageFlow.Api.Health.Endpoints;
@@ -84,27 +85,27 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Administrative", policy =>
         policy.RequireAuthenticatedUser()
-              .RequireRole("Administrative"));
+              .RequireRole(ApiRoles.Administrative));
 
     options.AddPolicy("FrontDeskOrAdministrative", policy =>
         policy.RequireAuthenticatedUser()
-              .RequireRole("FrontDesk", "Administrative"));
+              .RequireRole(ApiRoles.FrontDesk, ApiRoles.Administrative));
 
     options.AddPolicy("FrontDeskOrMechanicOrAdministrative", policy =>
         policy.RequireAuthenticatedUser()
-              .RequireRole("FrontDesk", "Mechanic", "Administrative"));
+              .RequireRole(ApiRoles.FrontDesk, ApiRoles.Mechanic, ApiRoles.Administrative));
 
     options.AddPolicy("MechanicOrAdministrative", policy =>
         policy.RequireAuthenticatedUser()
-              .RequireRole("Mechanic", "Administrative"));
+              .RequireRole(ApiRoles.Mechanic, ApiRoles.Administrative));
 
     options.AddPolicy("StockistOrAdministrative", policy =>
         policy.RequireAuthenticatedUser()
-              .RequireRole("Stockist", "Administrative"));
+              .RequireRole(ApiRoles.Stockist, ApiRoles.Administrative));
 
     options.AddPolicy("StockistOrMechanicOrAdministrative", policy =>
         policy.RequireAuthenticatedUser()
-              .RequireRole("Stockist", "Mechanic", "Administrative"));
+              .RequireRole(ApiRoles.Stockist, ApiRoles.Mechanic, ApiRoles.Administrative));
 });
 
 var app = builder.Build();

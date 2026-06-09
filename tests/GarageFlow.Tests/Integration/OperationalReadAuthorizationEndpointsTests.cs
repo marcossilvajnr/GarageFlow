@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using System.Net;
 using FluentAssertions;
 
@@ -40,15 +41,15 @@ public sealed class OperationalReadAuthorizationEndpointsTests(GarageFlowWebAppl
     }
 
     [Theory]
-    [InlineData("/service-orders?page=1&pageSize=5", "Stockist")]
-    [InlineData("/service-orders/00000000-0000-0000-0000-000000000001", "Stockist")]
-    [InlineData("/service-orders/00000000-0000-0000-0000-000000000001/quote", "Mechanic")]
-    [InlineData("/execution-orders?page=1&pageSize=5", "FrontDesk")]
-    [InlineData("/execution-orders/00000000-0000-0000-0000-000000000001", "FrontDesk")]
-    [InlineData("/separation-orders?page=1&pageSize=5", "FrontDesk")]
-    [InlineData("/separation-orders/00000000-0000-0000-0000-000000000001", "FrontDesk")]
-    [InlineData("/purchase-orders?page=1&pageSize=5", "Mechanic")]
-    [InlineData("/purchase-orders/00000000-0000-0000-0000-000000000001", "Mechanic")]
+    [InlineData("/service-orders?page=1&pageSize=5", ApiRoles.Stockist)]
+    [InlineData("/service-orders/00000000-0000-0000-0000-000000000001", ApiRoles.Stockist)]
+    [InlineData("/service-orders/00000000-0000-0000-0000-000000000001/quote", ApiRoles.Mechanic)]
+    [InlineData("/execution-orders?page=1&pageSize=5", ApiRoles.FrontDesk)]
+    [InlineData("/execution-orders/00000000-0000-0000-0000-000000000001", ApiRoles.FrontDesk)]
+    [InlineData("/separation-orders?page=1&pageSize=5", ApiRoles.FrontDesk)]
+    [InlineData("/separation-orders/00000000-0000-0000-0000-000000000001", ApiRoles.FrontDesk)]
+    [InlineData("/purchase-orders?page=1&pageSize=5", ApiRoles.Mechanic)]
+    [InlineData("/purchase-orders/00000000-0000-0000-0000-000000000001", ApiRoles.Mechanic)]
     public async Task OperationalReadEndpoints_WithForbiddenRole_Return403(string url, string role)
     {
         var client = CreateClientWithRole(role);
@@ -59,15 +60,15 @@ public sealed class OperationalReadAuthorizationEndpointsTests(GarageFlowWebAppl
     }
 
     [Theory]
-    [InlineData("/service-orders?page=1&pageSize=5", "Mechanic", HttpStatusCode.OK)]
-    [InlineData("/service-orders/00000000-0000-0000-0000-000000000001", "Mechanic", HttpStatusCode.NotFound)]
-    [InlineData("/service-orders/00000000-0000-0000-0000-000000000001/quote", "FrontDesk", HttpStatusCode.NotFound)]
-    [InlineData("/execution-orders?page=1&pageSize=5", "Mechanic", HttpStatusCode.OK)]
-    [InlineData("/execution-orders/00000000-0000-0000-0000-000000000001", "Mechanic", HttpStatusCode.NotFound)]
-    [InlineData("/separation-orders?page=1&pageSize=5", "Mechanic", HttpStatusCode.OK)]
-    [InlineData("/separation-orders/00000000-0000-0000-0000-000000000001", "Mechanic", HttpStatusCode.NotFound)]
-    [InlineData("/purchase-orders?page=1&pageSize=5", "Stockist", HttpStatusCode.OK)]
-    [InlineData("/purchase-orders/00000000-0000-0000-0000-000000000001", "Stockist", HttpStatusCode.NotFound)]
+    [InlineData("/service-orders?page=1&pageSize=5", ApiRoles.Mechanic, HttpStatusCode.OK)]
+    [InlineData("/service-orders/00000000-0000-0000-0000-000000000001", ApiRoles.Mechanic, HttpStatusCode.NotFound)]
+    [InlineData("/service-orders/00000000-0000-0000-0000-000000000001/quote", ApiRoles.FrontDesk, HttpStatusCode.NotFound)]
+    [InlineData("/execution-orders?page=1&pageSize=5", ApiRoles.Mechanic, HttpStatusCode.OK)]
+    [InlineData("/execution-orders/00000000-0000-0000-0000-000000000001", ApiRoles.Mechanic, HttpStatusCode.NotFound)]
+    [InlineData("/separation-orders?page=1&pageSize=5", ApiRoles.Mechanic, HttpStatusCode.OK)]
+    [InlineData("/separation-orders/00000000-0000-0000-0000-000000000001", ApiRoles.Mechanic, HttpStatusCode.NotFound)]
+    [InlineData("/purchase-orders?page=1&pageSize=5", ApiRoles.Stockist, HttpStatusCode.OK)]
+    [InlineData("/purchase-orders/00000000-0000-0000-0000-000000000001", ApiRoles.Stockist, HttpStatusCode.NotFound)]
     public async Task OperationalReadEndpoints_WithAllowedRole_ReturnExpectedStatus(
         string url,
         string role,
