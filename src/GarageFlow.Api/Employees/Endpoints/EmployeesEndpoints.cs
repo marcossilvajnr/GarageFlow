@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Application.Employees.Commands;
@@ -13,7 +14,7 @@ public static class EmployeesEndpoints
     {
         var group = endpoints.MapGroup("/employees")
             .WithTags("Employees")
-            .RequireAuthorization("Administrative");
+            .RequireRoles(ApiRoles.Administrative);
 
         group.MapPost("/", CreateEmployee)
             .WithName("CreateEmployee")

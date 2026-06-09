@@ -1,4 +1,3 @@
-using GarageFlow.Api.Common.Authorization;
 using System.Text;
 using GarageFlow.Api.Common.ErrorHandling;
 using GarageFlow.Api.Health.Endpoints;
@@ -81,32 +80,7 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Administrative", policy =>
-        policy.RequireAuthenticatedUser()
-              .RequireRole(ApiRoles.Administrative));
-
-    options.AddPolicy("FrontDeskOrAdministrative", policy =>
-        policy.RequireAuthenticatedUser()
-              .RequireRole(ApiRoles.FrontDesk, ApiRoles.Administrative));
-
-    options.AddPolicy("FrontDeskOrMechanicOrAdministrative", policy =>
-        policy.RequireAuthenticatedUser()
-              .RequireRole(ApiRoles.FrontDesk, ApiRoles.Mechanic, ApiRoles.Administrative));
-
-    options.AddPolicy("MechanicOrAdministrative", policy =>
-        policy.RequireAuthenticatedUser()
-              .RequireRole(ApiRoles.Mechanic, ApiRoles.Administrative));
-
-    options.AddPolicy("StockistOrAdministrative", policy =>
-        policy.RequireAuthenticatedUser()
-              .RequireRole(ApiRoles.Stockist, ApiRoles.Administrative));
-
-    options.AddPolicy("StockistOrMechanicOrAdministrative", policy =>
-        policy.RequireAuthenticatedUser()
-              .RequireRole(ApiRoles.Stockist, ApiRoles.Mechanic, ApiRoles.Administrative));
-});
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

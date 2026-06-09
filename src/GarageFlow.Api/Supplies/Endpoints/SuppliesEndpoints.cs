@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Supplies.DTOs;
 using GarageFlow.Application.Supplies.Commands;
@@ -13,7 +14,7 @@ public static class SuppliesEndpoints
     {
         var group = endpoints.MapGroup("/supplies")
             .WithTags("Supplies")
-            .RequireAuthorization("Administrative");
+            .RequireRoles(ApiRoles.Administrative);
 
         group.MapPost("/", CreateSupply)
             .WithName("CreateSupply")

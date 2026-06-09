@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using GarageFlow.Api.Common.Responses;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Infrastructure.Auth;
@@ -16,7 +17,7 @@ public static class DevelopmentDatabaseEndpoints
         var group = endpoints.MapGroup("/dev/database")
             .WithTags("DevDatabase")
             .WithDescription("Operacoes de banco para desenvolvimento local.")
-            .RequireAuthorization("Administrative");
+            .RequireRoles(ApiRoles.Administrative);
 
         group.MapPost("/migrate", MigrateDatabase)
             .WithName("MigrateDevelopmentDatabase")

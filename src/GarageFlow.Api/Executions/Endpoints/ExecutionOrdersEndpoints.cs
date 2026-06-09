@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Executions.DTOs;
 using GarageFlow.Application.Executions.Commands;
@@ -17,7 +18,7 @@ public static class ExecutionOrdersEndpoints
         group.MapPost("/", CreateExecutionOrder)
             .WithName("CreateExecutionOrder")
             .WithSummary("Cria uma nova Ordem de Execução.")
-            .RequireAuthorization("StockistOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Administrative)
             .Produces<ExecutionOrderResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -26,7 +27,7 @@ public static class ExecutionOrdersEndpoints
         group.MapGet("/{id:guid}", GetExecutionOrderById)
             .WithName("GetExecutionOrderById")
             .WithSummary("Consulta Ordem de Execução por Id.")
-            .RequireAuthorization("StockistOrMechanicOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Mechanic, ApiRoles.Administrative)
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -35,7 +36,7 @@ public static class ExecutionOrdersEndpoints
         group.MapGet("/", ListExecutionOrders)
             .WithName("ListExecutionOrders")
             .WithSummary("Lista Ordens de Execução com paginação.")
-            .RequireAuthorization("StockistOrMechanicOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Mechanic, ApiRoles.Administrative)
             .Produces<PagedExecutionOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -44,7 +45,7 @@ public static class ExecutionOrdersEndpoints
         group.MapPost("/{id:guid}/mark-ready", MarkExecutionOrderReady)
             .WithName("MarkExecutionOrderReady")
             .WithSummary("Marca a Ordem de Execução como pronta para início.")
-            .RequireAuthorization("StockistOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Administrative)
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -53,7 +54,7 @@ public static class ExecutionOrdersEndpoints
         group.MapPost("/{id:guid}/start", StartExecutionOrder)
             .WithName("StartExecutionOrder")
             .WithSummary("Inicia a execução da Ordem de Execução.")
-            .RequireAuthorization("MechanicOrAdministrative")
+            .RequireRoles(ApiRoles.Mechanic, ApiRoles.Administrative)
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -64,7 +65,7 @@ public static class ExecutionOrdersEndpoints
         group.MapPost("/{id:guid}/complete", CompleteExecutionOrder)
             .WithName("CompleteExecutionOrder")
             .WithSummary("Conclui a Ordem de Execução.")
-            .RequireAuthorization("MechanicOrAdministrative")
+            .RequireRoles(ApiRoles.Mechanic, ApiRoles.Administrative)
             .Produces<ExecutionOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)

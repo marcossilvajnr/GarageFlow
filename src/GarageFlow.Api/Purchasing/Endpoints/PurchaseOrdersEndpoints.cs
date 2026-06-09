@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Purchasing.DTOs;
 using GarageFlow.Application.Purchasing.Commands;
@@ -17,7 +18,7 @@ public static class PurchaseOrdersEndpoints
         group.MapPost("/", CreatePurchaseOrder)
             .WithName("CreatePurchaseOrder")
             .WithSummary("Cria uma nova Ordem de Compra.")
-            .RequireAuthorization("StockistOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Administrative)
             .Produces<PurchaseOrderResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -26,7 +27,7 @@ public static class PurchaseOrdersEndpoints
         group.MapGet("/{id:guid}", GetPurchaseOrderById)
             .WithName("GetPurchaseOrderById")
             .WithSummary("Consulta Ordem de Compra por Id.")
-            .RequireAuthorization("StockistOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Administrative)
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -35,7 +36,7 @@ public static class PurchaseOrdersEndpoints
         group.MapGet("/", ListPurchaseOrders)
             .WithName("ListPurchaseOrders")
             .WithSummary("Lista Ordens de Compra com paginação.")
-            .RequireAuthorization("StockistOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Administrative)
             .Produces<PagedPurchaseOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -44,7 +45,7 @@ public static class PurchaseOrdersEndpoints
         group.MapPost("/{id:guid}/assign-supplier", AssignSupplier)
             .WithName("AssignPurchaseOrderSupplier")
             .WithSummary("Atribui fornecedor à Ordem de Compra.")
-            .RequireAuthorization("StockistOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Administrative)
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -55,7 +56,7 @@ public static class PurchaseOrdersEndpoints
         group.MapPost("/{id:guid}/start", StartPurchaseOrder)
             .WithName("StartPurchaseOrder")
             .WithSummary("Inicia a Ordem de Compra.")
-            .RequireAuthorization("StockistOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Administrative)
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
@@ -66,7 +67,7 @@ public static class PurchaseOrdersEndpoints
         group.MapPost("/{id:guid}/complete", CompletePurchaseOrder)
             .WithName("CompletePurchaseOrder")
             .WithSummary("Conclui a Ordem de Compra.")
-            .RequireAuthorization("StockistOrAdministrative")
+            .RequireRoles(ApiRoles.Stockist, ApiRoles.Administrative)
             .Produces<PurchaseOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)

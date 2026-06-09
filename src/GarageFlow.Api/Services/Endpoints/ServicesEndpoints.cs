@@ -1,3 +1,4 @@
+using GarageFlow.Api.Common.Authorization;
 using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Services.DTOs;
 using GarageFlow.Application.Services.Commands;
@@ -13,7 +14,7 @@ public static class ServicesEndpoints
     {
         var group = endpoints.MapGroup("/services")
             .WithTags("Services")
-            .RequireAuthorization("Administrative");
+            .RequireRoles(ApiRoles.Administrative);
 
         group.MapPost("/", CreateService)
             .WithName("CreateService")
