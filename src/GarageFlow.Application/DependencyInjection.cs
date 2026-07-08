@@ -1,5 +1,6 @@
 using GarageFlow.Application.Customers.Handlers;
 using GarageFlow.Application.Auth.Handlers;
+using GarageFlow.Application.Development.Handlers;
 using GarageFlow.Application.Employees.Handlers;
 using GarageFlow.Application.Executions.Handlers;
 using GarageFlow.Application.Parts.Handlers;
@@ -20,6 +21,9 @@ public static class DependencyInjection
     {
         services.AddScoped<CreateCustomerHandler>();
         services.AddScoped<LoginHandler>();
+        services.AddScoped<MigrateDevelopmentDatabaseHandler>();
+        services.AddScoped<CleanDevelopmentDatabaseHandler>();
+        services.AddScoped<ResetDevelopmentDatabaseHandler>();
         services.AddScoped<UpdateCustomerHandler>();
         services.AddScoped<DeactivateCustomerHandler>();
         services.AddScoped<GetCustomerByIdHandler>();

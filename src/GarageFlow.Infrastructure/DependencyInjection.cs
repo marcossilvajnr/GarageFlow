@@ -10,7 +10,9 @@ using GarageFlow.Domain.Suppliers;
 using GarageFlow.Domain.Supplies;
 using GarageFlow.Domain.Vehicles;
 using GarageFlow.Application.Auth.Interfaces;
+using GarageFlow.Application.Development.Interfaces;
 using GarageFlow.Infrastructure.Auth;
+using GarageFlow.Infrastructure.Development;
 using GarageFlow.Infrastructure.Observability;
 using GarageFlow.Infrastructure.Persistence;
 using GarageFlow.Infrastructure.Persistence.Repositories;
@@ -48,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IAuthUserCredentialStore, AuthUserCredentialStore>();
         services.AddScoped<IAuthUserSeedService, AuthUserSeedService>();
+        services.AddScoped<IDevelopmentDatabaseService, DevelopmentDatabaseService>();
 
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IVehicleRepository, VehicleRepository>();

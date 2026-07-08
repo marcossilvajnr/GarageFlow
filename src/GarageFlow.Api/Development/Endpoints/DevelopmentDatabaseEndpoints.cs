@@ -1,17 +1,14 @@
 using GarageFlow.Api.Common.Authorization;
 using GarageFlow.Api.Common.Responses;
-using GarageFlow.Infrastructure.Persistence;
-using GarageFlow.Infrastructure.Auth;
-using Microsoft.EntityFrameworkCore;
+using GarageFlow.Application.Development.Commands;
+using GarageFlow.Application.Development.DTOs;
+using GarageFlow.Application.Development.Handlers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GarageFlow.Api.Development.Endpoints;
 
 public static class DevelopmentDatabaseEndpoints
 {
-    private const string DestructiveOperationBlockedDetail =
-        "Operacao destrutiva bloqueada. Envie { \"confirm\": true } para prosseguir.";
-
     public static IEndpointRouteBuilder MapDevelopmentDatabaseEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/dev/database")
@@ -46,53 +43,51 @@ public static class DevelopmentDatabaseEndpoints
     }
 
     private static async Task<IResult> MigrateDatabase(
-        GarageFlowDbContext dbContext,
-        IAuthUserSeedService authUserSeedService,
+        MigrateDevelopmentDatabaseHandler handler,
         CancellationToken cancellationToken)
     {
-        await dbContext.Database.MigrateAsync(cancellationToken);
-        await authUserSeedService.EnsureSeedAsync(cancellationToken);
+        var result = await handler.HandleAsync(new MigrateDevelopmentDatabaseCommand(), cancellationToken);
+
         return Results.Ok(new
         {
-            message = "Migrations aplicadas com sucesso.",
-            provider = dbContext.Database.ProviderName
+            message = result.Message,
+            provider = result.Provider
         });
     }
 
     private static async Task<IResult> CleanDatabase(
         ConfirmDestructiveOperationRequest request,
-        GarageFlowDbContext dbContext,
+        CleanDevelopmentDatabaseHandler handler,
         CancellationToken cancellationToken)
     {
-        if (!request.Confirm)
-            return Results.BadRequest(ApiProblemDetails.CreateValidationProblemDetails(DestructiveOperationBlockedDetail));
+        var result = await handler.HandleAsync(new CleanDevelopmentDatabaseCommand(request.Confirm), cancellationToken);
+        if (!result.IsSuccess)
+            return CreateValidationProblem(result);
 
-        await dbContext.Database.EnsureDeletedAsync(cancellationToken);
         return Results.Ok(new
         {
-            message = "Banco removido com sucesso."
+            message = result.Message
         });
     }
 
     private static async Task<IResult> ResetDatabase(
         ConfirmDestructiveOperationRequest request,
-        GarageFlowDbContext dbContext,
-        IAuthUserSeedService authUserSeedService,
+        ResetDevelopmentDatabaseHandler handler,
         CancellationToken cancellationToken)
     {
-        if (!request.Confirm)
-            return Results.BadRequest(ApiProblemDetails.CreateValidationProblemDetails(DestructiveOperationBlockedDetail));
-
-        await dbContext.Database.EnsureDeletedAsync(cancellationToken);
-        await dbContext.Database.MigrateAsync(cancellationToken);
-        await authUserSeedService.EnsureSeedAsync(cancellationToken);
+        var result = await handler.HandleAsync(new ResetDevelopmentDatabaseCommand(request.Confirm), cancellationToken);
+        if (!result.IsSuccess)
+            return CreateValidationProblem(result);
 
         return Results.Ok(new
         {
-            message = "Banco recriado com sucesso.",
-            provider = dbContext.Database.ProviderName
+            message = result.Message,
+            provider = result.Provider
         });
     }
+
+    private static IResult CreateValidationProblem(DevelopmentDatabaseOperationResult result)
+        => Results.BadRequest(ApiProblemDetails.CreateValidationProblemDetails(result.ValidationDetail!));
 
     private sealed record ConfirmDestructiveOperationRequest(bool Confirm);
 }
