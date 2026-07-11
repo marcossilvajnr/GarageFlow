@@ -23,7 +23,8 @@ public static class ServiceOrdersEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
-            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
 
         group.MapGet("/{id:guid}", GetServiceOrderById)
             .WithName("GetServiceOrderById")
@@ -175,7 +176,11 @@ public static class ServiceOrdersEndpoints
         CreateServiceOrderHandler handler,
         CancellationToken cancellationToken)
     {
-        var command = new CreateServiceOrderCommand(request.CustomerId, request.VehicleId, request.FrontDeskEmployeeId);
+        var command = new CreateServiceOrderCommand(
+            request.CustomerId,
+            request.VehicleId,
+            request.FrontDeskEmployeeId,
+            request.ServiceIds);
         var dto = await handler.HandleAsync(command, cancellationToken);
         var response = MapToResponse(dto);
         return Results.Created($"/service-orders/{dto.Id}", response);

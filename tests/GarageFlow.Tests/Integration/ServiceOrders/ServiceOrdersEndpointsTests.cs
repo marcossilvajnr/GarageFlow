@@ -116,10 +116,11 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         return remainder == 10 ? 0 : remainder;
     }
 
-    private async Task<ServiceOrderResponse> CreateServiceOrder(Guid customerId, Guid vehicleId)
+    private async Task<ServiceOrderResponse> CreateServiceOrder(
+        Guid customerId, Guid vehicleId, IReadOnlyList<Guid>? serviceIds = null)
     {
         var frontDeskEmployeeId = await CreateEmployee(AppEmployeeRole.Attendant);
-        var request = new CreateServiceOrderRequest(customerId, vehicleId, frontDeskEmployeeId);
+        var request = new CreateServiceOrderRequest(customerId, vehicleId, frontDeskEmployeeId, serviceIds);
         var response = await _client.PostAsJsonAsync("/service-orders", request);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions))!;
@@ -228,6 +229,85 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
         var frontDeskEmployeeId = await CreateEmployee(AppEmployeeRole.Attendant);
         var request = new CreateServiceOrderRequest(customer2.Id, vehicle.Id, frontDeskEmployeeId);
+        var response = await _client.PostAsJsonAsync("/service-orders", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    // Task-053: initial serviceIds on creation
+
+    [Fact]
+    public async Task PostServiceOrder_WithServiceIds_Returns201WithActiveServicesAndHistory()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var service1 = await CreateService("SVC-053-001", "Troca de Óleo 053-001");
+        var service2 = await CreateService("SVC-053-002", "Alinhamento 053-002");
+
+        var frontDeskEmployeeId = await CreateEmployee(AppEmployeeRole.Attendant);
+        var request = new CreateServiceOrderRequest(
+            customer.Id, vehicle.Id, frontDeskEmployeeId, [service1.Id, service2.Id]);
+        var response = await _client.PostAsJsonAsync("/service-orders", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderResponse>(JsonOptions);
+        body!.Services.Should().HaveCount(2);
+        body.Services.Select(s => s.ServiceId).Should().BeEquivalentTo([service1.Id, service2.Id]);
+        body.ServiceHistory.Should().HaveCount(2);
+        body.ServiceHistory.Should().OnlyContain(h => h.Action == AppServiceOrderServiceAction.Added);
+    }
+
+    [Fact]
+    public async Task PostServiceOrder_WithNonExistentServiceId_Returns404()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var frontDeskEmployeeId = await CreateEmployee(AppEmployeeRole.Attendant);
+
+        var request = new CreateServiceOrderRequest(customer.Id, vehicle.Id, frontDeskEmployeeId, [Guid.NewGuid()]);
+        var response = await _client.PostAsJsonAsync("/service-orders", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PostServiceOrder_WithInactiveServiceId_Returns400()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var service = await CreateService("SVC-053-003", "Serviço Inativo 053-003");
+        await _client.DeleteAsync($"/services/{service.Id}");
+
+        var frontDeskEmployeeId = await CreateEmployee(AppEmployeeRole.Attendant);
+        var request = new CreateServiceOrderRequest(customer.Id, vehicle.Id, frontDeskEmployeeId, [service.Id]);
+        var response = await _client.PostAsJsonAsync("/service-orders", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task PostServiceOrder_WithDuplicateServiceId_Returns409()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var service = await CreateService("SVC-053-004", "Serviço Duplicado 053-004");
+        var frontDeskEmployeeId = await CreateEmployee(AppEmployeeRole.Attendant);
+
+        var request = new CreateServiceOrderRequest(
+            customer.Id, vehicle.Id, frontDeskEmployeeId, [service.Id, service.Id]);
+        var response = await _client.PostAsJsonAsync("/service-orders", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task PostServiceOrder_WithEmptyGuidServiceId_Returns400()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var frontDeskEmployeeId = await CreateEmployee(AppEmployeeRole.Attendant);
+
+        var request = new CreateServiceOrderRequest(customer.Id, vehicle.Id, frontDeskEmployeeId, [Guid.Empty]);
         var response = await _client.PostAsJsonAsync("/service-orders", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -1310,7 +1390,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
         await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
 
-        var response = await _client.GetAsync("/service-orders?page=1&pageSize=50");
+        var response = await _client.GetAsync("/service-orders?page=1&pageSize=100");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<PagedServiceOrderResponse>(JsonOptions);

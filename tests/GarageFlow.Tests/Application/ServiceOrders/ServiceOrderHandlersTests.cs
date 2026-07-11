@@ -5,10 +5,13 @@ using GarageFlow.Application.ServiceOrders.Queries;
 using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
+using GarageFlow.Domain.Services;
 using GarageFlow.Domain.ServiceOrders;
 using GarageFlow.Domain.ValueObjects;
 using GarageFlow.Domain.Vehicles;
 using GarageFlow.Tests.Application.Employees;
+using GarageFlow.Tests.Application.Services;
+using AppServiceOrderServiceAction = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderServiceAction;
 using AppServiceOrderStatus = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderStatus;
 
 namespace GarageFlow.Tests.Application.ServiceOrders;
@@ -24,6 +27,9 @@ public sealed class ServiceOrderHandlersTests
 
     private static Vehicle ValidVehicle(Guid customerId) => Vehicle.Create(
         customerId, "ABC-1234", "11144477731", "Toyota", "Corolla", 2020, "Branco");
+
+    private static Service ValidService() => Service.Create(
+        "SVC-TST-001", "Troca de Óleo", null, 80m, 60);
 
     private static async Task<Employee> SeedFrontDeskEmployeeAsync(FakeEmployeeRepository employeeRepo)
     {
@@ -52,12 +58,13 @@ public sealed class ServiceOrderHandlersTests
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
         var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
         await customerRepo.AddAsync(customer);
         await vehicleRepo.AddAsync(vehicle);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
         var command = new CreateServiceOrderCommand(customer.Id, vehicle.Id, frontDeskEmployee.Id);
 
         var dto = await handler.HandleAsync(command);
@@ -68,6 +75,7 @@ public sealed class ServiceOrderHandlersTests
         dto.VehicleId.Should().Be(vehicle.Id);
         dto.Status.Should().Be(AppServiceOrderStatus.Received);
         dto.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        dto.Services.Should().BeEmpty();
     }
 
     [Fact]
@@ -77,9 +85,10 @@ public sealed class ServiceOrderHandlersTests
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
         var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
         var command = new CreateServiceOrderCommand(Guid.NewGuid(), Guid.NewGuid(), frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
@@ -94,9 +103,10 @@ public sealed class ServiceOrderHandlersTests
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
         var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
         var command = new CreateServiceOrderCommand(Guid.Empty, Guid.NewGuid(), frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
@@ -111,9 +121,10 @@ public sealed class ServiceOrderHandlersTests
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
         var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
         var command = new CreateServiceOrderCommand(Guid.NewGuid(), Guid.Empty, frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
@@ -129,11 +140,12 @@ public sealed class ServiceOrderHandlersTests
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
         var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
         await customerRepo.AddAsync(customer);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
         var command = new CreateServiceOrderCommand(customer.Id, Guid.NewGuid(), frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
@@ -154,19 +166,184 @@ public sealed class ServiceOrderHandlersTests
         var vehicleRepo = new FakeVehicleRepository();
         var serviceOrderRepo = new FakeServiceOrderRepository();
         var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
         var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
 
         await customerRepo.AddAsync(customer1);
         await customerRepo.AddAsync(customer2);
         await vehicleRepo.AddAsync(vehicleFromCustomer1);
 
-        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo);
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
         var command = new CreateServiceOrderCommand(customer2.Id, vehicleFromCustomer1.Id, frontDeskEmployee.Id);
 
         var act = async () => await handler.HandleAsync(command);
 
         await act.Should().ThrowAsync<DomainException>()
             .WithMessage("Veículo não pertence ao cliente informado para a OS");
+    }
+
+    [Fact]
+    public async Task CreateServiceOrder_WithOneServiceId_ReturnsDtoWithActiveServiceAndHistory()
+    {
+        var customer = ValidCustomer();
+        var vehicle = ValidVehicle(customer.Id);
+
+        var customerRepo = new FakeCustomerRepository();
+        var vehicleRepo = new FakeVehicleRepository();
+        var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
+
+        await customerRepo.AddAsync(customer);
+        await vehicleRepo.AddAsync(vehicle);
+
+        var service = ValidService();
+        await serviceRepo.AddAsync(service);
+
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
+        var command = new CreateServiceOrderCommand(customer.Id, vehicle.Id, frontDeskEmployee.Id, [service.Id]);
+
+        var dto = await handler.HandleAsync(command);
+
+        dto.Services.Should().HaveCount(1);
+        dto.Services.Single().ServiceId.Should().Be(service.Id);
+        dto.Services.Single().IsActive.Should().BeTrue();
+        dto.ServiceHistory.Should().HaveCount(1);
+        dto.ServiceHistory.Single().Action.Should().Be(AppServiceOrderServiceAction.Added);
+    }
+
+    [Fact]
+    public async Task CreateServiceOrder_WithMultipleServiceIds_ReturnsDtoWithAllServicesAndHistory()
+    {
+        var customer = ValidCustomer();
+        var vehicle = ValidVehicle(customer.Id);
+
+        var customerRepo = new FakeCustomerRepository();
+        var vehicleRepo = new FakeVehicleRepository();
+        var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
+
+        await customerRepo.AddAsync(customer);
+        await vehicleRepo.AddAsync(vehicle);
+
+        var service1 = ValidService();
+        var service2 = Service.Create("SVC-TST-002", "Alinhamento", null, 120m, 45);
+        await serviceRepo.AddAsync(service1);
+        await serviceRepo.AddAsync(service2);
+
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
+        var command = new CreateServiceOrderCommand(customer.Id, vehicle.Id, frontDeskEmployee.Id, [service1.Id, service2.Id]);
+
+        var dto = await handler.HandleAsync(command);
+
+        dto.Services.Should().HaveCount(2);
+        dto.ServiceHistory.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task CreateServiceOrder_WithNonExistentServiceId_ThrowsEntityNotFoundException()
+    {
+        var customer = ValidCustomer();
+        var vehicle = ValidVehicle(customer.Id);
+
+        var customerRepo = new FakeCustomerRepository();
+        var vehicleRepo = new FakeVehicleRepository();
+        var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
+
+        await customerRepo.AddAsync(customer);
+        await vehicleRepo.AddAsync(vehicle);
+
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
+        var command = new CreateServiceOrderCommand(customer.Id, vehicle.Id, frontDeskEmployee.Id, [Guid.NewGuid()]);
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
+
+    [Fact]
+    public async Task CreateServiceOrder_WithInactiveServiceId_ThrowsDomainException()
+    {
+        var customer = ValidCustomer();
+        var vehicle = ValidVehicle(customer.Id);
+
+        var customerRepo = new FakeCustomerRepository();
+        var vehicleRepo = new FakeVehicleRepository();
+        var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
+
+        await customerRepo.AddAsync(customer);
+        await vehicleRepo.AddAsync(vehicle);
+
+        var service = ValidService();
+        await serviceRepo.AddAsync(service);
+        service.Deactivate();
+
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
+        var command = new CreateServiceOrderCommand(customer.Id, vehicle.Id, frontDeskEmployee.Id, [service.Id]);
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<DomainException>();
+    }
+
+    [Fact]
+    public async Task CreateServiceOrder_WithDuplicateServiceId_ThrowsDuplicateServiceOrderServiceException()
+    {
+        var customer = ValidCustomer();
+        var vehicle = ValidVehicle(customer.Id);
+
+        var customerRepo = new FakeCustomerRepository();
+        var vehicleRepo = new FakeVehicleRepository();
+        var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
+
+        await customerRepo.AddAsync(customer);
+        await vehicleRepo.AddAsync(vehicle);
+
+        var service = ValidService();
+        await serviceRepo.AddAsync(service);
+
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
+        var command = new CreateServiceOrderCommand(customer.Id, vehicle.Id, frontDeskEmployee.Id, [service.Id, service.Id]);
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<DuplicateServiceOrderServiceException>();
+    }
+
+    [Fact]
+    public async Task CreateServiceOrder_WithEmptyServiceId_ThrowsDomainException()
+    {
+        var customer = ValidCustomer();
+        var vehicle = ValidVehicle(customer.Id);
+
+        var customerRepo = new FakeCustomerRepository();
+        var vehicleRepo = new FakeVehicleRepository();
+        var serviceOrderRepo = new FakeServiceOrderRepository();
+        var employeeRepo = new FakeEmployeeRepository();
+        var serviceRepo = new FakeServiceRepository();
+        var frontDeskEmployee = await SeedFrontDeskEmployeeAsync(employeeRepo);
+
+        await customerRepo.AddAsync(customer);
+        await vehicleRepo.AddAsync(vehicle);
+
+        var handler = new CreateServiceOrderHandler(serviceOrderRepo, customerRepo, vehicleRepo, employeeRepo, serviceRepo);
+        var command = new CreateServiceOrderCommand(customer.Id, vehicle.Id, frontDeskEmployee.Id, [Guid.Empty]);
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     // GetById handler tests

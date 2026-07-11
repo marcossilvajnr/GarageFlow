@@ -4,6 +4,7 @@ using GarageFlow.Domain.Customers;
 using GarageFlow.Domain.Employees;
 using GarageFlow.Domain.Exceptions;
 using GarageFlow.Domain.ServiceOrders;
+using GarageFlow.Domain.Services;
 using GarageFlow.Domain.Shared;
 using GarageFlow.Domain.Vehicles;
 
@@ -13,7 +14,8 @@ public sealed class CreateServiceOrderHandler(
     IServiceOrderRepository serviceOrderRepository,
     ICustomerRepository customerRepository,
     IVehicleRepository vehicleRepository,
-    IEmployeeRepository employeeRepository)
+    IEmployeeRepository employeeRepository,
+    IServiceRepository serviceRepository)
 {
     public async Task<ServiceOrderDto> HandleAsync(CreateServiceOrderCommand command, CancellationToken cancellationToken = default)
     {
@@ -43,6 +45,25 @@ public sealed class CreateServiceOrderHandler(
             throw new DomainException(DomainErrorMessages.ServiceOrderVehicleCustomerMismatch);
 
         var serviceOrder = ServiceOrder.Create(command.CustomerId, command.VehicleId, frontDeskEmployeeId);
+
+        if (command.ServiceIds is { Count: > 0 })
+        {
+            foreach (var serviceId in command.ServiceIds)
+            {
+                if (serviceId == Guid.Empty)
+                    throw new DomainException(DomainErrorMessages.InvalidServiceOrderServiceId);
+
+                var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
+                if (service is null)
+                    throw new EntityNotFoundException(DomainErrorMessages.ServiceNotFound(serviceId));
+
+                if (!service.IsActive)
+                    throw new DomainException(DomainErrorMessages.ServiceOrderServiceInactive);
+
+                serviceOrder.AddService(serviceId, frontDeskEmployeeId, ServiceSource.FrontDesk);
+            }
+        }
+
 
         await serviceOrderRepository.AddAsync(serviceOrder, cancellationToken);
         await serviceOrderRepository.SaveChangesAsync(cancellationToken);
