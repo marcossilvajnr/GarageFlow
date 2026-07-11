@@ -1,6 +1,0 @@
-@GarageFlow.Api_HostAddress = http://localhost:5007
-
-GET {{GarageFlow.Api_HostAddress}}/health
-Accept: application/json
-
-###

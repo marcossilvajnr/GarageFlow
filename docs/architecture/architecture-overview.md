@@ -2,12 +2,14 @@
 
 ## Arquitetura de Referência
 O GarageFlow adota monolito modular em camadas:
-- `GarageFlow.Api`: entrada HTTP e composição da aplicação.
+- `GarageFlow.WebHost`: executável ASP.NET e composition root.
+- `GarageFlow.Api`: entrada HTTP, endpoints, DTOs, filtros, Swagger e políticas de borda.
 - `GarageFlow.Application`: casos de uso e orquestração.
 - `GarageFlow.Domain`: regras de negócio, agregados, value objects e eventos de domínio.
 - `GarageFlow.Infrastructure`: persistência EF Core e implementações técnicas.
 
 ## Regra de Dependências
+- `WebHost -> Api`, `WebHost -> Application` e `WebHost -> Infrastructure`
 - `Api -> Application`
 - `Application -> Domain`
 - `Infrastructure -> Application` e `Infrastructure -> Domain`

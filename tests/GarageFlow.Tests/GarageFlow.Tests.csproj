@@ -27,6 +27,7 @@
     <ProjectReference Include="..\..\src\GarageFlow.Application\GarageFlow.Application.csproj" />
     <ProjectReference Include="..\..\src\GarageFlow.Api\GarageFlow.Api.csproj" />
     <ProjectReference Include="..\..\src\GarageFlow.Infrastructure\GarageFlow.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\GarageFlow.WebHost\GarageFlow.WebHost.csproj" />
   </ItemGroup>
 
 </Project>

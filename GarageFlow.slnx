@@ -4,6 +4,7 @@
     <Project Path="src/GarageFlow.Application/GarageFlow.Application.csproj" />
     <Project Path="src/GarageFlow.Domain/GarageFlow.Domain.csproj" />
     <Project Path="src/GarageFlow.Infrastructure/GarageFlow.Infrastructure.csproj" />
+    <Project Path="src/GarageFlow.WebHost/GarageFlow.WebHost.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/GarageFlow.Tests/GarageFlow.Tests.csproj" />

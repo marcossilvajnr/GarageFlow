@@ -1,0 +1,6 @@
+@GarageFlow.WebHost_HostAddress = http://localhost:5007
+
+GET {{GarageFlow.WebHost_HostAddress}}/health
+Accept: application/json
+
+###

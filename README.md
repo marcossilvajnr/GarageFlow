@@ -12,7 +12,7 @@ Modelagem de domínio canônica: `docs/domain`.
 - Docker Desktop em execução
 - VS Code com extensão REST Client (para a demo guiada)
 - Arquivo `.env` na raiz do repositório
-- Arquivo `.env` em `src/GarageFlow.Api/rest-client/` para executar os `.http`
+- Arquivo `.env` em `tools/rest-client/` para executar os `.http`
 
 ## Subir o ambiente
 1. Garanta um arquivo `.env` na raiz do repositório.
@@ -30,11 +30,11 @@ docker compose ps
 
 ## Demo operacional (recomendado para apresentação)
 Arquivos REST Client:
-- `src/GarageFlow.Api/rest-client/maintenance-requests.http`
-- `src/GarageFlow.Api/rest-client/demo-service-order-with-purchase-requests.http`
+- `tools/rest-client/maintenance-requests.http`
+- `tools/rest-client/demo-service-order-with-purchase-requests.http`
 
 Configuração:
-- Variáveis de execução ficam em `src/GarageFlow.Api/rest-client/.env`.
+- Variáveis de execução ficam em `tools/rest-client/.env`.
 - O fluxo já consome `API_HTTP_PORT`, `API_USERNAME` e `API_PASSWORD` via `{{$dotenv ...}}`.
 
 Sequência sugerida:
