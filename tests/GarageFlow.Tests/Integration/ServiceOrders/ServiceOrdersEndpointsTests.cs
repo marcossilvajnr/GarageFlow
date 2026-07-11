@@ -5,9 +5,13 @@ using FluentAssertions;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
 using GarageFlow.Api.Customers.DTOs;
 using GarageFlow.Api.Employees.DTOs;
+using GarageFlow.Api.Executions.DTOs;
+using GarageFlow.Api.Parts.DTOs;
 using GarageFlow.Api.ServiceOrders.DTOs;
 using GarageFlow.Api.Services.DTOs;
+using GarageFlow.Api.Stock.DTOs;
 using GarageFlow.Api.Vehicles.DTOs;
+using AppStockItemType = GarageFlow.Application.Stock.Enums.StockItemType;
 using AppDiagnosticStatus = GarageFlow.Application.ServiceOrders.Enums.DiagnosticStatus;
 using AppQuoteStatus = GarageFlow.Application.ServiceOrders.Enums.QuoteStatus;
 using AppServiceOrderServiceAction = GarageFlow.Application.ServiceOrders.Enums.ServiceOrderServiceAction;
@@ -1146,6 +1150,84 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         return so;
     }
 
+    private async Task<(ServiceOrderResponse ServiceOrder, Guid ServiceId)> SetupApprovedOrderWithService()
+    {
+        var seed = Interlocked.Increment(ref _serviceSeedForQuote);
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var serviceOrder = await CreateServiceOrder(customer.Id, vehicle.Id);
+        var service = await CreateService($"SVC-054-{seed:D4}", $"Serviço Status {seed:D4}");
+
+        await StartDiagnostic(serviceOrder.Id, Guid.Empty);
+        await _client.PostAsJsonAsync($"/service-orders/{serviceOrder.Id}/diagnostic/services",
+            new AddDiagnosticServiceRequest(service.Id));
+        await CompleteDiagnostic(serviceOrder.Id, "Diagnóstico concluído para status.");
+        await ConsolidateDiagnosticServices(serviceOrder.Id);
+        await _client.PostAsync($"/service-orders/{serviceOrder.Id}/quote/generate", null);
+        await _client.PostAsync($"/service-orders/{serviceOrder.Id}/quote/accept", null);
+
+        return (serviceOrder, service.Id);
+    }
+
+    private async Task<ExecutionOrderResponse> CreateExecutionOrder(Guid serviceOrderId, Guid serviceId)
+    {
+        var mechanicId = await CreateEmployee(AppEmployeeRole.Mechanic);
+        var response = await _client.PostAsJsonAsync("/execution-orders",
+            new CreateExecutionOrderRequest(serviceOrderId, serviceId, mechanicId));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
+    }
+
+    private async Task<ExecutionOrderResponse> StartExecutionOrder(Guid executionOrderId)
+    {
+        var readyResponse = await _client.PostAsync($"/execution-orders/{executionOrderId}/mark-ready", null);
+        readyResponse.EnsureSuccessStatusCode();
+
+        var response = await _client.PostAsync($"/execution-orders/{executionOrderId}/start", null);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<ExecutionOrderResponse>(JsonOptions))!;
+    }
+
+    private async Task<Guid> CreatePartWithStock()
+    {
+        var code = $"P54-{Guid.NewGuid():N}"[..10];
+        var sku = $"SKU54-{Guid.NewGuid():N}"[..12];
+        var partResponse = await _client.PostAsJsonAsync("/parts",
+            new CreatePartRequest("Peça status OS", code, sku, "UN", 50m));
+        partResponse.EnsureSuccessStatusCode();
+        var part = (await partResponse.Content.ReadFromJsonAsync<PartResponse>(JsonOptions))!;
+
+        var stockResponse = await _client.PostAsJsonAsync("/stock/entries",
+            new CreateStockEntryRequest(part.Id, AppStockItemType.Part, 10m, 0m, "Seed status OS", null));
+        stockResponse.EnsureSuccessStatusCode();
+
+        return part.Id;
+    }
+
+    private async Task CompleteSeparationForExecution(Guid executionOrderId)
+    {
+        var partId = await CreatePartWithStock();
+        var createResponse = await _client.PostAsJsonAsync("/separation-orders",
+            new CreateSeparationOrderRequest(
+                executionOrderId,
+                [new CreateSeparationPartItemRequest(partId, "Peça status OS", 1)],
+                []));
+        createResponse.EnsureSuccessStatusCode();
+        var separation = (await createResponse.Content.ReadFromJsonAsync<SeparationOrderResponse>(JsonOptions))!;
+
+        var reserveResponse = await _client.PostAsync($"/separation-orders/{separation.Id}/reserve", null);
+        reserveResponse.EnsureSuccessStatusCode();
+
+        var stockistId = await CreateEmployee(AppEmployeeRole.Stockist);
+        var stockistResponse = await _client.PostAsJsonAsync(
+            $"/separation-orders/{separation.Id}/confirm-stockist-withdrawal",
+            new ConfirmSeparationStockistWithdrawalRequest(stockistId));
+        stockistResponse.EnsureSuccessStatusCode();
+
+        var mechanicResponse = await _client.PostAsync($"/separation-orders/{separation.Id}/confirm-mechanic-receipt", null);
+        mechanicResponse.EnsureSuccessStatusCode();
+    }
+
     [Fact]
     public async Task PostQuoteGenerate_WithConsolidatedServices_Returns200WithPendingQuote()
     {
@@ -1423,5 +1505,145 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
             new RejectQuoteRequest("Arrependimento"));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    // Task-054: Service Order Status Read Model Endpoint
+
+    [Fact]
+    public async Task GetServiceOrderStatus_Received_Returns200WithLabel()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var so = await CreateServiceOrder(customer.Id, vehicle.Id);
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/status");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderStatusResponse>(JsonOptions);
+        body!.ServiceOrderId.Should().Be(so.Id);
+        body.Status.Should().Be(AppServiceOrderStatus.Received);
+        body.Label.Should().Be("Recebida");
+    }
+
+    [Fact]
+    public async Task GetServiceOrderStatus_NotFound_Returns404()
+    {
+        var response = await _client.GetAsync($"/service-orders/{Guid.NewGuid()}/status");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetServiceOrderStatus_InDiagnostic_Returns200WithLabel()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var so = await CreateServiceOrder(customer.Id, vehicle.Id);
+        await StartDiagnostic(so.Id, Guid.Empty);
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/status");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderStatusResponse>(JsonOptions);
+        body!.Status.Should().Be(AppServiceOrderStatus.InDiagnostic);
+        body.Label.Should().Be("Diagnóstico");
+    }
+
+    [Fact]
+    public async Task GetServiceOrderStatus_WaitingApproval_Returns200WithLabel()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/status");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderStatusResponse>(JsonOptions);
+        body!.Status.Should().Be(AppServiceOrderStatus.WaitingApproval);
+        body.Label.Should().Be("Aguardando Aprovação");
+    }
+
+    [Fact]
+    public async Task GetServiceOrderStatus_Approved_Returns200WithLabel()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/accept", null);
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/status");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderStatusResponse>(JsonOptions);
+        body!.Status.Should().Be(AppServiceOrderStatus.Approved);
+        body.Label.Should().Be("Orçamento aprovado");
+    }
+
+    [Fact]
+    public async Task GetServiceOrderStatus_InExecution_Returns200WithLabel()
+    {
+        var (so, serviceId) = await SetupApprovedOrderWithService();
+        var executionOrder = await CreateExecutionOrder(so.Id, serviceId);
+        await StartExecutionOrder(executionOrder.Id);
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/status");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderStatusResponse>(JsonOptions);
+        body!.Status.Should().Be(AppServiceOrderStatus.InExecution);
+        body.Label.Should().Be("Execução");
+    }
+
+    [Fact]
+    public async Task GetServiceOrderStatus_Finished_Returns200WithLabel()
+    {
+        var (so, serviceId) = await SetupApprovedOrderWithService();
+        var executionOrder = await CreateExecutionOrder(so.Id, serviceId);
+        await StartExecutionOrder(executionOrder.Id);
+        await CompleteSeparationForExecution(executionOrder.Id);
+        var completeResponse = await _client.PostAsync($"/execution-orders/{executionOrder.Id}/complete", null);
+        completeResponse.EnsureSuccessStatusCode();
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/status");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderStatusResponse>(JsonOptions);
+        body!.Status.Should().Be(AppServiceOrderStatus.Finished);
+        body.Label.Should().Be("Finalizada");
+    }
+
+    [Fact]
+    public async Task GetServiceOrderStatus_Delivered_Returns200WithLabel()
+    {
+        var (so, serviceId) = await SetupApprovedOrderWithService();
+        var executionOrder = await CreateExecutionOrder(so.Id, serviceId);
+        await StartExecutionOrder(executionOrder.Id);
+        await CompleteSeparationForExecution(executionOrder.Id);
+        var completeResponse = await _client.PostAsync($"/execution-orders/{executionOrder.Id}/complete", null);
+        completeResponse.EnsureSuccessStatusCode();
+        var deliverResponse = await _client.PostAsync($"/service-orders/{so.Id}/deliver", null);
+        deliverResponse.EnsureSuccessStatusCode();
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/status");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderStatusResponse>(JsonOptions);
+        body!.Status.Should().Be(AppServiceOrderStatus.Delivered);
+        body.Label.Should().Be("Entregue");
+    }
+
+    [Fact]
+    public async Task GetServiceOrderStatus_Rejected_Returns200WithLabel()
+    {
+        var so = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{so.Id}/quote/generate", null);
+        await _client.PostAsJsonAsync($"/service-orders/{so.Id}/quote/reject",
+            new RejectQuoteRequest("Valor fora do orçamento"));
+
+        var response = await _client.GetAsync($"/service-orders/{so.Id}/status");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ServiceOrderStatusResponse>(JsonOptions);
+        body!.Status.Should().Be(AppServiceOrderStatus.Rejected);
+        body.Label.Should().Be("Orçamento recusado");
     }
 }

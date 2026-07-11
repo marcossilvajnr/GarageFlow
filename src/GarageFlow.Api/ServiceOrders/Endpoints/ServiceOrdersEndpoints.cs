@@ -35,6 +35,15 @@ public static class ServiceOrdersEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
 
+        group.MapGet("/{id:guid}/status", GetServiceOrderStatus)
+            .WithName("GetServiceOrderStatus")
+            .WithSummary("Consulta o status da Ordem de Serviço.")
+            .RequireRoles(ApiRoles.FrontDesk, ApiRoles.Mechanic, ApiRoles.Administrative)
+            .Produces<ServiceOrderStatusResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
         group.MapGet("/", ListServiceOrders)
             .WithName("ListServiceOrders")
             .WithSummary("Lista Ordens de Serviço com paginação.")
@@ -193,6 +202,20 @@ public static class ServiceOrdersEndpoints
     {
         var dto = await handler.HandleAsync(new GetServiceOrderByIdQuery(id), cancellationToken);
         return Results.Ok(MapToResponse(dto));
+    }
+
+    private static async Task<IResult> GetServiceOrderStatus(
+        Guid id,
+        GetServiceOrderStatusHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var dto = await handler.HandleAsync(new GetServiceOrderStatusQuery(id), cancellationToken);
+        var response = new ServiceOrderStatusResponse(
+            dto.ServiceOrderId,
+            dto.Status,
+            dto.Label,
+            dto.UpdatedAt);
+        return Results.Ok(response);
     }
 
     private static async Task<IResult> ListServiceOrders(
