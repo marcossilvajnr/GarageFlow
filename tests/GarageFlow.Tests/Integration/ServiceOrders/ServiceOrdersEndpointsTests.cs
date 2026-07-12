@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using AppEmployeeRole = GarageFlow.Application.Employees.Enums.EmployeeRole;
+using GarageFlow.Api.Common.Authorization;
+using GarageFlow.Api.Common.Pagination;
 using GarageFlow.Api.Customers.DTOs;
 using GarageFlow.Api.Employees.DTOs;
 using GarageFlow.Api.Executions.DTOs;
@@ -36,6 +38,20 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
     {
         PropertyNameCaseInsensitive = true
     };
+
+    private HttpClient CreateClientWithRole(string role)
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.RoleHeader, role);
+        return client;
+    }
+
+    private HttpClient CreateAnonymousClient()
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.ForceAnonymousHeader, "true");
+        return client;
+    }
 
     private async Task<CustomerResponse> CreateCustomer(string document)
     {
@@ -1645,5 +1661,170 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var body = await response.Content.ReadFromJsonAsync<ServiceOrderStatusResponse>(JsonOptions);
         body!.Status.Should().Be(AppServiceOrderStatus.Rejected);
         body.Label.Should().Be("Orçamento recusado");
+    }
+
+    // Task-056: Operational service order listing integration tests
+
+    private async Task<List<ServiceOrderResponse>> FetchAllOperationalServiceOrders()
+    {
+        var items = new List<ServiceOrderResponse>();
+        var page = 1;
+        const int pageSize = ApiPagination.MaxPageSize;
+
+        while (true)
+        {
+            var response = await _client.GetAsync($"/service-orders/operational?page={page}&pageSize={pageSize}");
+            response.EnsureSuccessStatusCode();
+            var body = (await response.Content.ReadFromJsonAsync<PagedServiceOrderResponse>(JsonOptions))!;
+            items.AddRange(body.Items);
+
+            if (items.Count >= body.TotalCount)
+            {
+                break;
+            }
+
+            page++;
+        }
+
+        return items;
+    }
+
+    [Fact]
+    public async Task GetOperationalServiceOrders_Returns200WithPagination()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        await CreateServiceOrder(customer.Id, vehicle.Id);
+
+        var response = await _client.GetAsync("/service-orders/operational?page=1&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<PagedServiceOrderResponse>(JsonOptions);
+        body!.Items.Should().NotBeEmpty();
+        body.Page.Should().Be(1);
+        body.PageSize.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task GetOperationalServiceOrders_InvalidPage_Returns400()
+    {
+        var response = await _client.GetAsync("/service-orders/operational?page=0&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetOperationalServiceOrders_InvalidPageSize_Returns400()
+    {
+        var response = await _client.GetAsync("/service-orders/operational?page=1&pageSize=0");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetOperationalServiceOrders_PageSizeAboveMax_Returns400()
+    {
+        var response = await _client.GetAsync($"/service-orders/operational?page=1&pageSize={ApiPagination.MaxPageSize + 1}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetOperationalServiceOrders_WithoutToken_Returns401()
+    {
+        var anonymousClient = CreateAnonymousClient();
+
+        var response = await anonymousClient.GetAsync("/service-orders/operational?page=1&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetOperationalServiceOrders_WithForbiddenRole_Returns403()
+    {
+        var stockistClient = CreateClientWithRole(ApiRoles.Stockist);
+
+        var response = await stockistClient.GetAsync("/service-orders/operational?page=1&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetOperationalServiceOrders_ExcludesFinishedDeliveredRejected_IncludesApproved()
+    {
+        // Rejected
+        var rejected = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{rejected.Id}/quote/generate", null);
+        await _client.PostAsJsonAsync($"/service-orders/{rejected.Id}/quote/reject",
+            new RejectQuoteRequest("Valor fora do orçamento"));
+
+        // Approved
+        var (approvedSo, _) = await SetupApprovedOrderWithService();
+
+        // Finished
+        var (finishedSo, finishedServiceId) = await SetupApprovedOrderWithService();
+        var finishedExecution = await CreateExecutionOrder(finishedSo.Id, finishedServiceId);
+        await StartExecutionOrder(finishedExecution.Id);
+        await CompleteSeparationForExecution(finishedExecution.Id);
+        var finishedCompleteResponse = await _client.PostAsync($"/execution-orders/{finishedExecution.Id}/complete", null);
+        finishedCompleteResponse.EnsureSuccessStatusCode();
+
+        // Delivered
+        var (deliveredSo, deliveredServiceId) = await SetupApprovedOrderWithService();
+        var deliveredExecution = await CreateExecutionOrder(deliveredSo.Id, deliveredServiceId);
+        await StartExecutionOrder(deliveredExecution.Id);
+        await CompleteSeparationForExecution(deliveredExecution.Id);
+        var deliveredCompleteResponse = await _client.PostAsync($"/execution-orders/{deliveredExecution.Id}/complete", null);
+        deliveredCompleteResponse.EnsureSuccessStatusCode();
+        var deliverResponse = await _client.PostAsync($"/service-orders/{deliveredSo.Id}/deliver", null);
+        deliverResponse.EnsureSuccessStatusCode();
+
+        var items = await FetchAllOperationalServiceOrders();
+        var ids = items.Select(i => i.Id).ToList();
+
+        ids.Should().Contain(approvedSo.Id);
+        ids.Should().NotContain(rejected.Id);
+        ids.Should().NotContain(finishedSo.Id);
+        ids.Should().NotContain(deliveredSo.Id);
+    }
+
+    [Fact]
+    public async Task GetOperationalServiceOrders_OrdersByOperationalPriorityThenByCreatedAtAscending()
+    {
+        var customer = await CreateCustomer(GenerateValidCpf());
+        var vehicle = await CreateVehicle(customer.Id, GenerateValidLicensePlate(), GenerateValidRenavam());
+        var received = await CreateServiceOrder(customer.Id, vehicle.Id);
+
+        var inDiagnosticSo = await CreateServiceOrder(customer.Id, vehicle.Id);
+        await StartDiagnostic(inDiagnosticSo.Id, Guid.Empty);
+
+        var waitingApprovalSo = await SetupOrderWithConsolidatedServices();
+        await _client.PostAsync($"/service-orders/{waitingApprovalSo.Id}/quote/generate", null);
+
+        var (approvedSo, _) = await SetupApprovedOrderWithService();
+
+        var (inExecutionSo, inExecutionServiceId) = await SetupApprovedOrderWithService();
+        var inExecutionOrder = await CreateExecutionOrder(inExecutionSo.Id, inExecutionServiceId);
+        await StartExecutionOrder(inExecutionOrder.Id);
+
+        var items = await FetchAllOperationalServiceOrders();
+        var ids = items.Select(i => i.Id).ToList();
+
+        var inExecutionIndex = ids.IndexOf(inExecutionSo.Id);
+        var approvedIndex = ids.IndexOf(approvedSo.Id);
+        var waitingApprovalIndex = ids.IndexOf(waitingApprovalSo.Id);
+        var inDiagnosticIndex = ids.IndexOf(inDiagnosticSo.Id);
+        var receivedIndex = ids.IndexOf(received.Id);
+
+        inExecutionIndex.Should().BeGreaterThanOrEqualTo(0);
+        approvedIndex.Should().BeGreaterThanOrEqualTo(0);
+        waitingApprovalIndex.Should().BeGreaterThanOrEqualTo(0);
+        inDiagnosticIndex.Should().BeGreaterThanOrEqualTo(0);
+        receivedIndex.Should().BeGreaterThanOrEqualTo(0);
+
+        inExecutionIndex.Should().BeLessThan(approvedIndex);
+        approvedIndex.Should().BeLessThan(waitingApprovalIndex);
+        waitingApprovalIndex.Should().BeLessThan(inDiagnosticIndex);
+        inDiagnosticIndex.Should().BeLessThan(receivedIndex);
     }
 }

@@ -404,4 +404,106 @@ public sealed class ServiceOrderHandlersTests
         result.Items.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
     }
+
+    // List operational handler tests
+
+    private static ServiceOrder WithStatusAndCreatedAt(ServiceOrderStatus status, DateTime createdAt)
+    {
+        var so = ServiceOrder.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.Status))!.SetValue(so, status);
+        typeof(ServiceOrder).GetProperty(nameof(ServiceOrder.CreatedAt))!.SetValue(so, createdAt);
+        return so;
+    }
+
+    [Fact]
+    public async Task ListOperationalServiceOrders_ExcludesFinishedDeliveredAndRejected()
+    {
+        var repo = new FakeServiceOrderRepository();
+        var baseTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        await repo.AddAsync(WithStatusAndCreatedAt(ServiceOrderStatus.Finished, baseTime));
+        await repo.AddAsync(WithStatusAndCreatedAt(ServiceOrderStatus.Delivered, baseTime));
+        await repo.AddAsync(WithStatusAndCreatedAt(ServiceOrderStatus.Rejected, baseTime));
+        await repo.AddAsync(WithStatusAndCreatedAt(ServiceOrderStatus.Received, baseTime));
+
+        var handler = new ListOperationalServiceOrdersHandler(repo);
+        var result = await handler.HandleAsync(new ListOperationalServiceOrdersQuery(1, 10));
+
+        result.TotalCount.Should().Be(1);
+        result.Items.Should().ContainSingle(dto => dto.Status == AppServiceOrderStatus.Received);
+    }
+
+    [Fact]
+    public async Task ListOperationalServiceOrders_IncludesApproved()
+    {
+        var repo = new FakeServiceOrderRepository();
+        var baseTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        await repo.AddAsync(WithStatusAndCreatedAt(ServiceOrderStatus.Approved, baseTime));
+
+        var handler = new ListOperationalServiceOrdersHandler(repo);
+        var result = await handler.HandleAsync(new ListOperationalServiceOrdersQuery(1, 10));
+
+        result.TotalCount.Should().Be(1);
+        result.Items.Should().ContainSingle(dto => dto.Status == AppServiceOrderStatus.Approved);
+    }
+
+    [Fact]
+    public async Task ListOperationalServiceOrders_OrdersByOperationalPriorityThenByCreatedAtAscending()
+    {
+        var repo = new FakeServiceOrderRepository();
+        var baseTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var received = WithStatusAndCreatedAt(ServiceOrderStatus.Received, baseTime);
+        var inDiagnostic = WithStatusAndCreatedAt(ServiceOrderStatus.InDiagnostic, baseTime);
+        var waitingApproval = WithStatusAndCreatedAt(ServiceOrderStatus.WaitingApproval, baseTime);
+        var approved = WithStatusAndCreatedAt(ServiceOrderStatus.Approved, baseTime);
+        var inExecution = WithStatusAndCreatedAt(ServiceOrderStatus.InExecution, baseTime);
+        var olderReceived = WithStatusAndCreatedAt(ServiceOrderStatus.Received, baseTime.AddMinutes(-10));
+
+        // Add in an order that does not match the expected priority order.
+        await repo.AddAsync(received);
+        await repo.AddAsync(inDiagnostic);
+        await repo.AddAsync(waitingApproval);
+        await repo.AddAsync(approved);
+        await repo.AddAsync(inExecution);
+        await repo.AddAsync(olderReceived);
+
+        var handler = new ListOperationalServiceOrdersHandler(repo);
+        var result = await handler.HandleAsync(new ListOperationalServiceOrdersQuery(1, 10));
+
+        result.Items.Select(dto => dto.Id).Should().ContainInOrder(
+            inExecution.Id,
+            approved.Id,
+            waitingApproval.Id,
+            inDiagnostic.Id,
+            olderReceived.Id,
+            received.Id);
+    }
+
+    [Fact]
+    public async Task ListOperationalServiceOrders_PaginatesOverFilteredSet()
+    {
+        var repo = new FakeServiceOrderRepository();
+        var baseTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        await repo.AddAsync(WithStatusAndCreatedAt(ServiceOrderStatus.Finished, baseTime));
+        await repo.AddAsync(WithStatusAndCreatedAt(ServiceOrderStatus.Received, baseTime));
+        await repo.AddAsync(WithStatusAndCreatedAt(ServiceOrderStatus.InDiagnostic, baseTime.AddMinutes(1)));
+
+        var handler = new ListOperationalServiceOrdersHandler(repo);
+        var result = await handler.HandleAsync(new ListOperationalServiceOrdersQuery(1, 1));
+
+        result.TotalCount.Should().Be(2);
+        result.Items.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task ListOperationalServiceOrders_EmptyRepository_ReturnsEmptyPaged()
+    {
+        var repo = new FakeServiceOrderRepository();
+        var handler = new ListOperationalServiceOrdersHandler(repo);
+
+        var result = await handler.HandleAsync(new ListOperationalServiceOrdersQuery(1, 20));
+
+        result.Items.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+    }
 }

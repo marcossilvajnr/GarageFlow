@@ -53,6 +53,15 @@ public static class ServiceOrdersEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
+        group.MapGet("/operational", ListOperationalServiceOrders)
+            .WithName("ListOperationalServiceOrders")
+            .WithSummary("Lista Ordens de Serviço operacionais (fila de execução) com paginação.")
+            .RequireRoles(ApiRoles.FrontDesk, ApiRoles.Mechanic, ApiRoles.Administrative)
+            .Produces<PagedServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
+
         group.MapPost("/{id:guid}/services", AddServiceToServiceOrder)
             .WithName("AddServiceToServiceOrder")
             .WithSummary("Adiciona um serviço à Ordem de Serviço (FrontDesk).")
@@ -230,6 +239,27 @@ public static class ServiceOrdersEndpoints
         }
 
         var result = await handler.HandleAsync(new ListServiceOrdersQuery(page, pageSize), cancellationToken);
+        var response = new PagedServiceOrderResponse(
+            result.Items.Select(MapToResponse).ToList(),
+            result.Page,
+            result.PageSize,
+            result.TotalCount);
+
+        return Results.Ok(response);
+    }
+
+    private static async Task<IResult> ListOperationalServiceOrders(
+        ListOperationalServiceOrdersHandler handler,
+        CancellationToken cancellationToken,
+        int page = ApiPagination.DefaultPage,
+        int pageSize = ApiPagination.DefaultPageSize)
+    {
+        if (!ApiPagination.IsValid(page, pageSize))
+        {
+            return Results.BadRequest(ApiPagination.CreateInvalidPaginationProblemDetails());
+        }
+
+        var result = await handler.HandleAsync(new ListOperationalServiceOrdersQuery(page, pageSize), cancellationToken);
         var response = new PagedServiceOrderResponse(
             result.Items.Select(MapToResponse).ToList(),
             result.Page,
