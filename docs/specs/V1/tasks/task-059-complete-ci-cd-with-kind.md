@@ -19,6 +19,8 @@ O objetivo de entrega é deixar o último histórico bem-sucedido do workflow co
 - Manter `workflow_dispatch` como gatilho principal.
 - Executar build da solução.
 - Executar testes automatizados.
+- Executar testes unitários/integração no stage `Quality`, excluindo E2E.
+- Executar E2E em stage dedicado com PostgreSQL service.
 - Gerar relatórios já existentes de qualidade, cobertura, segurança e breakdown.
 - Buildar imagem Docker `garageflow-api:ci`.
 - Criar cluster Kind temporário dentro do runner GitHub Actions.
@@ -44,6 +46,7 @@ O objetivo de entrega é deixar o último histórico bem-sucedido do workflow co
 Antes de implementar, ler obrigatoriamente:
 - `.github/workflows/garageflow.yml`
 - `.github/workflows/garageflow-quality.yml`
+- `.github/workflows/garageflow-e2e.yml`
 - `.github/workflows/garageflow-build.yml`
 - `.github/workflows/garageflow-deploy-kind.yml`
 - `.github/scripts/generate-coverage-summary.sh`
@@ -69,7 +72,7 @@ Antes de implementar, ler obrigatoriamente:
 ## 4) Decisões Arquiteturais Já Tomadas
 - O workflow oficial é `GarageFlow CI/CD`.
 - O workflow é manual por custo-benefício e rastreabilidade para banca.
-- O workflow deve ficar separado em três stages/jobs claros: `Quality`, `Build` e `Deploy`.
+- O workflow deve ficar separado em quatro stages/jobs claros: `Quality`, `E2E`, `Build` e `Deploy Kind`.
 - O projeto já possui Dockerfile executando `GarageFlow.WebHost`.
 - Os manifests Kubernetes oficiais ficam em `/k8s`.
 - O deploy local validado usa Kind.
@@ -78,6 +81,8 @@ Antes de implementar, ler obrigatoriamente:
 
 ## 5) Regras de Infra Aplicáveis
 - A pipeline deve falhar se build, testes, Docker build, deploy Kubernetes ou health check falharem.
+- O stage `Quality` deve rodar testes unitários/integração sem exigir infraestrutura E2E.
+- O stage `E2E` deve fornecer PostgreSQL e variáveis E2E necessárias para os fluxos críticos.
 - O cluster Kind no runner é efêmero e deve ser criado pela própria pipeline.
 - O banco de dados deve ser aplicado no cluster como parte do deploy.
 - O WebHost deve aguardar disponibilidade do Postgres conforme manifest da task 58.
@@ -95,6 +100,7 @@ Arquivo:
 Reusable workflows:
 ```text
 .github/workflows/garageflow-quality.yml
+.github/workflows/garageflow-e2e.yml
 .github/workflows/garageflow-build.yml
 .github/workflows/garageflow-deploy-kind.yml
 ```
@@ -111,6 +117,7 @@ on:
 - Restore.
 - Build.
 - Testes com cobertura.
+- E2E com PostgreSQL service em stage dedicado.
 - Relatórios existentes.
 - Docker build.
 - Setup Kind.
@@ -194,17 +201,20 @@ Gerar no Job Summary:
 
 ### CI/CD
 - Evoluir workflow existente sem perder relatórios atuais.
-- Separar o workflow em três jobs/stages: `quality`, `build` e `deploy`.
-- Fazer o job `build` depender do job `quality`.
+- Separar o workflow em quatro jobs/stages: `quality`, `e2e`, `build` e `deploy-kind`.
+- Configurar `quality` para excluir E2E do comando de testes.
+- Configurar `e2e` com PostgreSQL service e credenciais E2E didáticas.
+- Fazer o job `e2e` depender do job `quality`.
+- Fazer o job `build` depender do job `e2e`.
 - Fazer o job `deploy` depender do job `build`.
 - Publicar a imagem Docker do stage `Build` como artifact.
 - Fazer o stage `Deploy` baixar a imagem Docker, executar `docker load` e carregá-la no Kind.
-- Usar `needs` para garantir que build só rode após qualidade passar e deploy só rode após build passar.
+- Usar `needs` para garantir a ordem `Quality -> E2E -> Build -> Deploy Kind`.
 - Manter `workflow_dispatch` apenas no orquestrador `garageflow.yml`.
 - Usar `workflow_call` nos workflows de stage.
 - Publicar evidência no Job Summary.
 - Garantir cleanup com `if: always()` quando aplicável.
-- Nomear os jobs como `Quality`, `Build` e `Deploy` para leitura clara no histórico do GitHub Actions.
+- Nomear os jobs como `Quality`, `E2E`, `Build` e `Deploy Kind` para leitura clara no histórico do GitHub Actions.
 
 ### Docs
 - Atualizar `docs/architecture/ci.md` com o novo escopo da pipeline.
@@ -214,6 +224,7 @@ Gerar no Job Summary:
 ## 8) Arquivos a Criar/Alterar
 - `.github/workflows/garageflow.yml`
 - `.github/workflows/garageflow-quality.yml`
+- `.github/workflows/garageflow-e2e.yml`
 - `.github/workflows/garageflow-build.yml`
 - `.github/workflows/garageflow-deploy-kind.yml`
 - `docs/architecture/ci.md`
@@ -229,6 +240,8 @@ Contrato de arquivos:
 - [ ] Workflow continua manual via `workflow_dispatch`.
 - [ ] Build da aplicação passa na pipeline.
 - [ ] Testes automatizados passam na pipeline.
+- [ ] Quality exclui E2E e passa sem PostgreSQL service.
+- [ ] E2E passa em stage dedicado com PostgreSQL service.
 - [ ] Relatórios atuais continuam sendo gerados.
 - [ ] Imagem Docker é buildada no stage `Build`.
 - [ ] Imagem Docker é publicada como artifact do workflow.

@@ -1,0 +1,88 @@
+name: GarageFlow E2E
+
+on:
+  workflow_call:
+
+jobs:
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: garageflow
+          POSTGRES_USER: garageflow
+          POSTGRES_PASSWORD: garageflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U garageflow -d garageflow"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: garageflow
+      POSTGRES_USER: garageflow
+      POSTGRES_PASSWORD: garageflow
+      E2E_ADMIN_USERNAME: admin
+      E2E_ADMIN_PASSWORD: admin123
+      E2E_FRONTDESK_USERNAME: frontdesk
+      E2E_FRONTDESK_PASSWORD: frontdesk123
+      E2E_MECHANIC_USERNAME: mechanic
+      E2E_MECHANIC_PASSWORD: mechanic123
+      E2E_STOCKIST_USERNAME: stockist
+      E2E_STOCKIST_PASSWORD: stockist123
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore GarageFlow.slnx
+
+      - name: Build
+        run: dotnet build GarageFlow.slnx --configuration Release --no-restore
+
+      - name: Run E2E tests
+        run: >-
+          dotnet test GarageFlow.slnx
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName~E2E"
+          --logger "trx;LogFileName=e2e-test-results.trx"
+          --results-directory TestResults/E2E
+
+      - name: Publish E2E test report (visual)
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: E2E Test Results
+          path: "TestResults/E2E/**/*.trx"
+          reporter: dotnet-trx
+
+      - name: Publish E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: TestResults/E2E/**/*.trx
+
+      - name: Publish E2E summary
+        run: |
+          echo "# E2E" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| PostgreSQL service | OK |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| E2E critical flows | OK |" >> "$GITHUB_STEP_SUMMARY"

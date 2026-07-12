@@ -28,6 +28,7 @@ jobs:
           dotnet test GarageFlow.slnx
           --configuration Release
           --no-build
+          --filter "FullyQualifiedName!~E2E"
           --collect:"XPlat Code Coverage"
           --logger "trx;LogFileName=test-results.trx"
           --results-directory TestResults

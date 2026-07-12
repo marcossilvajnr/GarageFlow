@@ -109,6 +109,7 @@ A pipeline de qualidade, segurança e deploy Kubernetes é executada sob demanda
 Evidências mínimas esperadas por execução:
 - build da solução;
 - execução de testes automatizados;
+- execução dos fluxos E2E críticos com PostgreSQL service dedicado;
 - cobertura consolidada de testes;
 - relatório de vulnerabilidades de dependências (`dotnet list package --vulnerable --include-transitive`);
 - contagem de testes por tipo (`Domain`, `Application`, `Integration`).
@@ -124,6 +125,7 @@ Saídas obrigatórias:
 - artifacts baixáveis com relatórios completos.
 - dashboard visual no Job Summary com KPIs consolidados.
 - resultado visual de testes no run do GitHub Actions (a partir de `.trx`).
+- resultado visual de E2E no run do GitHub Actions (a partir de `.trx`).
 - evidência do deploy Kubernetes no Job Summary e em artifact dedicado.
 
 ## Governança e Evolução da Esteira

@@ -21,13 +21,15 @@ Definir a esteira manual de CI/CD do GarageFlow para geração de evidências t�
 - Nome no GitHub Actions: `GarageFlow CI/CD`
 
 ## Stages
-- `Quality`: build, testes, cobertura, segurança, breakdown e relatório executivo.
+- `Quality`: build, testes unitários/integração sem E2E, cobertura, segurança, breakdown e relatório executivo.
+- `E2E`: fluxos críticos ponta a ponta com PostgreSQL service dedicado.
 - `Build`: build da imagem Docker e publicação da imagem como artifact do workflow.
 - `Deploy`: cluster Kind, carga da imagem Docker, deploy Kubernetes, banco, HPA e health check.
 
 ## Arquivos
 - `.github/workflows/garageflow.yml`: orquestrador manual com `workflow_dispatch`.
 - `.github/workflows/garageflow-quality.yml`: reusable workflow do stage `Quality`.
+- `.github/workflows/garageflow-e2e.yml`: reusable workflow do stage `E2E`.
 - `.github/workflows/garageflow-build.yml`: reusable workflow do stage `Build`.
 - `.github/workflows/garageflow-deploy-kind.yml`: reusable workflow do stage `Deploy Kind`.
 
@@ -40,6 +42,7 @@ Definir a esteira manual de CI/CD do GarageFlow para geração de evidências t�
 ## Evidências Geradas
 - Job Summary com indicadores consolidados.
 - Resultado visual de testes (TRX).
+- Evidência de E2E com PostgreSQL real no stage `E2E`.
 - Evidência de build da imagem Docker.
 - Evidência de deploy Kubernetes com pods, services, HPA e health check.
 - Artefatos baixáveis:

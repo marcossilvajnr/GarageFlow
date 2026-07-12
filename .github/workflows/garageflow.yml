@@ -12,9 +12,14 @@ jobs:
     name: Quality
     uses: ./.github/workflows/garageflow-quality.yml
 
+  e2e:
+    name: E2E
+    needs: quality
+    uses: ./.github/workflows/garageflow-e2e.yml
+
   build:
     name: Build
-    needs: quality
+    needs: e2e
     uses: ./.github/workflows/garageflow-build.yml
 
   deploy-kind:
