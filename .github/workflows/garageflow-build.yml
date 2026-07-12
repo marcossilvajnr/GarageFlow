@@ -1,0 +1,40 @@
+name: GarageFlow Build
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    env:
+      APP_IMAGE: garageflow-api:latest
+      CI_IMAGE: garageflow-api:ci
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          mkdir -p artifacts/container
+          docker build -t "$APP_IMAGE" -t "$CI_IMAGE" .
+          docker image inspect "$APP_IMAGE" > artifacts/container/docker-image-inspect.json
+          docker save "$APP_IMAGE" -o artifacts/container/garageflow-api.tar
+
+      - name: Publish container artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: garageflow-api-image
+          path: artifacts/container/
+
+      - name: Publish build summary
+        run: |
+          echo "# Build" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Artifact | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Docker image | $APP_IMAGE |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| CI tag | $CI_IMAGE |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Image artifact | garageflow-api-image |" >> "$GITHUB_STEP_SUMMARY"

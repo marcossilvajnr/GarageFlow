@@ -97,6 +97,22 @@ Suíte completa:
 dotnet test
 ```
 
+## CI/CD
+O workflow oficial da Fase 2 é `GarageFlow CI/CD`, executado manualmente no GitHub Actions.
+
+Ele valida:
+- build da solução;
+- testes automatizados;
+- relatórios de cobertura, segurança e breakdown;
+- build e empacotamento da imagem Docker;
+- deploy em cluster Kind efêmero;
+- aplicação dos manifests Kubernetes;
+- deploy do banco PostgreSQL;
+- deploy do `GarageFlow.WebHost`;
+- validação de HPA e `/health`.
+
+Detalhes estão em `docs/architecture/ci.md`.
+
 ## Comandos úteis
 Logs da aplicação:
 

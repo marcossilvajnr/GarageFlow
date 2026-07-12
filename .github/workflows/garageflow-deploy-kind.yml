@@ -1,0 +1,61 @@
+name: GarageFlow Deploy Kind
+
+on:
+  workflow_call:
+
+jobs:
+  deploy-kind:
+    name: Deploy Kind
+    runs-on: ubuntu-latest
+
+    env:
+      CLUSTER_NAME: garageflow-ci
+      NAMESPACE: garageflow
+      APP_IMAGE: garageflow-api:latest
+      CI_IMAGE: garageflow-api:ci
+      PORT_FORWARD_PORT: 18080
+      SKIP_DOCKER_BUILD: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download container artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: garageflow-api-image
+          path: artifacts/container
+
+      - name: Load Docker image
+        run: docker load -i artifacts/container/garageflow-api.tar
+
+      - name: Create Kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: garageflow-ci
+          wait: 120s
+
+      - name: Deploy to Kubernetes
+        run: bash ./.github/scripts/run-kind-deploy-validation.sh
+
+      - name: Publish Kubernetes deploy artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubernetes-deploy-evidence
+          path: artifacts/kubernetes/
+
+      - name: Publish Kubernetes deploy summary
+        if: always()
+        run: |
+          if [ -f artifacts/kubernetes/kubernetes-deploy-summary.md ]; then
+            cat artifacts/kubernetes/kubernetes-deploy-summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "# Kubernetes Deploy Evidence" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Kubernetes deploy summary was not generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Delete Kind cluster
+        if: always()
+        run: kind delete cluster --name garageflow-ci

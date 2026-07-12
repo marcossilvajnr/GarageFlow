@@ -1,15 +1,11 @@
-name: Manual Quality Gate
+name: GarageFlow Quality
 
 on:
-  workflow_dispatch:
-
-concurrency:
-  group: manual-quality-gate-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
 
 jobs:
-  quality_and_reports:
-    name: Quality and Security Reports
+  quality:
+    name: Quality
     runs-on: ubuntu-latest
 
     steps:
@@ -96,7 +92,7 @@ jobs:
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: quality-gate-reports
+          name: quality-reports
           path: |
             artifacts/executive/executive-summary.md
             artifacts/coverage/coverage-summary.md
@@ -109,7 +105,7 @@ jobs:
 
       - name: Publish job summary
         run: |
-          echo "# Manual Quality Gate" >> "$GITHUB_STEP_SUMMARY"
+          echo "# Quality" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           cat artifacts/executive/executive-summary.md >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"

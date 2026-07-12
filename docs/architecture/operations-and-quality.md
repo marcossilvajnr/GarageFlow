@@ -6,7 +6,7 @@ Esta seção define o baseline operacional do GarageFlow para execução local, 
 ## Escopo Atual
 - Execução local com Docker Compose.
 - Verificação de disponibilidade da API via `health` e `swagger`.
-- Execução manual da esteira de qualidade e segurança no GitHub Actions.
+- Execução manual da esteira de qualidade, segurança e deploy Kubernetes no GitHub Actions.
 - Referência operacional para evidências e artefatos de execução.
 - Governança de acesso por JWT para CRUDs administrativos de cadastro/base.
 
@@ -104,7 +104,7 @@ Troubleshooting rápido:
 - cobertura não refletida: confirmar se houve geração de `coverage.opencover.xml` em `TestResults/`.
 
 ## Pipeline Manual (Operação)
-A pipeline de qualidade e segurança é executada sob demanda (`workflow_dispatch`) para reduzir custo e manter evidências auditáveis.
+A pipeline de qualidade, segurança e deploy Kubernetes é executada sob demanda (`workflow_dispatch`) para reduzir custo e manter evidências auditáveis.
 
 Evidências mínimas esperadas por execução:
 - build da solução;
@@ -112,12 +112,19 @@ Evidências mínimas esperadas por execução:
 - cobertura consolidada de testes;
 - relatório de vulnerabilidades de dependências (`dotnet list package --vulnerable --include-transitive`);
 - contagem de testes por tipo (`Domain`, `Application`, `Integration`).
+- build da imagem Docker;
+- criação de cluster Kind efêmero;
+- deploy do banco PostgreSQL no Kubernetes;
+- deploy do `GarageFlow.WebHost` no Kubernetes;
+- aplicação dos manifests YAML;
+- validação de rollout, HPA e `/health`.
 
 Saídas obrigatórias:
 - resumo executivo no Job Summary;
 - artifacts baixáveis com relatórios completos.
 - dashboard visual no Job Summary com KPIs consolidados.
 - resultado visual de testes no run do GitHub Actions (a partir de `.trx`).
+- evidência do deploy Kubernetes no Job Summary e em artifact dedicado.
 
 ## Governança e Evolução da Esteira
 A evolução deve ser incremental e orientada a custo-benefício:

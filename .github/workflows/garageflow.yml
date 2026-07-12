@@ -1,0 +1,23 @@
+name: GarageFlow CI/CD
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: garageflow-ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality
+    uses: ./.github/workflows/garageflow-quality.yml
+
+  build:
+    name: Build
+    needs: quality
+    uses: ./.github/workflows/garageflow-build.yml
+
+  deploy-kind:
+    name: Deploy Kind
+    needs: build
+    uses: ./.github/workflows/garageflow-deploy-kind.yml
