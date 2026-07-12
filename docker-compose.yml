@@ -18,8 +18,10 @@ services:
       retries: 10
       start_period: 10s
 
+  # The compose service remains "api" to preserve existing local commands and REST Client variables,
+  # but the Dockerfile builds and runs GarageFlow.WebHost as the composition root.
   api:
-    container_name: garageflow-api
+    container_name: garageflow-webhost
     build:
       context: .
       dockerfile: Dockerfile

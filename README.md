@@ -16,12 +16,14 @@ Modelagem de domínio canônica: `docs/domain`.
 
 ## Subir o ambiente
 1. Garanta um arquivo `.env` na raiz do repositório.
-3. Suba os serviços:
+2. Suba os serviços:
 
 ```bash
 docker compose up -d --build
 docker compose ps
 ```
+
+O serviço Docker Compose continua chamado `api` para manter compatibilidade com os comandos e arquivos REST Client já existentes, mas a imagem executa `GarageFlow.WebHost`, que é o composition root da aplicação.
 
 ## Endpoints de acesso
 - Swagger UI: `http://localhost:8080/swagger`
@@ -72,7 +74,7 @@ dotnet test
 ```
 
 ## Comandos úteis
-Logs da API:
+Logs da aplicação:
 
 ```bash
 docker compose logs -f api
