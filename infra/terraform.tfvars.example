@@ -1,0 +1,4 @@
+cluster_name = "garageflow"
+namespace    = "garageflow"
+app_image    = "garageflow-api:latest"
+app_port     = 8080

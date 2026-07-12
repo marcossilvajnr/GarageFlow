@@ -72,6 +72,18 @@ kubectl port-forward service/garageflow-webhost 8080:8080 -n garageflow
 
 Detalhes de recursos criados, validação e limpeza estão em `k8s/README.md`.
 
+## Terraform
+A infraestrutura como código local da Fase 2 fica em `infra/`.
+
+```bash
+cd infra
+terraform init
+terraform plan
+terraform apply
+```
+
+O Terraform provisiona um cluster Kubernetes local com Kind. Depois disso, a imagem Docker e os manifests Kubernetes continuam sendo aplicados conforme o runbook em `infra/README.md`.
+
 ## Testes automatizados
 Somente E2E:
 
