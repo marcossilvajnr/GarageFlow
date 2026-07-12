@@ -37,7 +37,8 @@ public static class ApplicationExceptionMapper
             DiagnosticNotCompletedException or
             NoConsolidatedServicesException or
             QuoteAlreadyExistsException or
-            ServiceNotAvailableForQuoteException =>
+            ServiceNotAvailableForQuoteException or
+            ExternalQuoteDecisionConflictException =>
                 new(ApplicationErrorKind.Conflict),
 
             InvalidLoginPayloadException or

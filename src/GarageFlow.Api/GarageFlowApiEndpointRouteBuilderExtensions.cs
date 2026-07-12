@@ -7,6 +7,7 @@ using GarageFlow.Api.Health.Endpoints;
 using GarageFlow.Api.Parts.Endpoints;
 using GarageFlow.Api.Purchasing.Endpoints;
 using GarageFlow.Api.ServiceOrders.Endpoints;
+using GarageFlow.Api.ServiceOrders.External;
 using GarageFlow.Api.Services.Endpoints;
 using GarageFlow.Api.Stock.Endpoints;
 using GarageFlow.Api.Suppliers.Endpoints;
@@ -30,6 +31,7 @@ public static class GarageFlowApiEndpointRouteBuilderExtensions
         endpoints.MapPartEndpoints();
         endpoints.MapSupplyEndpoints();
         endpoints.MapServiceOrderEndpoints();
+        endpoints.MapExternalServiceOrderQuoteEndpoints();
         endpoints.MapStockEndpoints();
         endpoints.MapSeparationOrderEndpoints();
         endpoints.MapExecutionOrderEndpoints();

@@ -192,6 +192,11 @@ public static class DomainErrorMessages
     public static string ServiceNotAvailableForQuote(Guid serviceId) =>
         $"Serviço '{serviceId}' não está disponível no catálogo para geração de orçamento";
 
+    // External quote decision webhook (context-specific)
+    public const string ExternalServiceOrderIdRequired = "Id da Ordem de Serviço é obrigatório";
+    public const string ExternalSourceRequired = "Origem da notificação externa é obrigatória";
+    public const string ExternalQuoteDecisionInvalid = "Decisão de orçamento externa inválida";
+
     // SeparationOrder aggregate (context-specific)
     public const string InvalidSeparationOrderExecutionOrderId = "Ordem de Execução é obrigatória";
     public const string SeparationOrderMustHaveAtLeastOneItem = "Separação deve ter pelo menos um item";

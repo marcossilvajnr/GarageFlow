@@ -6,4 +6,5 @@ public static class ApiRoles
     public const string FrontDesk = "FrontDesk";
     public const string Mechanic = "Mechanic";
     public const string Stockist = "Stockist";
+    public const string External = "External";
 }

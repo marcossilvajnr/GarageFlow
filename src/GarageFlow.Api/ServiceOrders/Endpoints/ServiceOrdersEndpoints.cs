@@ -379,7 +379,7 @@ public static class ServiceOrdersEndpoints
             dto.Services.Select(MapToServiceResponse).ToList(),
             dto.ServiceHistory.Select(MapToServiceHistoryResponse).ToList());
 
-    private static QuoteResponse MapToQuoteResponse(QuoteDto dto) =>
+    internal static QuoteResponse MapToQuoteResponse(QuoteDto dto) =>
         new(
             dto.Id,
             dto.ServiceOrderId,
