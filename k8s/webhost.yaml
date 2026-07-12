@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: garageflow-webhost
+  namespace: garageflow
+  labels:
+    app.kubernetes.io/name: garageflow-webhost
+    app.kubernetes.io/part-of: garageflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: garageflow-webhost
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: garageflow-webhost
+        app.kubernetes.io/part-of: garageflow
+    spec:
+      containers:
+        - name: webhost
+          image: garageflow-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: garageflow-config
+          env:
+            - name: Jwt__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: garageflow-secret
+                  key: Jwt__SecretKey
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: garageflow-secret
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: garageflow-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: garageflow-secret
+                  key: POSTGRES_PASSWORD
+            - name: ConnectionStrings__GarageFlow
+              value: "Host=$(POSTGRES_HOST);Port=$(POSTGRES_PORT);Database=$(POSTGRES_DB);Username=$(POSTGRES_USER);Password=$(POSTGRES_PASSWORD)"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: garageflow-webhost
+  namespace: garageflow
+  labels:
+    app.kubernetes.io/name: garageflow-webhost
+    app.kubernetes.io/part-of: garageflow
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: garageflow-webhost
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

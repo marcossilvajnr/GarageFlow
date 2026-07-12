@@ -60,6 +60,18 @@ Health:
 curl http://localhost:8080/health
 ```
 
+## Kubernetes
+Os manifestos Kubernetes da Fase 2 ficam em `k8s/`.
+
+```bash
+docker build -t garageflow-api:latest .
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+kubectl port-forward service/garageflow-webhost 8080:8080 -n garageflow
+```
+
+Detalhes de recursos criados, validação e limpeza estão em `k8s/README.md`.
+
 ## Testes automatizados
 Somente E2E:
 

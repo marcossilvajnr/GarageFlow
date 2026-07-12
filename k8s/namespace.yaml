@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: garageflow
+  labels:
+    app.kubernetes.io/name: garageflow
+    app.kubernetes.io/part-of: garageflow

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: garageflow-config
+  namespace: garageflow
+  labels:
+    app.kubernetes.io/name: garageflow
+    app.kubernetes.io/part-of: garageflow
+data:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_URLS: "http://+:8080"
+  Jwt__Issuer: "garageflow"
+  Jwt__Audience: "garageflow-api"
+  POSTGRES_HOST: "garageflow-postgres"
+  POSTGRES_PORT: "5432"
