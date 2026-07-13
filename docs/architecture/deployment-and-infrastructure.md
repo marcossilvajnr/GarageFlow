@@ -60,6 +60,7 @@ Stages:
 O deploy cloud não faz parte do caminho padrão. Uma estratégia cloud pode ser adicionada sem substituir o caminho local reproduzível.
 
 ## Referências
+- Diagramas de arquitetura: `docs/architecture/architecture-diagrams.md`
 - Kubernetes: `k8s/README.md`
 - Terraform local: `infra/README.md`
 - CI/CD: `docs/architecture/ci.md`

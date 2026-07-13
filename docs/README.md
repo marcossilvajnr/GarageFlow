@@ -38,12 +38,13 @@ Conteúdo:
 Leitura inicial recomendada:
 1. `docs/architecture/README.md`
 2. `docs/architecture/architecture-overview.md`
-3. `docs/architecture/application-and-integrations.md`
-4. `docs/architecture/deployment-and-infrastructure.md`
-5. `docs/architecture/engineering-standards.md`
-6. `docs/architecture/operations-and-quality.md`
-7. `docs/architecture/testing-and-quality.md`
-8. `docs/architecture/ci.md`
+3. `docs/architecture/architecture-diagrams.md`
+4. `docs/architecture/application-and-integrations.md`
+5. `docs/architecture/deployment-and-infrastructure.md`
+6. `docs/architecture/engineering-standards.md`
+7. `docs/architecture/operations-and-quality.md`
+8. `docs/architecture/testing-and-quality.md`
+9. `docs/architecture/ci.md`
 
 ## 3) Trilha Evolutiva (`docs/specs`)
 Registra instruções e snapshots versionados por pasta.

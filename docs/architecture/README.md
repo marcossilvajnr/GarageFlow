@@ -14,16 +14,18 @@ Arquitetura não substitui regras de domínio; ela define como essas regras são
 
 ## Ordem de Leitura Recomendada
 1. `architecture-overview.md`
-2. `application-and-integrations.md`
-3. `deployment-and-infrastructure.md`
-4. `engineering-standards.md`
-5. `operations-and-quality.md`
-6. `testing-and-quality.md`
-7. `ci.md`
+2. `architecture-diagrams.md`
+3. `application-and-integrations.md`
+4. `deployment-and-infrastructure.md`
+5. `engineering-standards.md`
+6. `operations-and-quality.md`
+7. `testing-and-quality.md`
+8. `ci.md`
 
 ## Resultado esperado após leitura
 Um novo desenvolvedor deve conseguir:
 - entender as camadas e dependências;
+- visualizar o sistema em C1, C2 e visão de infraestrutura;
 - localizar cada bounded context no código;
 - implementar fluxos críticos sem quebrar invariantes de domínio;
 - entender a infraestrutura provisionada e o fluxo de deploy;

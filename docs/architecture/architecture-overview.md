@@ -54,3 +54,6 @@ Cada bounded context do domínio é implementado como módulo lógico em `Domain
 Os contratos públicos são:
 - endpoints REST expostos pela API;
 - contratos de eventos internos entre módulos dentro do monólito.
+
+## Referências Relacionadas
+- Diagramas de arquitetura: `docs/architecture/architecture-diagrams.md`
