@@ -2,6 +2,9 @@
 # WARNING: clean/reset are destructive operations for local development.
 
 @baseUrl = http://localhost:{{$dotenv API_HTTP_PORT}}
+@username = {{$dotenv API_USERNAME}}
+@password = {{$dotenv API_PASSWORD}}
+@token = {{login.response.body.$.accessToken}}
 
 ### Health
 ###
@@ -10,10 +13,24 @@ GET {{baseUrl}}/health
 Accept: application/json
 
 ###
+### Auth - Administrative
+###
+
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
 ### Development Database - Migrate
 ###
 
 POST {{baseUrl}}/dev/database/migrate
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ###
@@ -21,6 +38,7 @@ Accept: application/json
 ###
 
 POST {{baseUrl}}/dev/database/clean
+Authorization: Bearer {{token}}
 Content-Type: application/json
 Accept: application/json
 
@@ -33,6 +51,7 @@ Accept: application/json
 ###
 
 POST {{baseUrl}}/dev/database/reset
+Authorization: Bearer {{token}}
 Content-Type: application/json
 Accept: application/json
 
@@ -45,6 +64,7 @@ Accept: application/json
 ###
 
 POST {{baseUrl}}/dev/database/reset
+Authorization: Bearer {{token}}
 Content-Type: application/json
 Accept: application/json
 

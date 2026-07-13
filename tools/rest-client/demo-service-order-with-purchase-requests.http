@@ -5,7 +5,10 @@
 @baseUrl = http://localhost:{{$dotenv API_HTTP_PORT}}
 @username = {{$dotenv API_USERNAME}}
 @password = {{$dotenv API_PASSWORD}}
+@externalUsername = {{$dotenv EXTERNAL_USERNAME}}
+@externalPassword = {{$dotenv EXTERNAL_PASSWORD}}
 @token = {{login.response.body.$.accessToken}}
+@externalToken = {{externalLogin.response.body.$.accessToken}}
 
 # Runtime IDs generated along the flow
 @supplierId = {{createSupplier.response.body.$.id}}
@@ -27,19 +30,7 @@
 @purchaseOrderId = {{createPurchaseOrder.response.body.$.id}}
 
 ###
-### 00) Maintenance - Reset DB (destructive)
-###
-
-POST {{baseUrl}}/dev/database/reset
-Content-Type: application/json
-Accept: application/json
-
-{
-  "confirm": true
-}
-
-###
-### 01) Auth + Health
+### 00) Auth
 ###
 
 # @name login
@@ -49,6 +40,30 @@ Content-Type: application/json
 {
   "username": "{{username}}",
   "password": "{{password}}"
+}
+
+###
+
+# @name externalLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{externalUsername}}",
+  "password": "{{externalPassword}}"
+}
+
+###
+### 01) Maintenance - Reset DB (destructive) + Health
+###
+
+POST {{baseUrl}}/dev/database/reset
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "confirm": true
 }
 
 ###
@@ -414,19 +429,25 @@ Content-Type: application/json
 {
   "customerId": "{{customerId}}",
   "vehicleId": "{{vehicleId}}",
-  "frontDeskEmployeeId": "{{attendantEmployeeId}}"
+  "frontDeskEmployeeId": "{{attendantEmployeeId}}",
+  "serviceIds": [
+    "{{primaryServiceId}}"
+  ]
 }
 
 ###
 
-POST {{baseUrl}}/service-orders/{{serviceOrderId}}/services
+# dedicated status read model; expected label: Recebida
+GET {{baseUrl}}/service-orders/{{serviceOrderId}}/status
 Authorization: Bearer {{token}}
-Content-Type: application/json
+Accept: application/json
 
-{
-  "serviceId": "{{primaryServiceId}}",
-  "actorId": "{{attendantEmployeeId}}"
-}
+###
+
+# operational queue includes Received orders
+GET {{baseUrl}}/service-orders/operational?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
 
 ###
 
@@ -437,6 +458,13 @@ Content-Type: application/json
 {
   "mechanicId": "{{mechanicEmployeeId}}"
 }
+
+###
+
+# status expected: InDiagnostic / Diagnóstico
+GET {{baseUrl}}/service-orders/{{serviceOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
 
 ###
 
@@ -471,14 +499,45 @@ Authorization: Bearer {{token}}
 
 ###
 
+# status expected: WaitingApproval / Aguardando Aprovação
+GET {{baseUrl}}/service-orders/{{serviceOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
 GET {{baseUrl}}/service-orders/{{serviceOrderId}}/quote
 Authorization: Bearer {{token}}
 Accept: application/json
 
 ###
 
-POST {{baseUrl}}/service-orders/{{serviceOrderId}}/quote/accept
+# external quote approval notification
+POST {{baseUrl}}/external/service-order-quote-notifications
+Authorization: Bearer {{externalToken}}
+Content-Type: application/json
+
+{
+  "serviceOrderId": "{{serviceOrderId}}",
+  "decision": "Approved",
+  "reason": null,
+  "externalNotificationId": "rest-client-approved-{{$timestamp}}",
+  "source": "rest-client"
+}
+
+###
+
+# status expected: Approved / Orçamento aprovado
+GET {{baseUrl}}/service-orders/{{serviceOrderId}}/status
 Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# operational queue includes Approved orders
+GET {{baseUrl}}/service-orders/operational?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
 
 ###
 # list validation
@@ -708,6 +767,20 @@ Authorization: Bearer {{token}}
 
 POST {{baseUrl}}/service-orders/{{serviceOrderId}}/deliver
 Authorization: Bearer {{token}}
+
+###
+
+# final status expected: Delivered / Entregue
+GET {{baseUrl}}/service-orders/{{serviceOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# final operational queue should exclude Delivered orders
+GET {{baseUrl}}/service-orders/operational?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
 
 ###
 # final list validations
