@@ -14,13 +14,14 @@ Arquitetura não substitui regras de domínio; ela define como essas regras são
 
 ## Ordem de Leitura Recomendada
 1. `architecture-overview.md`
-2. `architecture-diagrams.md`
-3. `application-and-integrations.md`
-4. `deployment-and-infrastructure.md`
-5. `engineering-standards.md`
-6. `operations-and-quality.md`
-7. `testing-and-quality.md`
-8. `ci.md`
+2. `clean-architecture.md`
+3. `architecture-diagrams.md`
+4. `application-and-integrations.md`
+5. `deployment-and-infrastructure.md`
+6. `engineering-standards.md`
+7. `operations-and-quality.md`
+8. `testing-and-quality.md`
+9. `ci.md`
 
 ## Resultado esperado após leitura
 Um novo desenvolvedor deve conseguir:

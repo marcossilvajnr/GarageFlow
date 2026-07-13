@@ -1,5 +1,10 @@
 # Engineering Standards
 
+## Fronteiras Arquiteturais
+As regras de camadas, dependências e composition root estão em `docs/architecture/clean-architecture.md`.
+
+Este documento complementa essas fronteiras com padrões de implementação, persistência, segurança, erros, nomenclatura, observabilidade e testes.
+
 ## Persistência (EF Core)
 - EF Core é o mecanismo padrão de persistência.
 - Mapeamentos de agregados e value objects devem ser explícitos por configuração.

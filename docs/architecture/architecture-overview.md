@@ -1,32 +1,9 @@
 # Architecture Overview
 
 ## Arquitetura de Referência
-O GarageFlow adota monolito modular em camadas:
-- `GarageFlow.WebHost`: executável ASP.NET e composition root.
-- `GarageFlow.Api`: entrada HTTP, endpoints, DTOs, filtros, Swagger e políticas de borda.
-- `GarageFlow.Application`: casos de uso e orquestração.
-- `GarageFlow.Domain`: regras de negócio, agregados, value objects e eventos de domínio.
-- `GarageFlow.Infrastructure`: persistência EF Core e implementações técnicas.
+O GarageFlow adota um monolito modular organizado por Clean Architecture e Hexagonal Architecture.
 
-## Regra de Dependências
-- `WebHost -> Api`, `WebHost -> Application` e `WebHost -> Infrastructure`
-- `Api -> Application`
-- `Application -> Domain`
-- `Infrastructure -> Application` e `Infrastructure -> Domain`
-- `Domain` não depende de outras camadas
-
-Objetivo: garantir que regra de negócio não dependa de tecnologia.
-
-```mermaid
-flowchart LR
-  External["Atores externos<br/>Swagger, REST Client, Postman, CI/CD"] --> WebHost["GarageFlow.WebHost<br/>composition root"]
-  WebHost --> Api["GarageFlow.Api<br/>HTTP, DTOs, filtros, Swagger"]
-  Api --> Application["GarageFlow.Application<br/>use cases, handlers, ports"]
-  Application --> Domain["GarageFlow.Domain<br/>regras e agregados"]
-  WebHost --> Infrastructure["GarageFlow.Infrastructure<br/>EF Core, JWT, seed, adapters"]
-  Infrastructure --> Application
-  Infrastructure --> Domain
-```
+A aplicação separa entrada HTTP, casos de uso, domínio, infraestrutura e composition root para manter regra de negócio independente de tecnologia. A regra de dependências, responsabilidades das camadas e padrões de fronteira estão em `docs/architecture/clean-architecture.md`.
 
 ## Deploy E Operação
 - Docker Compose executa o `GarageFlow.WebHost`.
@@ -56,4 +33,5 @@ Os contratos públicos são:
 - contratos de eventos internos entre módulos dentro do monólito.
 
 ## Referências Relacionadas
+- Clean Architecture: `docs/architecture/clean-architecture.md`
 - Diagramas de arquitetura: `docs/architecture/architecture-diagrams.md`

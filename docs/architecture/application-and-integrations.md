@@ -31,16 +31,7 @@
 - O fluxo deve ser transacional no contexto do caso de uso.
 
 ## Ports e Adapters
-- Entrada:
-  - HTTP (Minimal API / REST endpoints)
-  - endpoint de autenticação para emissão de token (`/auth/login`)
-  - endpoints externos/webhooks para simular integrações de terceiros
-- Saída:
-  - EF Core (persistência)
-  - Identity/JWT (autenticação e autorização)
-  - Relógio do sistema (abstração para tempo)
-
-As integrações entre módulos são tratadas por handlers da camada de aplicação.
+As integrações entre módulos são tratadas por handlers da camada de aplicação. A regra geral de Ports e Adapters, incluindo responsabilidades de entrada e saída, está em `docs/architecture/clean-architecture.md`.
 
 Convenções de segurança na borda HTTP:
 - validação de credenciais e emissão de JWT ocorrem na camada de aplicação com adapters de infraestrutura.
