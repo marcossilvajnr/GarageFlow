@@ -1,9 +1,9 @@
 # Operations
 
 ## Objetivo
-Esta seção define o baseline operacional do GarageFlow para execução local, validação técnica e evolução da esteira.
+Esta seção define o modelo operacional do GarageFlow para execução local, validação técnica e evolução da esteira.
 
-## Escopo Atual
+## Escopo
 - Execução local com Docker Compose.
 - Verificação de disponibilidade da API via `health` e `swagger`.
 - Execução manual da esteira de qualidade, segurança e deploy Kubernetes no GitHub Actions.
@@ -148,5 +148,6 @@ Regras:
 - manter compatibilidade com os contratos públicos da API.
 
 ## Referências Relacionadas
+- Infraestrutura e deploy: `docs/architecture/deployment-and-infrastructure.md`
 - Estratégia de testes e qualidade: `docs/architecture/testing-and-quality.md`
 - CI/CD: `docs/architecture/ci.md`

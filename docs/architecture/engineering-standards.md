@@ -21,7 +21,7 @@
   - `Microsoft.AspNetCore.Authentication.JwtBearer` para validação de token.
   - `Microsoft.AspNetCore.Authorization` para políticas e papéis.
   - `PasswordHasher<TUser>` (ASP.NET Core Identity) para hash e verificação de senha.
-- Provedor de identidade no escopo atual:
+- Provedor de identidade padrão:
   - base local de usuários e credenciais da aplicação.
   - sem dependência obrigatória de provedor externo OAuth2/OIDC.
 - Contrato mínimo de claims no access token:

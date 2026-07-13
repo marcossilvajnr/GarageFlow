@@ -82,7 +82,7 @@ kubectl apply -f k8s/
 kubectl port-forward service/garageflow-webhost 8080:8080 -n garageflow
 ```
 
-Detalhes de recursos criados, validação e limpeza estão em `k8s/README.md`.
+Detalhes de recursos criados, validação e limpeza estão em `k8s/README.md`. A visão canônica de infraestrutura e deploy está em `docs/architecture/deployment-and-infrastructure.md`.
 
 ## Terraform
 A infraestrutura como código local fica em `infra/`.
@@ -123,7 +123,7 @@ Ele valida:
 - deploy do `GarageFlow.WebHost`;
 - validação de HPA e `/health`.
 
-Detalhes estão em `docs/architecture/ci.md`.
+Detalhes estão em `docs/architecture/ci.md` e em `docs/architecture/deployment-and-infrastructure.md`.
 
 ## Comandos úteis
 Logs da aplicação:

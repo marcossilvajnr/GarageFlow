@@ -10,7 +10,7 @@ Este guia organiza a documentação em 3 trilhas oficiais:
 Cada trilha tem propósito próprio e complementar.
 
 ## 1) Trilha Canônica de Domínio (`docs/domain`)
-Representa o estado atual das regras de negócio e da linguagem ubíqua.
+Representa as regras de negócio e a linguagem ubíqua.
 
 Arquivos-base:
 - `linguagem-ubiqua.md`
@@ -32,16 +32,18 @@ Conteúdo:
 - visão arquitetural e dependências;
 - mapeamento domínio -> módulos de aplicação;
 - fluxos de aplicação e integrações;
+- infraestrutura e deploy;
 - padrões de persistência, segurança, observabilidade e testes.
 
 Leitura inicial recomendada:
 1. `docs/architecture/README.md`
 2. `docs/architecture/architecture-overview.md`
 3. `docs/architecture/application-and-integrations.md`
-4. `docs/architecture/engineering-standards.md`
-5. `docs/architecture/operations-and-quality.md`
-6. `docs/architecture/testing-and-quality.md`
-7. `docs/architecture/ci.md`
+4. `docs/architecture/deployment-and-infrastructure.md`
+5. `docs/architecture/engineering-standards.md`
+6. `docs/architecture/operations-and-quality.md`
+7. `docs/architecture/testing-and-quality.md`
+8. `docs/architecture/ci.md`
 
 ## 3) Trilha Evolutiva (`docs/specs`)
 Registra instruções e snapshots versionados por pasta.
