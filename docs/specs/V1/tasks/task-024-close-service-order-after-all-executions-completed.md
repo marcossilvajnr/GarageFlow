@@ -5,7 +5,7 @@
 - `slug`: `close-service-order-after-all-executions-completed`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-020-create-execution-order-base.md`, `task-023-integrate-separation-order-with-execution-order-readiness.md`
+- `depends_on`: [task-020-create-execution-order-base.md](task-020-create-execution-order-base.md), [task-023-integrate-separation-order-with-execution-order-readiness.md](task-023-integrate-separation-order-with-execution-order-readiness.md)
 
 ## 1) Objetivo
 Implementar o fechamento da `ServiceOrder` quando todas as `ExecutionOrders` vinculadas forem concluídas, garantindo consistência do ciclo operacional da OS.
@@ -25,13 +25,13 @@ Implementar o fechamento da `ServiceOrder` quando todas as `ExecutionOrders` vin
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/specs/V1/aggregates/service-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/service-order.md)
-- [docs/specs/V1/aggregates/execution-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/execution-order.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-009` — execução segue gate de prontidão.
@@ -91,16 +91,16 @@ Regras mandatórias:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (esperado)
-- `tests/GarageFlow.Tests/Application/Executions/ExecutionServiceOrderCompletionIntegrationTests.cs`
-- `tests/GarageFlow.Tests/Integration/Executions/ExecutionServiceOrderCompletionEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Application/Executions/ExecutionServiceOrderCompletionIntegrationTests.cs](../../../../tests/GarageFlow.Tests/Application/Executions/ExecutionServiceOrderCompletionIntegrationTests.cs)
+- [tests/GarageFlow.Tests/Integration/Executions/ExecutionServiceOrderCompletionEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Executions/ExecutionServiceOrderCompletionEndpointsTests.cs)
 
 ### Alterar (esperado)
-- `src/GarageFlow.Application/Executions/Handlers/CompleteExecutionOrderHandler.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
+- [src/GarageFlow.Application/Executions/Handlers/CompleteExecutionOrderHandler.cs](../../../../src/GarageFlow.Application/Executions/Handlers/CompleteExecutionOrderHandler.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
 - `src/GarageFlow.Api/Endpoints/Executions/ExecutionOrdersEndpoints.cs` (mapping de erro/comportamento)
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs` (se necessário)
-- `tests/GarageFlow.Tests/Application/Executions/ExecutionOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Executions/ExecutionOrdersEndpointsTests.cs`
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs) (se necessário)
+- [tests/GarageFlow.Tests/Application/Executions/ExecutionOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Executions/ExecutionOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Executions/ExecutionOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Executions/ExecutionOrdersEndpointsTests.cs)
 
 Contrato de arquivos:
 - Caminhos definidos nesta seção são mandatórios.

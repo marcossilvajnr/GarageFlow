@@ -5,7 +5,7 @@
 - `slug`: `e2e-customer-cancellation-at-latest-allowed-stage`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-044-e2e-happy-path-service-order-with-stock-shortage-and-purchase.md`
+- `depends_on`: [task-044-e2e-happy-path-service-order-with-stock-shortage-and-purchase.md](task-044-e2e-happy-path-service-order-with-stock-shortage-and-purchase.md)
 
 ## 1) Objetivo
 Implementar teste E2E de cancelamento da OS pelo cliente no último ponto permitido pelas regras canônicas.
@@ -20,9 +20,9 @@ Implementar teste E2E de cancelamento da OS pelo cliente no último ponto permit
 - Regras administrativas excepcionais fora do fluxo padrão.
 
 ## 3) Contexto Canônico Obrigatório
-- `docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/specs/V1/aggregates/service-order.md`
+- [docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md](task-039-document-e2e-critical-flow-coverage.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
 
 ## 4) Regras de Negócio Aplicáveis
 - Regras de cancelamento e janelas de transição da OS no canônico vigente.
@@ -49,7 +49,7 @@ Implementar teste E2E de cancelamento da OS pelo cliente no último ponto permit
 
 ## 10) Evidência de Execução
 - Teste E2E implementado em:
-  - `tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderCancellationLatestStageE2ETests.cs`
+  - [tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderCancellationLatestStageE2ETests.cs](../../../../tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderCancellationLatestStageE2ETests.cs)
 - Cobertura validada no cenário:
   - cancelamento do cliente no último estágio permitido do fluxo atual (`WaitingApproval`) via `quote/reject`;
   - asserts de HTTP por etapa crítica;

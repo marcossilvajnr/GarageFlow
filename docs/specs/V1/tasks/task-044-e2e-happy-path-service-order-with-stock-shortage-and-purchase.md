@@ -5,7 +5,7 @@
 - `slug`: `e2e-happy-path-service-order-with-stock-shortage-and-purchase`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-043-e2e-happy-path-service-order-with-sufficient-stock.md`
+- `depends_on`: [task-043-e2e-happy-path-service-order-with-sufficient-stock.md](task-043-e2e-happy-path-service-order-with-sufficient-stock.md)
 
 ## 1) Objetivo
 Implementar teste E2E do fluxo de OS com falta de estoque, compra, retomada da separação e conclusão da execução.
@@ -20,10 +20,10 @@ Implementar teste E2E do fluxo de OS com falta de estoque, compra, retomada da s
 - Cancelamento do cliente.
 
 ## 3) Contexto Canônico Obrigatório
-- `docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md`
-- `docs/specs/V1/aggregates/purchase-order.md`
-- `docs/specs/V1/aggregates/separation-order.md`
-- `docs/specs/V1/aggregates/execution-order.md`
+- [docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md](task-039-document-e2e-critical-flow-coverage.md)
+- [docs/specs/V1/aggregates/purchase-order.md](../aggregates/purchase-order.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
 
 ## 4) Regras de Negócio Aplicáveis
 - `RN-012`, `RN-017`, `RN-020`.
@@ -50,7 +50,7 @@ Implementar teste E2E do fluxo de OS com falta de estoque, compra, retomada da s
 
 ## 10) Evidência de Execução
 - Teste E2E implementado em:
-  - `tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderStockShortagePurchaseE2ETests.cs`
+  - [tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderStockShortagePurchaseE2ETests.cs](../../../../tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderStockShortagePurchaseE2ETests.cs)
 - Cobertura validada no cenário:
   - fluxo completo `ServiceOrder -> Diagnostic -> Quote (accept) -> SeparationOrder (ruptura) -> PurchaseOrder -> retomada -> ExecutionOrder -> fechamento da OS`;
   - asserts de HTTP por etapa crítica;

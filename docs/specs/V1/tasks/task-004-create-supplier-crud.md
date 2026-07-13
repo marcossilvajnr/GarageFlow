@@ -5,7 +5,7 @@
 - `slug`: `create-supplier-crud`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-000-template.md`, `task-001-create-customer-crud.md`
+- `depends_on`: [task-000-template.md](task-000-template.md), [task-001-create-customer-crud.md](task-001-create-customer-crud.md)
 
 ## 1) Objetivo
 Implementar CRUD ponta a ponta de `Supplier`, estabelecendo a base de fornecedores para compras e abastecimento.
@@ -24,10 +24,10 @@ Implementar CRUD ponta a ponta de `Supplier`, estabelecendo a base de fornecedor
 - Alterações funcionais em outros contextos.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN)
 - Fornecedor deve possuir identificação e contato válidos.
@@ -92,7 +92,7 @@ Matriz de erro mandatória:
 - `src/GarageFlow.Domain/Suppliers/*`
 - `src/GarageFlow.Application/Suppliers/*`
 - `src/GarageFlow.Infrastructure/Persistence/Configurations/SupplierConfiguration.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/SupplierRepository.cs`
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/SupplierRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/SupplierRepository.cs)
 - `src/GarageFlow.Api/DTOs/Suppliers/*`
 - `src/GarageFlow.Api/Endpoints/Suppliers/*`
 - `tests/GarageFlow.Tests/Domain/Suppliers/*`
@@ -100,9 +100,9 @@ Matriz de erro mandatória:
 - `tests/GarageFlow.Tests/Integration/Suppliers/*`
 
 ### Alterar (esperado)
-- `src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs`
+- [src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs](../../../../src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs)
 - `src/GarageFlow.Api/Program.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs` (novas chaves)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs) (novas chaves)
 
 Regra de estrutura mandatória:
 - O agregado e contrato de repositório de fornecedor devem permanecer em `src/GarageFlow.Domain/Suppliers/*`.
@@ -133,7 +133,7 @@ Regra de estrutura mandatória:
 - [ ] Implementar CRUD em aplicação, infraestrutura e API.
 - [ ] Implementar testes por camada.
 - [ ] Executar build e testes.
-- [ ] Validar aderência a `engineering-standards.md`.
+- [ ] Validar aderência a [engineering-standards.md](../../../architecture/engineering-standards.md).
 
 ## 12) Guardrails Não-Negociáveis
 - Proibido parsing de `ex.Message` para decidir status HTTP.

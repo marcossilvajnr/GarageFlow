@@ -5,7 +5,7 @@
 - `slug`: `document-e2e-critical-flow-coverage`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-038-setup-e2e-test-infrastructure.md`
+- `depends_on`: [task-038-setup-e2e-test-infrastructure.md](task-038-setup-e2e-test-infrastructure.md)
 
 ## 1) Objetivo
 Documentar oficialmente os fluxos E2E críticos que demonstram o sistema funcionando ponta a ponta para apresentação do projeto.
@@ -24,13 +24,13 @@ Documentar oficialmente os fluxos E2E críticos que demonstram o sistema funcion
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/agregados.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/aggregates/separation-order.md`
-- `docs/specs/V1/aggregates/purchase-order.md`
-- `docs/specs/V1/aggregates/execution-order.md`
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/purchase-order.md](../aggregates/purchase-order.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-003`, `RN-007`, `RN-009`, `RN-011`, `RN-012`, `RN-017`, `RN-020`.
@@ -48,10 +48,10 @@ Antes de implementar, ler obrigatoriamente:
 
 ## 6) Plano Técnico por Camada
 ### Docs
-- Criar/atualizar seção canônica em `docs/architecture/operations-and-quality.md` para cobertura E2E crítica.
+- Criar/atualizar seção canônica em [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md) para cobertura E2E crítica.
 
 ## 7) Arquivos a Criar/Alterar
-- `docs/architecture/operations-and-quality.md`
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md)
 - Referência cruzada em `docs/specs/V1/tasks/` se necessário.
 
 ## 8) Critérios de Pronto
@@ -72,7 +72,7 @@ Antes de implementar, ler obrigatoriamente:
 
 ## 12) Evidência de Execução
 - Documento criado:
-  - `docs/architecture/operations-and-quality.md` (seção `Cobertura E2E Crítica (Pre-JWT)`)
+  - [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md) (seção `Cobertura E2E Crítica (Pre-JWT)`)
 - Conteúdo coberto:
   - Fluxo A: OS com estoque suficiente.
   - Fluxo B: OS com falta de estoque + compra + retomada.

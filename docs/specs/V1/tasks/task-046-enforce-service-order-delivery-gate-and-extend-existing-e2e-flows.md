@@ -5,7 +5,7 @@
 - `slug`: `enforce-service-order-delivery-gate-and-extend-existing-e2e-flows`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-045-e2e-customer-cancellation-at-latest-allowed-stage.md`
+- `depends_on`: [task-045-e2e-customer-cancellation-at-latest-allowed-stage.md](task-045-e2e-customer-cancellation-at-latest-allowed-stage.md)
 
 ## 1) Objetivo
 Fechar o fluxo operacional final da OS garantindo regra explícita de entrega (`Delivered`) e ajustar os E2E críticos já existentes para cobrir o encerramento completo até entrega, sem criar novos cenários E2E paralelos.
@@ -26,13 +26,13 @@ Fechar o fluxo operacional final da OS garantindo regra explícita de entrega (`
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/agregados.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/aggregates/execution-order.md`
-- `docs/specs/V1/aggregates/separation-order.md`
-- `docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md`
-- `docs/architecture/testing-and-quality.md`
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md](task-039-document-e2e-critical-flow-coverage.md)
+- [docs/architecture/testing-and-quality.md](../../../architecture/testing-and-quality.md)
 
 ## 4) Regras de Negócio Aplicáveis
 - `RN-003` — progressão de status da OS.
@@ -76,10 +76,10 @@ Antes de implementar, ler obrigatoriamente:
 - `src/GarageFlow.Domain/ServiceOrders/**`
 - `src/GarageFlow.Application/ServiceOrders/**`
 - `src/GarageFlow.Api/Endpoints/ServiceOrders/**`
-- `tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderSufficientStockE2ETests.cs`
-- `tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderStockShortagePurchaseE2ETests.cs`
+- [tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderSufficientStockE2ETests.cs](../../../../tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderSufficientStockE2ETests.cs)
+- [tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderStockShortagePurchaseE2ETests.cs](../../../../tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderStockShortagePurchaseE2ETests.cs)
 - `tests/GarageFlow.Tests/Integration/ServiceOrders/**` (se necessário para cobertura de contrato)
-- `docs/specs/V1/aggregates/service-order.md` (somente se houver ajuste canônico de contrato)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md) (somente se houver ajuste canônico de contrato)
 
 ## 8) Critérios de Pronto
 - [ ] Entrega da OS bloqueada quando pré-condições não atendidas.
@@ -106,7 +106,7 @@ Antes de implementar, ler obrigatoriamente:
 
 ## 10) Riscos e Mitigações
 - Risco: introduzir nova rota/ação divergente da canônica.
-  - Mitigação: validar primeiro contrato em `docs/specs/V1/aggregates/service-order.md`.
+  - Mitigação: validar primeiro contrato em [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md).
 - Risco: regressão nos fluxos E2E já estáveis.
   - Mitigação: alterar incrementalmente os testes existentes e validar suíte E2E completa.
 - Risco: inconsistência de estado entre OS e ordens filhas.

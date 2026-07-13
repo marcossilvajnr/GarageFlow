@@ -5,7 +5,7 @@
 - `slug`: `integrate-separation-order-with-stock-reservation-and-release`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-019-create-separation-order-base.md`, `task-022-integrate-purchase-order-with-separation-order-resume.md`, `task-025-create-stock-base-and-operations.md`
+- `depends_on`: [task-019-create-separation-order-base.md](task-019-create-separation-order-base.md), [task-022-integrate-purchase-order-with-separation-order-resume.md](task-022-integrate-purchase-order-with-separation-order-resume.md), [task-025-create-stock-base-and-operations.md](task-025-create-stock-base-and-operations.md)
 
 ## 1) Objetivo
 Integrar `SeparationOrder` com o agregado `Stock`, aplicando reserva automática de itens no fluxo de separação e liberação controlada quando houver retorno elegível.
@@ -28,13 +28,13 @@ Integrar `SeparationOrder` com o agregado `Stock`, aplicando reserva automática
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- [docs/Domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/Domain/regras-de-negocio.md)
-- [docs/Domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/Domain/agregados.md)
-- [docs/Domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/Domain/linguagem-ubiqua.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/specs/V1/tasks/task-025-create-stock-base-and-operations.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/tasks/task-025-create-stock-base-and-operations.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/Domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/Domain/agregados.md](../../../domain/agregados.md)
+- [docs/Domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/specs/V1/tasks/task-025-create-stock-base-and-operations.md](task-025-create-stock-base-and-operations.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-012` — separação valida disponibilidade e reserva itens.
@@ -95,14 +95,14 @@ Regras mandatórias desta task:
 
 ## 7) Arquivos a Criar/Alterar
 ### Alterar (esperado)
-- `src/GarageFlow.Application/Stock/Handlers/ReserveSeparationOrderHandler.cs`
-- `src/GarageFlow.Application/Stock/Handlers/ResumeSeparationOrderAfterPurchaseHandler.cs`
-- `src/GarageFlow.Application/Stock/Handlers/WaitSeparationOrderPurchaseHandler.cs` (se necessário para consistência de fluxo)
+- [src/GarageFlow.Application/Stock/Handlers/ReserveSeparationOrderHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ReserveSeparationOrderHandler.cs)
+- [src/GarageFlow.Application/Stock/Handlers/ResumeSeparationOrderAfterPurchaseHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ResumeSeparationOrderAfterPurchaseHandler.cs)
+- [src/GarageFlow.Application/Stock/Handlers/WaitSeparationOrderPurchaseHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/WaitSeparationOrderPurchaseHandler.cs) (se necessário para consistência de fluxo)
 - `src/GarageFlow.Api/Endpoints/Stock/SeparationOrdersEndpoints.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs` (se necessário)
-- `tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs`
-- `tests/GarageFlow.Tests/Integration/Stock/SeparationExecutionIntegrationEndpointsTests.cs` (se afetado)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs) (se necessário)
+- [tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs)
+- [tests/GarageFlow.Tests/Integration/Stock/SeparationExecutionIntegrationEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/SeparationExecutionIntegrationEndpointsTests.cs) (se afetado)
 
 ### Criar (opcional, se necessário)
 - `tests/GarageFlow.Tests/Application/Stock/SeparationStockReservationIntegrationTests.cs`

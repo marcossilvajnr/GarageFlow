@@ -5,7 +5,7 @@
 - `slug`: `setup-e2e-real-db-infrastructure`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-041-apply-end-to-end-observability-and-state-transition-logging.md`
+- `depends_on`: [task-041-apply-end-to-end-observability-and-state-transition-logging.md](task-041-apply-end-to-end-observability-and-state-transition-logging.md)
 
 ## 1) Objetivo
 Adaptar a suíte E2E para execução contra banco PostgreSQL real, mantendo previsibilidade de dados por cenário.
@@ -24,11 +24,11 @@ Adaptar a suíte E2E para execução contra banco PostgreSQL real, mantendo prev
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/agregados.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/architecture/operations-and-quality.md`
-- `docs/specs/V1/tasks/task-038-setup-e2e-test-infrastructure.md`
-- `docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md`
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md)
+- [docs/specs/V1/tasks/task-038-setup-e2e-test-infrastructure.md](task-038-setup-e2e-test-infrastructure.md)
+- [docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md](task-039-document-e2e-critical-flow-coverage.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-003` — progressão de status da OS.
@@ -69,7 +69,7 @@ Antes de implementar, ler obrigatoriamente:
 - `tests/GarageFlow.Tests/E2E/Infrastructure/**`
 - `tests/GarageFlow.Tests/E2E/Smoke/**`
 - `tests/GarageFlow.Tests/E2E/ServiceOrders/**`
-- `README.md` (se necessário para runbook de execução E2E com banco real)
+- [README.md](../../../../README.md) (se necessário para runbook de execução E2E com banco real)
 
 ## 8) Critérios de Pronto
 - [ ] E2E executa contra PostgreSQL real sem usar SQLite em memória.

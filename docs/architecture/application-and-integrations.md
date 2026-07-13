@@ -31,7 +31,7 @@
 - O fluxo deve ser transacional no contexto do caso de uso.
 
 ## Ports e Adapters
-As integrações entre módulos são tratadas por handlers da camada de aplicação. A regra geral de Ports e Adapters, incluindo responsabilidades de entrada e saída, está em `docs/architecture/clean-architecture.md`.
+As integrações entre módulos são tratadas por handlers da camada de aplicação. A regra geral de Ports e Adapters, incluindo responsabilidades de entrada e saída, está em [docs/architecture/clean-architecture.md](clean-architecture.md).
 
 Convenções de segurança na borda HTTP:
 - validação de credenciais e emissão de JWT ocorrem na camada de aplicação com adapters de infraestrutura.
@@ -71,7 +71,7 @@ Fluxo:
 
 ## Contratos Internos de Integração
 Os eventos de integração seguem o catálogo canônico definido em
-`docs/domain/agregados.md`, na seção **Eventos de Integração Canônicos**.
+[docs/domain/agregados.md](../domain/agregados.md), na seção **Eventos de Integração Canônicos**.
 
 Convenções:
 - Handlers de aplicação são responsáveis por orquestração entre módulos.

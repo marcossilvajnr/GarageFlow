@@ -153,7 +153,7 @@ stateDiagram-v2
 ## Classificação de Eventos
 - Eventos de integração canônicos deste agregado: `DiagnosticStartedEvent`, `DiagnosticCompletedEvent`, `QuoteGeneratedEvent`, `QuoteApprovedEvent`.
 - Eventos de domínio internos (não listados como contratos de integração): `ServiceOrderInExecutionEvent`, `ServiceOrderFinishedEvent`, `VehicleDeliveredEvent`.
-- Catálogo canônico de integração: `docs/domain/agregados.md`.
+- Catálogo canônico de integração: [docs/domain/agregados.md](../../../domain/agregados.md).
 
 ## Regras de Negócio Relacionadas
 - [RN-001], [RN-002], [RN-003], [RN-004]

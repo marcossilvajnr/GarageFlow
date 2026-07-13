@@ -27,13 +27,13 @@ Matriz mínima esperada:
 
 ## Operação Local (Docker)
 Artefatos oficiais:
-- `Dockerfile`
-- `docker-compose.yml`
-- `README.md` (raiz)
+- [Dockerfile](../../Dockerfile)
+- [docker-compose.yml](../../docker-compose.yml)
+- [README.md](README.md) (raiz)
 
 Princípios operacionais:
 - configuração por variáveis de ambiente;
-- configuração padrão pronta no `docker-compose.yml` para execução local imediata;
+- configuração padrão pronta no [docker-compose.yml](../../docker-compose.yml) para execução local imediata;
 - banco PostgreSQL com healthcheck;
 - API exposta para validação de contrato (`swagger`).
 
@@ -64,7 +64,7 @@ dotnet tool install --global dotnet-sonarscanner
 ```
 
 Observação:
-- o script `./scripts/sonar-local.sh` instala automaticamente o `dotnet-sonarscanner` caso ele não exista no ambiente.
+- o script [./scripts/sonar-local.sh](../../scripts/sonar-local.sh) instala automaticamente o `dotnet-sonarscanner` caso ele não exista no ambiente.
 
 Passo a passo:
 1. Subir API, banco e SonarQube no mesmo compose:
@@ -97,7 +97,7 @@ No SonarQube, confirmar que a key do projeto é a mesma usada no `.env` em `SONA
 ```
 
 Saída:
-Arquivo `sonarqube-issues-summary.json` na raiz do projeto.
+Arquivo [sonarqube-issues-summary.json](../../sonarqube-issues-summary.json) na raiz do projeto.
 
 Troubleshooting rápido:
 - SonarQube ainda inicializando: `docker compose logs -f sonarqube`
@@ -148,6 +148,6 @@ Regras:
 - manter compatibilidade com os contratos públicos da API.
 
 ## Referências Relacionadas
-- Infraestrutura e deploy: `docs/architecture/deployment-and-infrastructure.md`
-- Estratégia de testes e qualidade: `docs/architecture/testing-and-quality.md`
-- CI/CD: `docs/architecture/ci.md`
+- Infraestrutura e deploy: [docs/architecture/deployment-and-infrastructure.md](deployment-and-infrastructure.md)
+- Estratégia de testes e qualidade: [docs/architecture/testing-and-quality.md](testing-and-quality.md)
+- CI/CD: [docs/architecture/ci.md](ci.md)

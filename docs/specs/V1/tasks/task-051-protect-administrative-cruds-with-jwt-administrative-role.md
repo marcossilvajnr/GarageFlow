@@ -5,7 +5,7 @@
 - `slug`: `protect-administrative-cruds-with-jwt-administrative-role`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-050-finalize-jwt-delivery-docs-and-evidence-package.md`
+- `depends_on`: [task-050-finalize-jwt-delivery-docs-and-evidence-package.md](task-050-finalize-jwt-delivery-docs-and-evidence-package.md)
 
 ## 1) Objetivo
 Restringir os CRUDs administrativos para acesso apenas de usuários autenticados com role `Administrative`, mantendo o restante dos fluxos operacionais sem mudanças de comportamento.
@@ -26,10 +26,10 @@ Restringir os CRUDs administrativos para acesso apenas de usuários autenticados
 - Alterações de contratos de request para remover `ActorId/MechanicId/StockistId`.
 
 ## 3) Contexto Canônico Obrigatório
-- `docs/domain/agregados.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/architecture/engineering-standards.md`
-- `docs/architecture/operations-and-quality.md`
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md)
 
 ## 4) Regras de Negócio Aplicáveis
 - Governança de acesso administrativo via JWT + role.
@@ -63,7 +63,7 @@ Restringir os CRUDs administrativos para acesso apenas de usuários autenticados
 - `src/GarageFlow.Api/Endpoints/**`
 - `tests/GarageFlow.Tests/Integration/**`
 - `tests/GarageFlow.Tests/E2E/**` (se aplicável)
-- `docs/architecture/operations-and-quality.md` (se necessário)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md) (se necessário)
 
 ## 8) Critérios de Pronto
 - [ ] Todos os CRUDs administrativos relevantes protegidos por `Administrative`.

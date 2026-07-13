@@ -5,7 +5,7 @@
 - `slug`: `consume-stock-on-stockist-withdrawal`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-025-create-stock-base-and-operations.md`, `task-026-integrate-separation-order-with-stock-reservation-and-release.md`, `task-028-implement-separation-order-total-return-before-mechanic-receipt.md`
+- `depends_on`: [task-025-create-stock-base-and-operations.md](task-025-create-stock-base-and-operations.md), [task-026-integrate-separation-order-with-stock-reservation-and-release.md](task-026-integrate-separation-order-with-stock-reservation-and-release.md), [task-028-implement-separation-order-total-return-before-mechanic-receipt.md](task-028-implement-separation-order-total-return-before-mechanic-receipt.md)
 
 ## 1) Objetivo
 Realizar a baixa física de estoque (`Stock.Consume`) no momento de `ConfirmStockistWithdrawal`, garantindo que a custódia da `SeparationOrder` e o saldo de estoque fiquem consistentes no mesmo fluxo.
@@ -29,16 +29,16 @@ Realizar a baixa física de estoque (`Stock.Consume`) no momento de `ConfirmStoc
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- [docs/Domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/Domain/regras-de-negocio.md)
-- [docs/Domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/Domain/agregados.md)
-- [docs/Domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/Domain/linguagem-ubiqua.md)
-- [docs/Domain/bounded-contexts.md](/Users/marcos/Projects/GarageFlow/docs/Domain/bounded-contexts.md)
-- [docs/specs/V1/aggregates/separation-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/separation-order.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/specs/V1/tasks/task-026-integrate-separation-order-with-stock-reservation-and-release.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/tasks/task-026-integrate-separation-order-with-stock-reservation-and-release.md)
-- [docs/specs/V1/tasks/task-028-implement-separation-order-total-return-before-mechanic-receipt.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/tasks/task-028-implement-separation-order-total-return-before-mechanic-receipt.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/Domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/Domain/agregados.md](../../../domain/agregados.md)
+- [docs/Domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/Domain/bounded-contexts.md](../../../domain/bounded-contexts.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/specs/V1/tasks/task-026-integrate-separation-order-with-stock-reservation-and-release.md](task-026-integrate-separation-order-with-stock-reservation-and-release.md)
+- [docs/specs/V1/tasks/task-028-implement-separation-order-total-return-before-mechanic-receipt.md](task-028-implement-separation-order-total-return-before-mechanic-receipt.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-013` — separação exige dupla confirmação de custódia.
@@ -103,11 +103,11 @@ Regras mandatórias desta task:
 
 ## 7) Arquivos a Criar/Alterar
 ### Alterar (esperado)
-- `src/GarageFlow.Application/Stock/Handlers/ConfirmSeparationStockistWithdrawalHandler.cs`
+- [src/GarageFlow.Application/Stock/Handlers/ConfirmSeparationStockistWithdrawalHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ConfirmSeparationStockistWithdrawalHandler.cs)
 - `src/GarageFlow.Api/Endpoints/Stock/SeparationOrdersEndpoints.cs` (se necessário para mapping de exceções)
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs` (se necessário)
-- `tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs`
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs) (se necessário)
+- [tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs)
 
 ### Criar (opcional, se necessário)
 - `tests/GarageFlow.Tests/Integration/Stock/SeparationStockConsumptionEndpointsTests.cs`

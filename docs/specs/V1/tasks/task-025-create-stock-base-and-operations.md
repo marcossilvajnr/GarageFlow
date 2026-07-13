@@ -5,7 +5,7 @@
 - `slug`: `create-stock-base-and-operations`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-007-create-part-crud.md`, `task-008-create-supply-crud.md`, `task-021-create-purchase-order-base.md`
+- `depends_on`: [task-007-create-part-crud.md](task-007-create-part-crud.md), [task-008-create-supply-crud.md](task-008-create-supply-crud.md), [task-021-create-purchase-order-base.md](task-021-create-purchase-order-base.md)
 
 ## 1) Objetivo
 Implementar a base do agregado `Stock`, com operações de estoque canônicas e rastreabilidade mínima por operação, sem acoplar ainda com os fluxos de `SeparationOrder` e `ExecutionOrder`.
@@ -36,12 +36,12 @@ Implementar a base do agregado `Stock`, com operações de estoque canônicas e 
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - Estoque deve manter rastreabilidade por operação (quem/quando/por quê quando aplicável).
@@ -133,26 +133,26 @@ Regras mandatórias:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (esperado)
-- `src/GarageFlow.Domain/Stock/Stock.cs`
-- `src/GarageFlow.Domain/Stock/StockOperation.cs`
-- `src/GarageFlow.Domain/Stock/StockOperationType.cs`
-- `src/GarageFlow.Domain/Stock/IStockRepository.cs`
-- `src/GarageFlow.Application/Stock/Commands/CreateStockEntryCommand.cs`
-- `src/GarageFlow.Application/Stock/Commands/ReserveStockCommand.cs`
-- `src/GarageFlow.Application/Stock/Commands/ReleaseStockReservationCommand.cs`
-- `src/GarageFlow.Application/Stock/Commands/ConsumeStockCommand.cs`
-- `src/GarageFlow.Application/Stock/Commands/AdjustStockCommand.cs`
-- `src/GarageFlow.Application/Stock/Queries/GetStockPositionQuery.cs`
-- `src/GarageFlow.Application/Stock/Queries/ListStockOperationsQuery.cs`
-- `src/GarageFlow.Application/Stock/DTOs/StockPositionDto.cs`
-- `src/GarageFlow.Application/Stock/DTOs/StockOperationDto.cs`
-- `src/GarageFlow.Application/Stock/Handlers/CreateStockEntryHandler.cs`
-- `src/GarageFlow.Application/Stock/Handlers/ReserveStockHandler.cs`
-- `src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs`
-- `src/GarageFlow.Application/Stock/Handlers/ConsumeStockHandler.cs`
-- `src/GarageFlow.Application/Stock/Handlers/AdjustStockHandler.cs`
-- `src/GarageFlow.Application/Stock/Handlers/GetStockPositionHandler.cs`
-- `src/GarageFlow.Application/Stock/Handlers/ListStockOperationsHandler.cs`
+- [src/GarageFlow.Domain/Stock/Stock.cs](../../../../src/GarageFlow.Domain/Stock/Stock.cs)
+- [src/GarageFlow.Domain/Stock/StockOperation.cs](../../../../src/GarageFlow.Domain/Stock/StockOperation.cs)
+- [src/GarageFlow.Domain/Stock/StockOperationType.cs](../../../../src/GarageFlow.Domain/Stock/StockOperationType.cs)
+- [src/GarageFlow.Domain/Stock/IStockRepository.cs](../../../../src/GarageFlow.Domain/Stock/IStockRepository.cs)
+- [src/GarageFlow.Application/Stock/Commands/CreateStockEntryCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/CreateStockEntryCommand.cs)
+- [src/GarageFlow.Application/Stock/Commands/ReserveStockCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/ReserveStockCommand.cs)
+- [src/GarageFlow.Application/Stock/Commands/ReleaseStockReservationCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/ReleaseStockReservationCommand.cs)
+- [src/GarageFlow.Application/Stock/Commands/ConsumeStockCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/ConsumeStockCommand.cs)
+- [src/GarageFlow.Application/Stock/Commands/AdjustStockCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/AdjustStockCommand.cs)
+- [src/GarageFlow.Application/Stock/Queries/GetStockPositionQuery.cs](../../../../src/GarageFlow.Application/Stock/Queries/GetStockPositionQuery.cs)
+- [src/GarageFlow.Application/Stock/Queries/ListStockOperationsQuery.cs](../../../../src/GarageFlow.Application/Stock/Queries/ListStockOperationsQuery.cs)
+- [src/GarageFlow.Application/Stock/DTOs/StockPositionDto.cs](../../../../src/GarageFlow.Application/Stock/DTOs/StockPositionDto.cs)
+- [src/GarageFlow.Application/Stock/DTOs/StockOperationDto.cs](../../../../src/GarageFlow.Application/Stock/DTOs/StockOperationDto.cs)
+- [src/GarageFlow.Application/Stock/Handlers/CreateStockEntryHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/CreateStockEntryHandler.cs)
+- [src/GarageFlow.Application/Stock/Handlers/ReserveStockHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ReserveStockHandler.cs)
+- [src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs)
+- [src/GarageFlow.Application/Stock/Handlers/ConsumeStockHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ConsumeStockHandler.cs)
+- [src/GarageFlow.Application/Stock/Handlers/AdjustStockHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/AdjustStockHandler.cs)
+- [src/GarageFlow.Application/Stock/Handlers/GetStockPositionHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/GetStockPositionHandler.cs)
+- [src/GarageFlow.Application/Stock/Handlers/ListStockOperationsHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ListStockOperationsHandler.cs)
 - `src/GarageFlow.Api/DTOs/Stock/CreateStockEntryRequest.cs`
 - `src/GarageFlow.Api/DTOs/Stock/ReserveStockRequest.cs`
 - `src/GarageFlow.Api/DTOs/Stock/ReleaseStockReservationRequest.cs`
@@ -161,17 +161,17 @@ Regras mandatórias:
 - `src/GarageFlow.Api/DTOs/Stock/StockPositionResponse.cs`
 - `src/GarageFlow.Api/DTOs/Stock/PagedStockOperationsResponse.cs`
 - `src/GarageFlow.Api/Endpoints/Stock/StockEndpoints.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Configurations/Stock/StockConfiguration.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/StockRepository.cs`
-- `tests/GarageFlow.Tests/Domain/Stock/StockTests.cs`
-- `tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs`
+- [src/GarageFlow.Infrastructure/Persistence/Configurations/Stock/StockConfiguration.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Configurations/Stock/StockConfiguration.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/StockRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/StockRepository.cs)
+- [tests/GarageFlow.Tests/Domain/Stock/StockTests.cs](../../../../tests/GarageFlow.Tests/Domain/Stock/StockTests.cs)
+- [tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs)
 
 ### Alterar (esperado)
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs`
-- `src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs`
-- `src/GarageFlow.Infrastructure/DependencyInjection.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs)
+- [src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs](../../../../src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs)
+- [src/GarageFlow.Infrastructure/DependencyInjection.cs](../../../../src/GarageFlow.Infrastructure/DependencyInjection.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
 - `src/GarageFlow.Api/Program.cs`
 
 Contrato de arquivos:

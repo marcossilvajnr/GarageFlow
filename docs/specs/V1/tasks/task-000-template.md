@@ -22,12 +22,12 @@ Descrever em uma frase o resultado funcional esperado.
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/domain/agregados.md` (fonte canônica de eventos de integração)
-- `docs/architecture/architecture-overview.md`
-- `docs/architecture/application-and-integrations.md`
-- `docs/architecture/engineering-standards.md`
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md) (fonte canônica de eventos de integração)
+- [docs/architecture/architecture-overview.md](../../../architecture/architecture-overview.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-xxx` — `<regra obrigatória>`
@@ -48,7 +48,7 @@ Matriz de erro obrigatória por endpoint:
 
 ### 5.2 Contratos internos
 - Commands/Queries: `<nomes>`
-- Eventos (se aplicável): referenciar apenas `docs/domain/agregados.md`.
+- Eventos (se aplicável): referenciar apenas [docs/domain/agregados.md](../../../domain/agregados.md).
 - Repositórios/portas: `<interfaces>`
 
 ### 5.3 Erros de domínio

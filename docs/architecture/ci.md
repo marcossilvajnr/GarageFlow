@@ -69,7 +69,7 @@ O stage `Deploy Kind` valida:
 ## Escopo Da Esteira
 - A pipeline não cria recursos AWS, EKS, ECR, RDS ou IAM.
 - O deploy cloud pode ser adicionado sem substituir o caminho reproduzível em Kind.
-- SonarQube remoto não faz parte da CI padrão; a análise Sonar está documentada como fluxo local opcional em `operations-and-quality.md`.
+- SonarQube remoto não faz parte da CI padrão; a análise Sonar está documentada como fluxo local opcional em [operations-and-quality.md](operations-and-quality.md).
 - O relatório de vulnerabilidades da CI emite warnings para pacotes high/critical; upgrades de dependências devem ser tratados separadamente.
 
 ## Evidência JWT e RBAC na CI
@@ -84,5 +84,5 @@ Itens mínimos para trilha de autenticação/autorização:
 - Automações adicionais (ex.: `push`/`pull_request`) podem ser adotadas conforme necessidade operacional.
 
 ## Referências Relacionadas
-- Infraestrutura e deploy: `docs/architecture/deployment-and-infrastructure.md`
-- Operação e qualidade: `docs/architecture/operations-and-quality.md`
+- Infraestrutura e deploy: [docs/architecture/deployment-and-infrastructure.md](deployment-and-infrastructure.md)
+- Operação e qualidade: [docs/architecture/operations-and-quality.md](operations-and-quality.md)

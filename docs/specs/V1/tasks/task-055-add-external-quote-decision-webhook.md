@@ -5,7 +5,7 @@
 - `slug`: `add-external-quote-decision-webhook`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-054-add-service-order-status-read-model-endpoint.md`
+- `depends_on`: [task-054-add-service-order-status-read-model-endpoint.md](task-054-add-service-order-status-read-model-endpoint.md)
 
 ## 1) Objetivo
 Adicionar um webhook externo para receber aprovação ou recusa de orçamento do cliente, reaproveitando as regras internas atuais e registrando logs estruturados do fluxo externo.
@@ -28,17 +28,17 @@ Adicionar um webhook externo para receber aprovação ou recusa de orçamento do
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/domain/agregados.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/aggregates/quote.md`
-- `docs/specs/V1/tasks/task-017-create-quote-from-consolidated-services.md`
-- `docs/specs/V1/tasks/task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md`
-- `docs/specs/V1/tasks/task-041-apply-end-to-end-observability-and-state-transition-logging.md`
-- `docs/architecture/application-and-integrations.md`
-- `docs/architecture/engineering-standards.md`
-- `docs/architecture/operations-and-quality.md`
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/quote.md](../aggregates/quote.md)
+- [docs/specs/V1/tasks/task-017-create-quote-from-consolidated-services.md](task-017-create-quote-from-consolidated-services.md)
+- [docs/specs/V1/tasks/task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md](task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md)
+- [docs/specs/V1/tasks/task-041-apply-end-to-end-observability-and-state-transition-logging.md](task-041-apply-end-to-end-observability-and-state-transition-logging.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md)
 
 ## 4) Decisões Arquiteturais Já Tomadas
 - O webhook externo deve ser rota dedicada, não reuso direto dos endpoints internos.
@@ -134,14 +134,14 @@ Antes de implementar, ler obrigatoriamente:
 - Registrar que e-mail real fica fora de escopo.
 
 ## 8) Arquivos a Criar/Alterar
-- `src/GarageFlow.Application/ServiceOrders/Enums/ExternalQuoteDecision.cs`
-- `src/GarageFlow.Application/ServiceOrders/Commands/HandleExternalQuoteDecisionCommand.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/HandleExternalQuoteDecisionHandler.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
+- [src/GarageFlow.Application/ServiceOrders/Enums/ExternalQuoteDecision.cs](../../../../src/GarageFlow.Application/ServiceOrders/Enums/ExternalQuoteDecision.cs)
+- [src/GarageFlow.Application/ServiceOrders/Commands/HandleExternalQuoteDecisionCommand.cs](../../../../src/GarageFlow.Application/ServiceOrders/Commands/HandleExternalQuoteDecisionCommand.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/HandleExternalQuoteDecisionHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/HandleExternalQuoteDecisionHandler.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
 - `src/GarageFlow.Api/ServiceOrders/DTOs/ExternalQuoteDecisionNotificationRequest.cs` (ou pasta externa equivalente com justificativa)
-- `src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs` ou novo endpoint externo dedicado
-- `tests/GarageFlow.Tests/Application/ServiceOrders/QuoteHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs`
+- [src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs](../../../../src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs) ou novo endpoint externo dedicado
+- [tests/GarageFlow.Tests/Application/ServiceOrders/QuoteHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/ServiceOrders/QuoteHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs)
 
 Contrato de arquivos:
 - Mudanças fora desta lista devem ser justificadas explicitamente na resposta final.

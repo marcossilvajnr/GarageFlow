@@ -5,7 +5,7 @@
 - `slug`: `finalize-jwt-delivery-docs-and-evidence-package`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-049-migrate-critical-e2e-flows-to-real-jwt-authentication.md`
+- `depends_on`: [task-049-migrate-critical-e2e-flows-to-real-jwt-authentication.md](task-049-migrate-critical-e2e-flows-to-real-jwt-authentication.md)
 
 ## 1) Objetivo
 Consolidar documentação e evidências finais da trilha JWT para entrega acadêmica, garantindo replicabilidade e rastreabilidade para banca.
@@ -24,11 +24,11 @@ Consolidar documentação e evidências finais da trilha JWT para entrega acadê
 - Mudanças estruturais de domínio.
 
 ## 3) Contexto Canônico Obrigatório
-- `docs/architecture/application-and-integrations.md`
-- `docs/architecture/engineering-standards.md`
-- `docs/architecture/testing-and-quality.md`
-- `docs/architecture/ci.md`
-- `README.md`
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/architecture/testing-and-quality.md](../../../architecture/testing-and-quality.md)
+- [docs/architecture/ci.md](../../../architecture/ci.md)
+- [README.md](../../../../README.md)
 
 ## 4) Regras de Negócio Aplicáveis
 - Segurança mínima para operações administrativas.
@@ -53,11 +53,11 @@ Consolidar documentação e evidências finais da trilha JWT para entrega acadê
 - Rodar suíte de validação final e registrar números.
 
 ## 7) Arquivos a Criar/Alterar
-- `README.md`
-- `docs/architecture/application-and-integrations.md`
-- `docs/architecture/engineering-standards.md`
-- `docs/architecture/testing-and-quality.md`
-- `docs/architecture/ci.md`
+- [README.md](../../../../README.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/architecture/testing-and-quality.md](../../../architecture/testing-and-quality.md)
+- [docs/architecture/ci.md](../../../architecture/ci.md)
 - `docs/specs/V1/tasks/**` (somente evidências finais da trilha)
 
 ## 8) Critérios de Pronto

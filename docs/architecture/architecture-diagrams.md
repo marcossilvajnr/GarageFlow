@@ -99,5 +99,5 @@ C4Container
 ## Observações
 - `GarageFlow.Api`, `GarageFlow.Application`, `GarageFlow.Domain` e `GarageFlow.Infrastructure` são assemblies e camadas internas carregadas pelo `GarageFlow.WebHost`.
 - No C2, apenas `GarageFlow.WebHost`, PostgreSQL e Swagger/OpenAPI aparecem como containers por representarem unidades executáveis, persistentes ou publicamente expostas.
-- O detalhamento interno das camadas fica em `clean-architecture.md`.
-- O detalhamento de infraestrutura e deploy fica em `deployment-and-infrastructure.md`.
+- O detalhamento interno das camadas fica em [clean-architecture.md](clean-architecture.md).
+- O detalhamento de infraestrutura e deploy fica em [deployment-and-infrastructure.md](deployment-and-infrastructure.md).

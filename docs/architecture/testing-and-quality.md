@@ -77,9 +77,9 @@ Meios válidos de observação:
 
 ## Integração com Operação
 - execução operacional da esteira de CI/CD e publicação de artefatos estão em:
-  - `docs/architecture/operations-and-quality.md`.
+  - [docs/architecture/operations-and-quality.md](operations-and-quality.md).
 - detalhes dos stages `Quality`, `E2E`, `Build` e `Deploy Kind` estão em:
-  - `docs/architecture/ci.md`.
+  - [docs/architecture/ci.md](ci.md).
 
 ## Execução Na CI/CD
 - O stage `Quality` executa testes unitários e de integração, excluindo E2E por filtro.

@@ -5,7 +5,7 @@
 - `slug`: `create-service-supply-composition`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-000-template.md`, `task-008-create-supply-crud.md`, `task-009-create-service-part-composition.md`
+- `depends_on`: [task-000-template.md](task-000-template.md), [task-008-create-supply-crud.md](task-008-create-supply-crud.md), [task-009-create-service-part-composition.md](task-009-create-service-part-composition.md)
 
 ## 1) Objetivo
 Implementar o vínculo de composição entre `Service` e `Supply`, permitindo adicionar/remover insumos em um serviço com unidade canônica `SupplyUnit` e snapshot de nome no vínculo.
@@ -26,10 +26,10 @@ Implementar o vínculo de composição entre `Service` e `Supply`, permitindo ad
 - Fluxos de execução/diagnóstico/OS.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN)
 - [RN-024]: serviço mantém tempo estimado definido manualmente.
@@ -124,24 +124,24 @@ Regras mandatórias:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (esperado)
-- `src/GarageFlow.Application/Services/Commands/AddServiceSupplyCommand.cs`
-- `src/GarageFlow.Application/Services/Commands/RemoveServiceSupplyCommand.cs`
-- `src/GarageFlow.Application/Services/Handlers/AddServiceSupplyHandler.cs`
-- `src/GarageFlow.Application/Services/Handlers/RemoveServiceSupplyHandler.cs`
+- [src/GarageFlow.Application/Services/Commands/AddServiceSupplyCommand.cs](../../../../src/GarageFlow.Application/Services/Commands/AddServiceSupplyCommand.cs)
+- [src/GarageFlow.Application/Services/Commands/RemoveServiceSupplyCommand.cs](../../../../src/GarageFlow.Application/Services/Commands/RemoveServiceSupplyCommand.cs)
+- [src/GarageFlow.Application/Services/Handlers/AddServiceSupplyHandler.cs](../../../../src/GarageFlow.Application/Services/Handlers/AddServiceSupplyHandler.cs)
+- [src/GarageFlow.Application/Services/Handlers/RemoveServiceSupplyHandler.cs](../../../../src/GarageFlow.Application/Services/Handlers/RemoveServiceSupplyHandler.cs)
 - `src/GarageFlow.Api/DTOs/Services/AddServiceSupplyRequest.cs`
-- `tests/GarageFlow.Tests/Domain/Services/ServiceCompositionSupplyTests.cs`
-- `tests/GarageFlow.Tests/Application/Services/ServiceCompositionSupplyHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Services/ServiceSupplyCompositionEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Domain/Services/ServiceCompositionSupplyTests.cs](../../../../tests/GarageFlow.Tests/Domain/Services/ServiceCompositionSupplyTests.cs)
+- [tests/GarageFlow.Tests/Application/Services/ServiceCompositionSupplyHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Services/ServiceCompositionSupplyHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Services/ServiceSupplyCompositionEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Services/ServiceSupplyCompositionEndpointsTests.cs)
 
 ### Alterar (esperado)
-- `src/GarageFlow.Domain/Services/Service.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs`
-- `src/GarageFlow.Application/Services/DTOs/ServiceDto.cs`
-- `src/GarageFlow.Application/Services/Handlers/ServiceMapper.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Configurations/Services/ServiceConfiguration.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/ServiceRepository.cs`
-- `src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs`
+- [src/GarageFlow.Domain/Services/Service.cs](../../../../src/GarageFlow.Domain/Services/Service.cs)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs)
+- [src/GarageFlow.Application/Services/DTOs/ServiceDto.cs](../../../../src/GarageFlow.Application/Services/DTOs/ServiceDto.cs)
+- [src/GarageFlow.Application/Services/Handlers/ServiceMapper.cs](../../../../src/GarageFlow.Application/Services/Handlers/ServiceMapper.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Configurations/Services/ServiceConfiguration.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Configurations/Services/ServiceConfiguration.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/ServiceRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/ServiceRepository.cs)
+- [src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs](../../../../src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs)
 - `src/GarageFlow.Api/DTOs/Services/ServiceResponse.cs`
 - `src/GarageFlow.Api/DTOs/Services/PagedServiceResponse.cs`
 - `src/GarageFlow.Api/Endpoints/Services/ServicesEndpoints.cs`

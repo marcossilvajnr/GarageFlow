@@ -3,7 +3,7 @@
 ## Arquitetura de Referência
 O GarageFlow adota um monolito modular organizado por Clean Architecture e Hexagonal Architecture.
 
-A aplicação separa entrada HTTP, casos de uso, domínio, infraestrutura e composition root para manter regra de negócio independente de tecnologia. A regra de dependências, responsabilidades das camadas e padrões de fronteira estão em `docs/architecture/clean-architecture.md`.
+A aplicação separa entrada HTTP, casos de uso, domínio, infraestrutura e composition root para manter regra de negócio independente de tecnologia. A regra de dependências, responsabilidades das camadas e padrões de fronteira estão em [docs/architecture/clean-architecture.md](clean-architecture.md).
 
 ## Deploy E Operação
 - Docker Compose executa o `GarageFlow.WebHost`.
@@ -33,5 +33,5 @@ Os contratos públicos são:
 - contratos de eventos internos entre módulos dentro do monólito.
 
 ## Referências Relacionadas
-- Clean Architecture: `docs/architecture/clean-architecture.md`
-- Diagramas de arquitetura: `docs/architecture/architecture-diagrams.md`
+- Clean Architecture: [docs/architecture/clean-architecture.md](clean-architecture.md)
+- Diagramas de arquitetura: [docs/architecture/architecture-diagrams.md](architecture-diagrams.md)

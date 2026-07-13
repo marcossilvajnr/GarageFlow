@@ -178,8 +178,8 @@ Proibido:
 - Domain depender de logging, HTTP, banco ou configuração.
 
 ## Relação Com Outros Documentos
-- Visão executiva e módulos: `docs/architecture/architecture-overview.md`
-- Diagramas C1, C2 e infraestrutura: `docs/architecture/architecture-diagrams.md`
-- Fluxos de aplicação e integrações: `docs/architecture/application-and-integrations.md`
-- Infraestrutura e deploy: `docs/architecture/deployment-and-infrastructure.md`
-- Padrões de engenharia: `docs/architecture/engineering-standards.md`
+- Visão executiva e módulos: [docs/architecture/architecture-overview.md](architecture-overview.md)
+- Diagramas C1, C2 e infraestrutura: [docs/architecture/architecture-diagrams.md](architecture-diagrams.md)
+- Fluxos de aplicação e integrações: [docs/architecture/application-and-integrations.md](application-and-integrations.md)
+- Infraestrutura e deploy: [docs/architecture/deployment-and-infrastructure.md](deployment-and-infrastructure.md)
+- Padrões de engenharia: [docs/architecture/engineering-standards.md](engineering-standards.md)

@@ -2,7 +2,7 @@
 
 ## How to use
 1. Copy the prompt below.
-2. Replace `<TASK_FILE>` with the target task file name (example: `task-002-create-remaining-value-objects.md`).
+2. Replace `<TASK_FILE>` with the target task file name (example: [task-002-create-remaining-value-objects.md](task-002-create-remaining-value-objects.md)).
 3. Send the prompt to the implementation AI.
 
 ## Prompt

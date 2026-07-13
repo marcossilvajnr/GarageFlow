@@ -1,7 +1,7 @@
 # Engineering Standards
 
 ## Fronteiras Arquiteturais
-As regras de camadas, dependências e composition root estão em `docs/architecture/clean-architecture.md`.
+As regras de camadas, dependências e composition root estão em [docs/architecture/clean-architecture.md](clean-architecture.md).
 
 Este documento complementa essas fronteiras com padrões de implementação, persistência, segurança, erros, nomenclatura, observabilidade e testes.
 

@@ -5,7 +5,7 @@
 - `slug`: `add-stock-manual-adjustment-audit-trail`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-030-remove-double-stock-consumption-in-execution-flow.md`
+- `depends_on`: [task-030-remove-double-stock-consumption-in-execution-flow.md](task-030-remove-double-stock-consumption-in-execution-flow.md)
 
 ## 1) Objetivo
 Fortalecer rastreabilidade de ajustes manuais de estoque (`/stock/releases`) com trilha auditável completa para governança operacional.
@@ -25,11 +25,11 @@ Fortalecer rastreabilidade de ajustes manuais de estoque (`/stock/releases`) com
 - Alterar regras de separação/devolução operacional.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/Domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/Domain/regras-de-negocio.md)
-- [docs/Domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/Domain/agregados.md)
-- [docs/Domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/Domain/linguagem-ubiqua.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/Domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/Domain/agregados.md](../../../domain/agregados.md)
+- [docs/Domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-016` — operações de estoque preservam invariantes.
@@ -70,11 +70,11 @@ Regra mandatória da task:
 
 ## 7) Arquivos a Criar/Alterar
 ### Alterar (esperado)
-- `src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs`
+- [src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs)
 - `src/GarageFlow.Domain/Stock/*`
 - `src/GarageFlow.Infrastructure/Persistence/Configurations/Stock/*`
-- `tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs)
 
 ## 8) Critérios de Pronto
 - [ ] `dotnet build` sem erros.

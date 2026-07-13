@@ -5,7 +5,7 @@
 - `slug`: `implement-separation-order-total-return-before-mechanic-receipt`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-019-create-separation-order-base.md`, `task-025-create-stock-base-and-operations.md`, `task-026-integrate-separation-order-with-stock-reservation-and-release.md`, `task-027-consume-stock-on-execution-completion.md`
+- `depends_on`: [task-019-create-separation-order-base.md](task-019-create-separation-order-base.md), [task-025-create-stock-base-and-operations.md](task-025-create-stock-base-and-operations.md), [task-026-integrate-separation-order-with-stock-reservation-and-release.md](task-026-integrate-separation-order-with-stock-reservation-and-release.md), [task-027-consume-stock-on-execution-completion.md](task-027-consume-stock-on-execution-completion.md)
 
 ## 1) Objetivo
 Implementar devolução operacional total de itens da `SeparationOrder` antes de `ConfirmMechanicReceipt`, com rastreabilidade por ordem de separação e consistência no `Stock`.
@@ -26,14 +26,14 @@ Implementar devolução operacional total de itens da `SeparationOrder` antes de
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- [docs/Domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/Domain/regras-de-negocio.md)
-- [docs/Domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/Domain/agregados.md)
-- [docs/Domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/Domain/linguagem-ubiqua.md)
-- [docs/Domain/bounded-contexts.md](/Users/marcos/Projects/GarageFlow/docs/Domain/bounded-contexts.md)
-- [docs/specs/V1/aggregates/separation-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/separation-order.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/Domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/Domain/agregados.md](../../../domain/agregados.md)
+- [docs/Domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/Domain/bounded-contexts.md](../../../domain/bounded-contexts.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-013` — separação exige dupla confirmação de custódia.
@@ -99,19 +99,19 @@ Antes de implementar, ler obrigatoriamente:
 
 ## 7) Arquivos a Criar/Alterar
 ### Alterar (esperado)
-- `src/GarageFlow.Domain/Stock/SeparationOrder.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs` (se necessário)
-- `src/GarageFlow.Application/DependencyInjection.cs` (se necessário)
-- `src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs` (alinhamento RN-033)
+- [src/GarageFlow.Domain/Stock/SeparationOrder.cs](../../../../src/GarageFlow.Domain/Stock/SeparationOrder.cs)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs) (se necessário)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs) (se necessário)
+- [src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs) (alinhamento RN-033)
 - `src/GarageFlow.Api/Endpoints/Stock/SeparationOrdersEndpoints.cs`
-- `tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs`
-- `tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs` (alinhamento RN-033)
-- `tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs` (alinhamento RN-033)
+- [tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs)
+- [tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs) (alinhamento RN-033)
+- [tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs) (alinhamento RN-033)
 
 ### Criar (esperado)
-- `src/GarageFlow.Application/Stock/Commands/ReturnSeparationOrderTotalCommand.cs`
-- `src/GarageFlow.Application/Stock/Handlers/ReturnSeparationOrderTotalHandler.cs`
+- [src/GarageFlow.Application/Stock/Commands/ReturnSeparationOrderTotalCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/ReturnSeparationOrderTotalCommand.cs)
+- [src/GarageFlow.Application/Stock/Handlers/ReturnSeparationOrderTotalHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ReturnSeparationOrderTotalHandler.cs)
 
 Contrato de arquivos:
 - Caminhos definidos nesta seção são mandatórios.

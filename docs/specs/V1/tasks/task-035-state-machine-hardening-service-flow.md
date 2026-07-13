@@ -5,7 +5,7 @@
 - `slug`: `state-machine-hardening-service-flow`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-034-canonical-drift-check-and-alignment.md`
+- `depends_on`: [task-034-canonical-drift-check-and-alignment.md](task-034-canonical-drift-check-and-alignment.md)
 
 ## 1) Objetivo
 Endurecer as máquinas de estado de `ServiceOrder`, `SeparationOrder`, `ExecutionOrder`, `Quote` e `PurchaseOrder`, removendo transições inválidas e garantindo respostas de conflito consistentes.

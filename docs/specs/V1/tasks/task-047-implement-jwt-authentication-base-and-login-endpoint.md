@@ -5,7 +5,7 @@
 - `slug`: `implement-jwt-authentication-base-and-login-endpoint`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-046-enforce-service-order-delivery-gate-and-extend-existing-e2e-flows.md`
+- `depends_on`: [task-046-enforce-service-order-delivery-gate-and-extend-existing-e2e-flows.md](task-046-enforce-service-order-delivery-gate-and-extend-existing-e2e-flows.md)
 
 ## 1) Objetivo
 Implementar a base de autenticação JWT do produto com endpoint de login funcional, emissão de token e claims mínimas para autorização por papel, com armazenamento seguro de senha (hash + salt).
@@ -25,11 +25,11 @@ Implementar a base de autenticação JWT do produto com endpoint de login funcio
 - Controle avançado de refresh token.
 
 ## 3) Contexto Canônico Obrigatório
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/architecture/application-and-integrations.md`
-- `docs/architecture/engineering-standards.md`
-- `docs/architecture/testing-and-quality.md`
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/architecture/testing-and-quality.md](../../../architecture/testing-and-quality.md)
 
 ## 4) Regras de Negócio Aplicáveis
 - Autenticação obrigatória para APIs administrativas.

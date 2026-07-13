@@ -5,7 +5,7 @@
 - `slug`: `create-quote-from-consolidated-services`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-000-template.md`, `task-006-create-service-crud.md`, `task-007-create-part-crud.md`, `task-008-create-supply-crud.md`, `task-016-consolidate-service-order-services-from-diagnostic.md`
+- `depends_on`: [task-000-template.md](task-000-template.md), [task-006-create-service-crud.md](task-006-create-service-crud.md), [task-007-create-part-crud.md](task-007-create-part-crud.md), [task-008-create-supply-crud.md](task-008-create-supply-crud.md), [task-016-consolidate-service-order-services-from-diagnostic.md](task-016-consolidate-service-order-services-from-diagnostic.md)
 
 ## 1) Objetivo
 Implementar geração de orçamento (`Quote`) a partir dos serviços consolidados na `ServiceOrder`, com snapshot financeiro auditável e fluxo de decisão do cliente (`accept` / `reject`) sem edição manual dos itens de orçamento.
@@ -35,12 +35,12 @@ Implementar geração de orçamento (`Quote`) a partir dos serviços consolidado
 - Execução, separação e movimentação de estoque.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/specs/V1/aggregates/quote.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/quote.md)
-- [docs/specs/V1/aggregates/service-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/service-order.md)
-- [docs/specs/V1/aggregates/service.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/service.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/quote.md](../aggregates/quote.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/service.md](../aggregates/service.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - Preço de mão de obra vem do `Service.BasePrice`.
@@ -147,36 +147,36 @@ Regras mandatórias:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (esperado)
-- `src/GarageFlow.Domain/ServiceOrders/Quote.cs`
-- `src/GarageFlow.Domain/ServiceOrders/QuoteItem.cs`
-- `src/GarageFlow.Domain/ServiceOrders/QuoteStatus.cs`
-- `src/GarageFlow.Application/ServiceOrders/Commands/GenerateQuoteCommand.cs`
-- `src/GarageFlow.Application/ServiceOrders/Commands/AcceptQuoteCommand.cs`
-- `src/GarageFlow.Application/ServiceOrders/Commands/RejectQuoteCommand.cs`
-- `src/GarageFlow.Application/ServiceOrders/Queries/GetServiceOrderQuoteQuery.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/GenerateQuoteHandler.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/AcceptQuoteHandler.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/RejectQuoteHandler.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/GetServiceOrderQuoteHandler.cs`
-- `src/GarageFlow.Application/ServiceOrders/DTOs/QuoteDto.cs`
-- `src/GarageFlow.Application/ServiceOrders/DTOs/QuoteItemDto.cs`
+- [src/GarageFlow.Domain/ServiceOrders/Quote.cs](../../../../src/GarageFlow.Domain/ServiceOrders/Quote.cs)
+- [src/GarageFlow.Domain/ServiceOrders/QuoteItem.cs](../../../../src/GarageFlow.Domain/ServiceOrders/QuoteItem.cs)
+- [src/GarageFlow.Domain/ServiceOrders/QuoteStatus.cs](../../../../src/GarageFlow.Domain/ServiceOrders/QuoteStatus.cs)
+- [src/GarageFlow.Application/ServiceOrders/Commands/GenerateQuoteCommand.cs](../../../../src/GarageFlow.Application/ServiceOrders/Commands/GenerateQuoteCommand.cs)
+- [src/GarageFlow.Application/ServiceOrders/Commands/AcceptQuoteCommand.cs](../../../../src/GarageFlow.Application/ServiceOrders/Commands/AcceptQuoteCommand.cs)
+- [src/GarageFlow.Application/ServiceOrders/Commands/RejectQuoteCommand.cs](../../../../src/GarageFlow.Application/ServiceOrders/Commands/RejectQuoteCommand.cs)
+- [src/GarageFlow.Application/ServiceOrders/Queries/GetServiceOrderQuoteQuery.cs](../../../../src/GarageFlow.Application/ServiceOrders/Queries/GetServiceOrderQuoteQuery.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/GenerateQuoteHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/GenerateQuoteHandler.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/AcceptQuoteHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/AcceptQuoteHandler.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/RejectQuoteHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/RejectQuoteHandler.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/GetServiceOrderQuoteHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/GetServiceOrderQuoteHandler.cs)
+- [src/GarageFlow.Application/ServiceOrders/DTOs/QuoteDto.cs](../../../../src/GarageFlow.Application/ServiceOrders/DTOs/QuoteDto.cs)
+- [src/GarageFlow.Application/ServiceOrders/DTOs/QuoteItemDto.cs](../../../../src/GarageFlow.Application/ServiceOrders/DTOs/QuoteItemDto.cs)
 - `src/GarageFlow.Api/DTOs/ServiceOrders/QuoteResponse.cs`
 - `src/GarageFlow.Api/DTOs/ServiceOrders/QuoteItemResponse.cs`
 - `src/GarageFlow.Api/DTOs/ServiceOrders/RejectQuoteRequest.cs`
-- `tests/GarageFlow.Tests/Domain/ServiceOrders/QuoteTests.cs`
-- `tests/GarageFlow.Tests/Application/ServiceOrders/QuoteHandlersTests.cs`
+- [tests/GarageFlow.Tests/Domain/ServiceOrders/QuoteTests.cs](../../../../tests/GarageFlow.Tests/Domain/ServiceOrders/QuoteTests.cs)
+- [tests/GarageFlow.Tests/Application/ServiceOrders/QuoteHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/ServiceOrders/QuoteHandlersTests.cs)
 
 ### Alterar (esperado)
-- `src/GarageFlow.Domain/ServiceOrders/ServiceOrder.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs`
-- `src/GarageFlow.Application/ServiceOrders/DTOs/ServiceOrderDto.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/ServiceOrderMapper.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Configurations/ServiceOrders/ServiceOrderConfiguration.cs`
+- [src/GarageFlow.Domain/ServiceOrders/ServiceOrder.cs](../../../../src/GarageFlow.Domain/ServiceOrders/ServiceOrder.cs)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs)
+- [src/GarageFlow.Application/ServiceOrders/DTOs/ServiceOrderDto.cs](../../../../src/GarageFlow.Application/ServiceOrders/DTOs/ServiceOrderDto.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/ServiceOrderMapper.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/ServiceOrderMapper.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Configurations/ServiceOrders/ServiceOrderConfiguration.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Configurations/ServiceOrders/ServiceOrderConfiguration.cs)
 - `src/GarageFlow.Infrastructure/Persistence/Migrations/*`
 - `src/GarageFlow.Api/Endpoints/ServiceOrders/ServiceOrdersEndpoints.cs`
 - `src/GarageFlow.Api/DTOs/ServiceOrders/ServiceOrderResponse.cs` (incluir quote quando existir)
-- `tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs)
 
 ## 8) Critérios de Pronto
 - [ ] `dotnet build` sem erros.

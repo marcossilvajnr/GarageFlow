@@ -5,7 +5,7 @@
 - `slug`: `link-employee-at-aggregate-creation`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-051-protect-administrative-cruds-with-jwt-administrative-role.md`
+- `depends_on`: [task-051-protect-administrative-cruds-with-jwt-administrative-role.md](task-051-protect-administrative-cruds-with-jwt-administrative-role.md)
 
 ## 1) Objetivo
 Padronizar o vínculo lógico de ator operacional (`Employee`) no início dos fluxos de negócio, garantindo rastreabilidade mínima por ID compatível com o papel esperado, sem depender de resolução do usuário logado nesta fase.
@@ -27,10 +27,10 @@ Padronizar o vínculo lógico de ator operacional (`Employee`) no início dos fl
 - Refactor amplo de autorização além do necessário para manter contratos funcionais.
 
 ## 3) Contexto Canônico Obrigatório
-- `docs/domain/agregados.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/architecture/engineering-standards.md`
-- `docs/architecture/application-and-integrations.md`
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
 
 ## 4) Mapa de Vínculos Obrigatórios
 ### 4.1 ServiceOrder

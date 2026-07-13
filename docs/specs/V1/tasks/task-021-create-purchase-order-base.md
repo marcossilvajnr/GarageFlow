@@ -5,7 +5,7 @@
 - `slug`: `create-purchase-order-base`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-019-create-separation-order-base.md`, `task-004-create-supplier-crud.md`, `task-007-create-part-crud.md`, `task-008-create-supply-crud.md`
+- `depends_on`: [task-019-create-separation-order-base.md](task-019-create-separation-order-base.md), [task-004-create-supplier-crud.md](task-004-create-supplier-crud.md), [task-007-create-part-crud.md](task-007-create-part-crud.md), [task-008-create-supply-crud.md](task-008-create-supply-crud.md)
 
 ## 1) Objetivo
 Implementar a base funcional da `PurchaseOrder` com máquina de estados própria, seleção de fornecedor e conclusão de compra, estabelecendo o contexto de compras que afeta a separação.
@@ -31,14 +31,14 @@ Implementar a base funcional da `PurchaseOrder` com máquina de estados própria
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/specs/V1/aggregates/purchase-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/purchase-order.md)
-- [docs/specs/V1/aggregates/separation-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/separation-order.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/purchase-order.md](../aggregates/purchase-order.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-017` — falta de estoque gera ordem de compra.
@@ -119,33 +119,33 @@ Regras mandatórias:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (esperado)
-- `src/GarageFlow.Domain/Purchasing/PurchaseOrder.cs`
-- `src/GarageFlow.Domain/Purchasing/PurchaseOrderStatus.cs`
-- `src/GarageFlow.Domain/Purchasing/PurchaseItem.cs`
-- `src/GarageFlow.Domain/Purchasing/PurchaseItemType.cs`
-- `src/GarageFlow.Domain/Purchasing/IPurchaseOrderRepository.cs`
-- `src/GarageFlow.Application/Purchasing/PurchaseOrderPaginationDefaults.cs`
-- `src/GarageFlow.Application/Purchasing/Commands/CreatePurchaseOrderCommand.cs`
-- `src/GarageFlow.Application/Purchasing/Commands/AssignPurchaseOrderSupplierCommand.cs`
-- `src/GarageFlow.Application/Purchasing/Commands/StartPurchaseOrderCommand.cs`
-- `src/GarageFlow.Application/Purchasing/Commands/CompletePurchaseOrderCommand.cs`
-- `src/GarageFlow.Application/Purchasing/Queries/GetPurchaseOrderByIdQuery.cs`
-- `src/GarageFlow.Application/Purchasing/Queries/ListPurchaseOrdersQuery.cs`
+- [src/GarageFlow.Domain/Purchasing/PurchaseOrder.cs](../../../../src/GarageFlow.Domain/Purchasing/PurchaseOrder.cs)
+- [src/GarageFlow.Domain/Purchasing/PurchaseOrderStatus.cs](../../../../src/GarageFlow.Domain/Purchasing/PurchaseOrderStatus.cs)
+- [src/GarageFlow.Domain/Purchasing/PurchaseItem.cs](../../../../src/GarageFlow.Domain/Purchasing/PurchaseItem.cs)
+- [src/GarageFlow.Domain/Purchasing/PurchaseItemType.cs](../../../../src/GarageFlow.Domain/Purchasing/PurchaseItemType.cs)
+- [src/GarageFlow.Domain/Purchasing/IPurchaseOrderRepository.cs](../../../../src/GarageFlow.Domain/Purchasing/IPurchaseOrderRepository.cs)
+- [src/GarageFlow.Application/Purchasing/PurchaseOrderPaginationDefaults.cs](../../../../src/GarageFlow.Application/Purchasing/PurchaseOrderPaginationDefaults.cs)
+- [src/GarageFlow.Application/Purchasing/Commands/CreatePurchaseOrderCommand.cs](../../../../src/GarageFlow.Application/Purchasing/Commands/CreatePurchaseOrderCommand.cs)
+- [src/GarageFlow.Application/Purchasing/Commands/AssignPurchaseOrderSupplierCommand.cs](../../../../src/GarageFlow.Application/Purchasing/Commands/AssignPurchaseOrderSupplierCommand.cs)
+- [src/GarageFlow.Application/Purchasing/Commands/StartPurchaseOrderCommand.cs](../../../../src/GarageFlow.Application/Purchasing/Commands/StartPurchaseOrderCommand.cs)
+- [src/GarageFlow.Application/Purchasing/Commands/CompletePurchaseOrderCommand.cs](../../../../src/GarageFlow.Application/Purchasing/Commands/CompletePurchaseOrderCommand.cs)
+- [src/GarageFlow.Application/Purchasing/Queries/GetPurchaseOrderByIdQuery.cs](../../../../src/GarageFlow.Application/Purchasing/Queries/GetPurchaseOrderByIdQuery.cs)
+- [src/GarageFlow.Application/Purchasing/Queries/ListPurchaseOrdersQuery.cs](../../../../src/GarageFlow.Application/Purchasing/Queries/ListPurchaseOrdersQuery.cs)
 - `src/GarageFlow.Application/Purchasing/Handlers/*`
 - `src/GarageFlow.Application/Purchasing/DTOs/*`
-- `src/GarageFlow.Infrastructure/Persistence/Configurations/Purchasing/PurchaseOrderConfiguration.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/PurchaseOrderRepository.cs`
+- [src/GarageFlow.Infrastructure/Persistence/Configurations/Purchasing/PurchaseOrderConfiguration.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Configurations/Purchasing/PurchaseOrderConfiguration.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/PurchaseOrderRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/PurchaseOrderRepository.cs)
 - `src/GarageFlow.Api/DTOs/Purchasing/*`
 - `src/GarageFlow.Api/Endpoints/Purchasing/PurchaseOrdersEndpoints.cs`
-- `tests/GarageFlow.Tests/Domain/Purchasing/PurchaseOrderTests.cs`
-- `tests/GarageFlow.Tests/Application/Purchasing/PurchaseOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Purchasing/PurchaseOrdersEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Domain/Purchasing/PurchaseOrderTests.cs](../../../../tests/GarageFlow.Tests/Domain/Purchasing/PurchaseOrderTests.cs)
+- [tests/GarageFlow.Tests/Application/Purchasing/PurchaseOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Purchasing/PurchaseOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Purchasing/PurchaseOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Purchasing/PurchaseOrdersEndpointsTests.cs)
 
 ### Alterar (esperado)
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
-- `src/GarageFlow.Infrastructure/DependencyInjection.cs`
-- `src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs`
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
+- [src/GarageFlow.Infrastructure/DependencyInjection.cs](../../../../src/GarageFlow.Infrastructure/DependencyInjection.cs)
+- [src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs](../../../../src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs)
 - `src/GarageFlow.Infrastructure/Persistence/Migrations/*`
 - `src/GarageFlow.Api/Program.cs`
 

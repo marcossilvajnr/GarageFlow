@@ -5,7 +5,7 @@
 - `slug`: `govern-post-custody-stock-exception-adjustments`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-031-add-stock-manual-adjustment-audit-trail.md`
+- `depends_on`: [task-031-add-stock-manual-adjustment-audit-trail.md](task-031-add-stock-manual-adjustment-audit-trail.md)
 
 ## 1) Objetivo
 Implementar governança de ajustes excepcionais de estoque após confirmação de custódia mecânica, preservando invariantes e rastreabilidade completa, **sem depender de JWT nesta etapa**.
@@ -25,11 +25,11 @@ Implementar governança de ajustes excepcionais de estoque após confirmação d
 - Criar endpoints novos.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/Domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/Domain/regras-de-negocio.md)
-- [docs/Domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/Domain/agregados.md)
-- [docs/Domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/Domain/linguagem-ubiqua.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/specs/V1/aggregates/separation-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/separation-order.md)
+- [docs/Domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/Domain/agregados.md](../../../domain/agregados.md)
+- [docs/Domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-032` — devolução operacional total apenas antes de `ConfirmMechanicReceipt`.
@@ -63,11 +63,11 @@ Implementar governança de ajustes excepcionais de estoque após confirmação d
 
 ## 7) Arquivos a Criar/Alterar
 ### Alterar (esperado)
-- `src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs`
+- [src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs](../../../../src/GarageFlow.Application/Stock/Handlers/ReleaseStockReservationHandler.cs)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs)
 - `src/GarageFlow.Domain/Stock/*`
-- `tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/StockHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs)
 
 ## 8) Critérios de Pronto
 - [ ] `dotnet build` sem erros.

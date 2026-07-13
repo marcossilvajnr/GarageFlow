@@ -5,7 +5,7 @@
 - `slug`: `canonical-state-machine-conformance-gate-pre-jwt-e2e`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-036-finalize-purchase-separation-execution-chain.md`
+- `depends_on`: [task-036-finalize-purchase-separation-execution-chain.md](task-036-finalize-purchase-separation-execution-chain.md)
 
 ## 1) Objetivo
 Executar uma auditoria final de aderência entre documentação canônica e implementação das máquinas de estado críticas, fechando divergências de regra/transição/erro HTTP antes da etapa de JWT e E2E.
@@ -30,16 +30,16 @@ Executar uma auditoria final de aderência entre documentação canônica e impl
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/agregados.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/domain/bounded-contexts.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/aggregates/quote.md`
-- `docs/specs/V1/aggregates/separation-order.md`
-- `docs/specs/V1/aggregates/execution-order.md`
-- `docs/specs/V1/aggregates/purchase-order.md`
-- `docs/architecture/engineering-standards.md`
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/bounded-contexts.md](../../../domain/bounded-contexts.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/quote.md](../aggregates/quote.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
+- [docs/specs/V1/aggregates/purchase-order.md](../aggregates/purchase-order.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-003` — progressão de status da OS.

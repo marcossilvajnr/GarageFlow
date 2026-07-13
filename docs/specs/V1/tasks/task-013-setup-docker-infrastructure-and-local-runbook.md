@@ -5,22 +5,22 @@
 - `slug`: `setup-docker-infrastructure-and-local-runbook`
 - `owner`: `Platform Team`
 - `status`: `Ready`
-- `depends_on`: `task-000-template.md`
+- `depends_on`: [task-000-template.md](task-000-template.md)
 
 ## 1) Objetivo
-Provisionar infraestrutura local padronizada com Docker para executar a API GarageFlow e dependências com um único comando, incluindo runbook operacional no `README.md` da raiz do repositório.
+Provisionar infraestrutura local padronizada com Docker para executar a API GarageFlow e dependências com um único comando, incluindo runbook operacional no [README.md](../../../../README.md) da raiz do repositório.
 
 ## 2) Escopo
 ### In
-- Criar `Dockerfile` multi-stage para `GarageFlow.Api`.
+- Criar [Dockerfile](../../../../Dockerfile) multi-stage para `GarageFlow.Api`.
 - Criar `.dockerignore` para reduzir contexto de build.
-- Criar `docker-compose.yml` com serviços:
+- Criar [docker-compose.yml](../../../../docker-compose.yml) com serviços:
   - `api` (GarageFlow.Api)
   - `postgres` (banco de dados)
 - Configurar variáveis de ambiente via `.env.example`.
 - Garantir que a API conecte no Postgres via variável de ambiente.
 - Garantir endpoint de documentação (`/swagger`) disponível com ambiente Docker ativo.
-- Criar `README.md` na raiz com instruções de execução local (Docker e local sem Docker).
+- Criar [README.md](../../../../README.md) na raiz com instruções de execução local (Docker e local sem Docker).
 - Incluir comandos de validação operacional (`build`, `up`, `logs`, `down`, `tests`).
 
 ### Out
@@ -30,10 +30,10 @@ Provisionar infraestrutura local padronizada com Docker para executar a API Gara
 - Observabilidade avançada (OpenTelemetry, stack de métricas distribuídas).
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/architecture/architecture-overview.md](/Users/marcos/Projects/GarageFlow/docs/architecture/architecture-overview.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/architecture/architecture-overview.md](../../../architecture/architecture-overview.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 - Enunciado de referência da entrega: `/Users/marcos/Documents/Postech - Arq/Tech  Challenge/15SOAT - Fase 1 - Tech Challenge.pdf`
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
@@ -74,17 +74,17 @@ Provisionar infraestrutura local padronizada com Docker para executar a API Gara
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (mandatório)
-- `Dockerfile`
+- [Dockerfile](../../../../Dockerfile)
 - `.dockerignore`
-- `docker-compose.yml`
+- [docker-compose.yml](../../../../docker-compose.yml)
 - `.env.example`
-- `README.md`
+- [README.md](../../../../README.md)
 
 ### Alterar (esperado, se necessário)
 - `src/GarageFlow.Api/appsettings.json`
 - `src/GarageFlow.Api/appsettings.Development.json`
 - `src/GarageFlow.Api/Program.cs`
-- `src/GarageFlow.Infrastructure/DependencyInjection.cs`
+- [src/GarageFlow.Infrastructure/DependencyInjection.cs](../../../../src/GarageFlow.Infrastructure/DependencyInjection.cs)
 
 Regra mandatória:
 - Não alterar regras de domínio para acomodar infraestrutura.
@@ -96,7 +96,7 @@ Regra mandatória:
 - [ ] `http://localhost:<porta-api>/swagger/v1/swagger.json` responde `200`.
 - [ ] `dotnet build` sem erros após alterações.
 - [ ] `dotnet test` sem regressão.
-- [ ] `README.md` raiz contém passo a passo mínimo para:
+- [ ] [README.md](../../../../README.md) raiz contém passo a passo mínimo para:
   - subir stack
   - aplicar migrations (quando aplicável na estratégia adotada)
   - validar Swagger
@@ -116,17 +116,17 @@ Regra mandatória:
 - Risco: API iniciar antes do banco aceitar conexões.
   - Mitigação: `healthcheck` + `depends_on` condicional por saúde.
 - Risco: divergência de connection string entre local e Docker.
-  - Mitigação: centralizar configuração via variáveis de ambiente e documentar no `README.md`.
+  - Mitigação: centralizar configuração via variáveis de ambiente e documentar no [README.md](../../../../README.md).
 - Risco: Swagger indisponível em ambiente containerizado.
   - Mitigação: garantir configuração explícita de ambiente e middleware de Swagger no profile de desenvolvimento local da stack.
 
 ## 11) Checklist de Execução para IA
 - [ ] Ler task completa antes de alterar código.
 - [ ] Confirmar estratégia de connection string por env var.
-- [ ] Criar Dockerfile multi-stage com imagem final enxuta.
+- [ ] Criar [Dockerfile](../../../../Dockerfile) multi-stage com imagem final enxuta.
 - [ ] Criar compose com `api` + `postgres` + volume persistente.
 - [ ] Criar `.env.example` com variáveis mínimas.
-- [ ] Criar/atualizar `README.md` raiz com runbook completo.
+- [ ] Criar/atualizar [README.md](../../../../README.md) raiz com runbook completo.
 - [ ] Rodar build, subir compose, validar Swagger, rodar testes.
 
 ## 12) Guardrails Não-Negociáveis

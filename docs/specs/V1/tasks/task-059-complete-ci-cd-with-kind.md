@@ -5,7 +5,7 @@
 - `slug`: `complete-ci-cd-with-kind`
 - `owner`: `Platform Team`
 - `status`: `Ready`
-- `depends_on`: `task-058-create-terraform-local-infrastructure.md`
+- `depends_on`: [task-058-create-terraform-local-infrastructure.md](task-058-create-terraform-local-infrastructure.md)
 
 ## 1) Objetivo
 Evoluir a pipeline manual do GitHub Actions para atender integralmente o requisito de CI/CD da Fase 2, mantendo baixo atrito operacional: build da aplicação, execução dos testes, build da imagem Docker, criação de cluster Kubernetes local no runner com Kind, deploy do banco, deploy da aplicação, aplicação dos manifests YAML e validação do `/health`.
@@ -53,27 +53,27 @@ Antes de implementar, ler obrigatoriamente:
 - `.github/scripts/generate-security-summary.sh`
 - `.github/scripts/generate-test-breakdown.sh`
 - `.github/scripts/generate-executive-summary.sh`
-- `Dockerfile`
-- `README.md`
-- `k8s/README.md`
-- `k8s/namespace.yaml`
-- `k8s/configmap.yaml`
-- `k8s/secret.yaml`
-- `k8s/postgres.yaml`
-- `k8s/webhost.yaml`
-- `k8s/hpa.yaml`
-- `infra/README.md`
-- `docs/architecture/ci.md`
-- `docs/architecture/operations-and-quality.md`
-- `docs/specs/V1/tasks/task-014-create-manual-quality-and-security-pipeline.md`
-- `docs/specs/V1/tasks/task-057-create-kubernetes-manifests.md`
-- `docs/specs/V1/tasks/task-058-create-terraform-local-infrastructure.md`
+- [Dockerfile](../../../../Dockerfile)
+- [README.md](../../../../README.md)
+- [k8s/README.md](../../../../k8s/README.md)
+- [k8s/namespace.yaml](../../../../k8s/namespace.yaml)
+- [k8s/configmap.yaml](../../../../k8s/configmap.yaml)
+- [k8s/secret.yaml](../../../../k8s/secret.yaml)
+- [k8s/postgres.yaml](../../../../k8s/postgres.yaml)
+- [k8s/webhost.yaml](../../../../k8s/webhost.yaml)
+- [k8s/hpa.yaml](../../../../k8s/hpa.yaml)
+- [infra/README.md](../../../../infra/README.md)
+- [docs/architecture/ci.md](../../../architecture/ci.md)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md)
+- [docs/specs/V1/tasks/task-014-create-manual-quality-and-security-pipeline.md](task-014-create-manual-quality-and-security-pipeline.md)
+- [docs/specs/V1/tasks/task-057-create-kubernetes-manifests.md](task-057-create-kubernetes-manifests.md)
+- [docs/specs/V1/tasks/task-058-create-terraform-local-infrastructure.md](task-058-create-terraform-local-infrastructure.md)
 
 ## 4) Decisões Arquiteturais Já Tomadas
 - O workflow oficial é `GarageFlow CI/CD`.
 - O workflow é manual por custo-benefício e rastreabilidade para banca.
 - O workflow deve ficar separado em quatro stages/jobs claros: `Quality`, `E2E`, `Build` e `Deploy Kind`.
-- O projeto já possui Dockerfile executando `GarageFlow.WebHost`.
+- O projeto já possui [Dockerfile](../../../../Dockerfile) executando `GarageFlow.WebHost`.
 - Os manifests Kubernetes oficiais ficam em `/k8s`.
 - O deploy local validado usa Kind.
 - A pipeline não deve depender de credenciais temporárias da AWS Academy para o caminho obrigatório.
@@ -184,7 +184,7 @@ Gerar no Job Summary:
 - Sem alterações funcionais.
 
 ### Docker
-- Reusar `Dockerfile`.
+- Reusar [Dockerfile](../../../../Dockerfile).
 - Buildar imagem durante o workflow.
 - Carregar imagem local no Kind.
 
@@ -217,9 +217,9 @@ Gerar no Job Summary:
 - Nomear os jobs como `Quality`, `E2E`, `Build` e `Deploy Kind` para leitura clara no histórico do GitHub Actions.
 
 ### Docs
-- Atualizar `docs/architecture/ci.md` com o novo escopo da pipeline.
-- Atualizar `docs/architecture/operations-and-quality.md` se necessário.
-- Atualizar `README.md` com instrução curta de execução e evidência esperada.
+- Atualizar [docs/architecture/ci.md](../../../architecture/ci.md) com o novo escopo da pipeline.
+- Atualizar [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md) se necessário.
+- Atualizar [README.md](../../../../README.md) com instrução curta de execução e evidência esperada.
 
 ## 8) Arquivos a Criar/Alterar
 - `.github/workflows/garageflow.yml`
@@ -227,9 +227,9 @@ Gerar no Job Summary:
 - `.github/workflows/garageflow-e2e.yml`
 - `.github/workflows/garageflow-build.yml`
 - `.github/workflows/garageflow-deploy-kind.yml`
-- `docs/architecture/ci.md`
-- `docs/architecture/operations-and-quality.md` (se necessário)
-- `README.md` (se necessário)
+- [docs/architecture/ci.md](../../../architecture/ci.md)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md) (se necessário)
+- [README.md](../../../../README.md) (se necessário)
 - `.github/scripts/*` (somente se for útil para reduzir complexidade do workflow)
 
 Contrato de arquivos:

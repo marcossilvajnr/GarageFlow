@@ -5,7 +5,7 @@
 - `slug`: `create-vehicle-crud`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-001-create-customer-crud.md`, `task-002-create-remaining-value-objects.md`
+- `depends_on`: [task-001-create-customer-crud.md](task-001-create-customer-crud.md), [task-002-create-remaining-value-objects.md](task-002-create-remaining-value-objects.md)
 
 ## 1) Objetivo
 Implementar CRUD ponta a ponta do agregado `Vehicle`, consolidando o uso de `LicensePlate` e `Renavam` no fluxo completo de domínio, aplicação, persistência e API.
@@ -25,16 +25,16 @@ Implementar CRUD ponta a ponta do agregado `Vehicle`, consolidando o uso de `Lic
 
 ## 3) Contexto Canônico Obrigatório
 Leitura obrigatória antes de implementar:
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/domain/value-objects.md](/Users/marcos/Projects/GarageFlow/docs/domain/value-objects.md)
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/architecture/architecture-overview.md](/Users/marcos/Projects/GarageFlow/docs/architecture/architecture-overview.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/domain/value-objects.md](../../../domain/value-objects.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/architecture/architecture-overview.md](../../../architecture/architecture-overview.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 Referências de governança:
-- Catálogo de eventos canônico: [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
+- Catálogo de eventos canônico: [docs/domain/agregados.md](../../../domain/agregados.md)
 - Catálogo central de mensagens: `DomainErrorMessages` (`GarageFlow.Domain.Shared`).
 
 ## 4) Regras de Negócio Aplicáveis (RN)
@@ -108,15 +108,15 @@ Matriz de erro mandatória:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (esperado)
-- `src/GarageFlow.Domain/Vehicles/Vehicle.cs`
-- `src/GarageFlow.Domain/Vehicles/IVehicleRepository.cs`
+- [src/GarageFlow.Domain/Vehicles/Vehicle.cs](../../../../src/GarageFlow.Domain/Vehicles/Vehicle.cs)
+- [src/GarageFlow.Domain/Vehicles/IVehicleRepository.cs](../../../../src/GarageFlow.Domain/Vehicles/IVehicleRepository.cs)
 - `src/GarageFlow.Application/Vehicles/Commands/*`
 - `src/GarageFlow.Application/Vehicles/Queries/*`
 - `src/GarageFlow.Application/Vehicles/Handlers/*`
 - `src/GarageFlow.Application/Vehicles/DTOs/*`
 - `src/GarageFlow.Application/Vehicles/Mappers/*`
 - `src/GarageFlow.Infrastructure/Persistence/Configurations/VehicleConfiguration.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/VehicleRepository.cs`
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/VehicleRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/VehicleRepository.cs)
 - `src/GarageFlow.Api/DTOs/Vehicles/*`
 - `src/GarageFlow.Api/Endpoints/Vehicles/*`
 - `tests/GarageFlow.Tests/Domain/Vehicles/*`
@@ -124,10 +124,10 @@ Matriz de erro mandatória:
 - `tests/GarageFlow.Tests/Integration/Vehicles/*`
 
 ### Alterar (esperado)
-- `src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs`
+- [src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs](../../../../src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs)
 - `src/GarageFlow.Infrastructure/DependencyInjection/*`
 - `src/GarageFlow.Api/Program.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs` (novas chaves se necessário)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs) (novas chaves se necessário)
 
 Regra de estrutura mandatória:
 - O agregado e contrato de repositório de veículo devem permanecer em `src/GarageFlow.Domain/Vehicles/*`.
@@ -178,7 +178,7 @@ Regra de estrutura mandatória:
 - [ ] Garantir catálogo de mensagens central (`DomainErrorMessages`) sem strings inline.
 - [ ] Criar testes de domínio, aplicação e integração.
 - [ ] Executar `dotnet build` e `dotnet test`.
-- [ ] Confirmar aderência a `engineering-standards.md`.
+- [ ] Confirmar aderência a [engineering-standards.md](../../../architecture/engineering-standards.md).
 
 ## 12) Guardrails Não-Negociáveis
 - Proibido parsing de `ex.Message` para decidir status HTTP.

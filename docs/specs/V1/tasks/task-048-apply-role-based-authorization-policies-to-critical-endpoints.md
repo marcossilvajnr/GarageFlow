@@ -5,7 +5,7 @@
 - `slug`: `apply-role-based-authorization-policies-to-critical-endpoints`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-047-implement-jwt-authentication-base-and-login-endpoint.md`
+- `depends_on`: [task-047-implement-jwt-authentication-base-and-login-endpoint.md](task-047-implement-jwt-authentication-base-and-login-endpoint.md)
 
 ## 1) Objetivo
 Aplicar autorização por papéis nos endpoints críticos, alinhando operações às responsabilidades de negócio e reduzindo risco de acesso indevido.
@@ -25,10 +25,10 @@ Aplicar autorização por papéis nos endpoints críticos, alinhando operações
 - Controle de permissões por recurso (ABAC).
 
 ## 3) Contexto Canônico Obrigatório
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/bounded-contexts.md`
-- `docs/architecture/application-and-integrations.md`
-- `docs/architecture/engineering-standards.md`
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/bounded-contexts.md](../../../domain/bounded-contexts.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis
 - Operações administrativas só por perfil autorizado.

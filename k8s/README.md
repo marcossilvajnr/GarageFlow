@@ -13,7 +13,7 @@ Manifestos Kubernetes para demonstração local do GarageFlow.
 ## Pré-requisitos
 - Docker Desktop com Kubernetes habilitado, Kind ou cluster local equivalente.
 - `kubectl` apontando para o cluster desejado.
-- Imagem local `garageflow-api:latest` criada a partir do `Dockerfile`.
+- Imagem local `garageflow-api:latest` criada a partir do [Dockerfile](../Dockerfile).
 
 ## Build Da Imagem
 ```bash

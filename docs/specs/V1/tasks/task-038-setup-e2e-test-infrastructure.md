@@ -5,7 +5,7 @@
 - `slug`: `setup-e2e-test-infrastructure`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md`
+- `depends_on`: [task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md](task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md)
 
 ## 1) Objetivo
 Criar a infraestrutura base de testes E2E para executar fluxos completos da API de forma reprodutível e isolada.
@@ -23,12 +23,12 @@ Criar a infraestrutura base de testes E2E para executar fluxos completos da API 
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/agregados.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/architecture/architecture-overview.md`
-- `docs/architecture/application-and-integrations.md`
-- `docs/architecture/engineering-standards.md`
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/architecture/architecture-overview.md](../../../architecture/architecture-overview.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-003` — progressão de status da OS.

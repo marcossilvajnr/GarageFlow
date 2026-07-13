@@ -5,7 +5,7 @@
 - `slug`: `create-remaining-value-objects`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-000-template.md`, `task-001-create-customer-crud.md`
+- `depends_on`: [task-000-template.md](task-000-template.md), [task-001-create-customer-crud.md](task-001-create-customer-crud.md)
 
 ## 1) Objetivo
 Implementar os Value Objects canônicos restantes `LicensePlate` e `Renavam` no domínio, com validação, normalização e testes unitários completos, consolidando a base para evolução do agregado de veículo.
@@ -26,13 +26,13 @@ Implementar os Value Objects canônicos restantes `LicensePlate` e `Renavam` no 
 
 ## 3) Contexto Canônico Obrigatório
 Leitura obrigatória antes de implementar:
-- [docs/domain/value-objects.md](/Users/marcos/Projects/GarageFlow/docs/domain/value-objects.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/value-objects.md](../../../domain/value-objects.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 Referências de governança:
-- Catálogo canônico de eventos: [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
+- Catálogo canônico de eventos: [docs/domain/agregados.md](../../../domain/agregados.md)
 - Regras de nomenclatura: identificadores em inglês; mensagens para usuário em português.
 
 ## 4) Regras de Negócio Aplicáveis (RN)
@@ -89,23 +89,23 @@ Referências de governança:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar
-- `src/GarageFlow.Domain/ValueObjects/LicensePlate.cs`
-- `src/GarageFlow.Domain/ValueObjects/Renavam.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs`
-- `tests/GarageFlow.Tests/Domain/ValueObjects/LicensePlateTests.cs`
-- `tests/GarageFlow.Tests/Domain/ValueObjects/RenavamTests.cs`
+- [src/GarageFlow.Domain/ValueObjects/LicensePlate.cs](../../../../src/GarageFlow.Domain/ValueObjects/LicensePlate.cs)
+- [src/GarageFlow.Domain/ValueObjects/Renavam.cs](../../../../src/GarageFlow.Domain/ValueObjects/Renavam.cs)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs)
+- [tests/GarageFlow.Tests/Domain/ValueObjects/LicensePlateTests.cs](../../../../tests/GarageFlow.Tests/Domain/ValueObjects/LicensePlateTests.cs)
+- [tests/GarageFlow.Tests/Domain/ValueObjects/RenavamTests.cs](../../../../tests/GarageFlow.Tests/Domain/ValueObjects/RenavamTests.cs)
 
 ### Alterar
-- `src/GarageFlow.Domain/Customers/Customer.cs`
-- `src/GarageFlow.Domain/ValueObjects/Cpf.cs`
-- `src/GarageFlow.Domain/ValueObjects/Cnpj.cs`
-- `src/GarageFlow.Domain/ValueObjects/Email.cs`
-- `src/GarageFlow.Domain/ValueObjects/PhoneNumber.cs`
-- `src/GarageFlow.Domain/ValueObjects/Address.cs`
-- `src/GarageFlow.Application/Customers/Handlers/DeactivateCustomerHandler.cs`
-- `src/GarageFlow.Application/Customers/Handlers/UpdateCustomerHandler.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/CustomerRepository.cs`
-- `tests/GarageFlow.Tests/Application/Customers/FakeCustomerRepository.cs`
+- [src/GarageFlow.Domain/Customers/Customer.cs](../../../../src/GarageFlow.Domain/Customers/Customer.cs)
+- [src/GarageFlow.Domain/ValueObjects/Cpf.cs](../../../../src/GarageFlow.Domain/ValueObjects/Cpf.cs)
+- [src/GarageFlow.Domain/ValueObjects/Cnpj.cs](../../../../src/GarageFlow.Domain/ValueObjects/Cnpj.cs)
+- [src/GarageFlow.Domain/ValueObjects/Email.cs](../../../../src/GarageFlow.Domain/ValueObjects/Email.cs)
+- [src/GarageFlow.Domain/ValueObjects/PhoneNumber.cs](../../../../src/GarageFlow.Domain/ValueObjects/PhoneNumber.cs)
+- [src/GarageFlow.Domain/ValueObjects/Address.cs](../../../../src/GarageFlow.Domain/ValueObjects/Address.cs)
+- [src/GarageFlow.Application/Customers/Handlers/DeactivateCustomerHandler.cs](../../../../src/GarageFlow.Application/Customers/Handlers/DeactivateCustomerHandler.cs)
+- [src/GarageFlow.Application/Customers/Handlers/UpdateCustomerHandler.cs](../../../../src/GarageFlow.Application/Customers/Handlers/UpdateCustomerHandler.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/CustomerRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/CustomerRepository.cs)
+- [tests/GarageFlow.Tests/Application/Customers/FakeCustomerRepository.cs](../../../../tests/GarageFlow.Tests/Application/Customers/FakeCustomerRepository.cs)
 
 ## 8) Critérios de Pronto
 - `dotnet build` executa sem erros.
@@ -153,7 +153,7 @@ Referências de governança:
 - [ ] Implementar testes unitários completos para ambos os VOs.
 - [ ] Rodar build e testes de domínio.
 - [ ] Garantir que mudanças em `Application`/`Infrastructure` foram apenas de referência para catálogo central de mensagens.
-- [ ] Validar aderência a `engineering-standards.md`.
+- [ ] Validar aderência a [engineering-standards.md](../../../architecture/engineering-standards.md).
 
 ## 12) Guardrails Não-Negociáveis
 - Proibido parsing de `ex.Message` para decidir status HTTP.

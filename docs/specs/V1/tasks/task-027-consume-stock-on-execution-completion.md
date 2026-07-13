@@ -5,7 +5,7 @@
 - `slug`: `consume-stock-on-execution-completion`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-020-create-execution-order-base.md`, `task-023-integrate-separation-order-with-execution-order-readiness.md`, `task-025-create-stock-base-and-operations.md`, `task-026-integrate-separation-order-with-stock-reservation-and-release.md`
+- `depends_on`: [task-020-create-execution-order-base.md](task-020-create-execution-order-base.md), [task-023-integrate-separation-order-with-execution-order-readiness.md](task-023-integrate-separation-order-with-execution-order-readiness.md), [task-025-create-stock-base-and-operations.md](task-025-create-stock-base-and-operations.md), [task-026-integrate-separation-order-with-stock-reservation-and-release.md](task-026-integrate-separation-order-with-stock-reservation-and-release.md)
 
 ## 1) Objetivo
 Consumir definitivamente o estoque reservado (`Stock.Consume`) quando a `ExecutionOrder` for concluída com sucesso, mantendo consistência transacional entre execução e estoque.
@@ -26,18 +26,18 @@ Consumir definitivamente o estoque reservado (`Stock.Consume`) quando a `Executi
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- [docs/Domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/Domain/regras-de-negocio.md)
-- [docs/Domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/Domain/agregados.md)
-- [docs/Domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/Domain/linguagem-ubiqua.md)
-- [docs/specs/V1/aggregates/execution-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/execution-order.md)
-- [docs/specs/V1/aggregates/separation-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/separation-order.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/specs/V1/tasks/task-020-create-execution-order-base.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/tasks/task-020-create-execution-order-base.md)
-- [docs/specs/V1/tasks/task-023-integrate-separation-order-with-execution-order-readiness.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/tasks/task-023-integrate-separation-order-with-execution-order-readiness.md)
-- [docs/specs/V1/tasks/task-025-create-stock-base-and-operations.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/tasks/task-025-create-stock-base-and-operations.md)
-- [docs/specs/V1/tasks/task-026-integrate-separation-order-with-stock-reservation-and-release.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/tasks/task-026-integrate-separation-order-with-stock-reservation-and-release.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/Domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/Domain/agregados.md](../../../domain/agregados.md)
+- [docs/Domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/specs/V1/tasks/task-020-create-execution-order-base.md](task-020-create-execution-order-base.md)
+- [docs/specs/V1/tasks/task-023-integrate-separation-order-with-execution-order-readiness.md](task-023-integrate-separation-order-with-execution-order-readiness.md)
+- [docs/specs/V1/tasks/task-025-create-stock-base-and-operations.md](task-025-create-stock-base-and-operations.md)
+- [docs/specs/V1/tasks/task-026-integrate-separation-order-with-stock-reservation-and-release.md](task-026-integrate-separation-order-with-stock-reservation-and-release.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-014` — disponibilidade de estoque nunca pode ficar negativa.
@@ -102,15 +102,15 @@ Regras mandatórias desta task:
 
 ## 7) Arquivos a Criar/Alterar
 ### Alterar (esperado)
-- `src/GarageFlow.Application/Executions/Handlers/CompleteExecutionOrderHandler.cs`
+- [src/GarageFlow.Application/Executions/Handlers/CompleteExecutionOrderHandler.cs](../../../../src/GarageFlow.Application/Executions/Handlers/CompleteExecutionOrderHandler.cs)
 - `src/GarageFlow.Api/Endpoints/Executions/ExecutionOrdersEndpoints.cs` (se necessário para mapping de exceções)
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs` (se necessário)
-- `tests/GarageFlow.Tests/Application/Executions/ExecutionOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Application/Stock/SeparationExecutionIntegrationTests.cs` (se necessário)
-- `tests/GarageFlow.Tests/Integration/Executions/ExecutionOrdersEndpointsTests.cs`
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs) (se necessário)
+- [tests/GarageFlow.Tests/Application/Executions/ExecutionOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Executions/ExecutionOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Application/Stock/SeparationExecutionIntegrationTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/SeparationExecutionIntegrationTests.cs) (se necessário)
+- [tests/GarageFlow.Tests/Integration/Executions/ExecutionOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Executions/ExecutionOrdersEndpointsTests.cs)
 
 ### Criar (opcional, se necessário)
-- `tests/GarageFlow.Tests/Integration/Executions/ExecutionStockConsumptionEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Integration/Executions/ExecutionStockConsumptionEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Executions/ExecutionStockConsumptionEndpointsTests.cs)
 
 Contrato de arquivos:
 - Caminhos definidos nesta seção são mandatórios.

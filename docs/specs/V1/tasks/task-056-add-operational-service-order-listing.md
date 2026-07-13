@@ -5,7 +5,7 @@
 - `slug`: `add-operational-service-order-listing`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-055-add-external-quote-decision-webhook.md`
+- `depends_on`: [task-055-add-external-quote-decision-webhook.md](task-055-add-external-quote-decision-webhook.md)
 
 ## 1) Objetivo
 Criar uma listagem operacional de OS aderente ao enunciado da Fase 2, com ordenação por prioridade de status e exclusão de ordens finalizadas, entregues e recusadas.
@@ -28,16 +28,16 @@ Criar uma listagem operacional de OS aderente ao enunciado da Fase 2, com ordena
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/domain/agregados.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/tasks/task-011-create-service-order-base.md`
-- `docs/specs/V1/tasks/task-017-create-quote-from-consolidated-services.md`
-- `docs/specs/V1/tasks/task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md`
-- `docs/specs/V1/tasks/task-046-enforce-service-order-delivery-gate-and-extend-existing-e2e-flows.md`
-- `docs/architecture/engineering-standards.md`
-- `docs/architecture/testing-and-quality.md`
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/tasks/task-011-create-service-order-base.md](task-011-create-service-order-base.md)
+- [docs/specs/V1/tasks/task-017-create-quote-from-consolidated-services.md](task-017-create-quote-from-consolidated-services.md)
+- [docs/specs/V1/tasks/task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md](task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md)
+- [docs/specs/V1/tasks/task-046-enforce-service-order-delivery-gate-and-extend-existing-e2e-flows.md](task-046-enforce-service-order-delivery-gate-and-extend-existing-e2e-flows.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/architecture/testing-and-quality.md](../../../architecture/testing-and-quality.md)
 
 ## 4) Decisões Arquiteturais Já Tomadas
 - Criar rota nova para evitar mudança de comportamento da listagem atual.
@@ -129,15 +129,15 @@ Antes de implementar, ler obrigatoriamente:
 - Registrar justificativa para incluir `Approved` e excluir `Rejected`.
 
 ## 8) Arquivos a Criar/Alterar
-- `src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs`
-- `src/GarageFlow.Application/ServiceOrders/Queries/ListOperationalServiceOrdersQuery.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/ListOperationalServiceOrdersHandler.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
-- `src/GarageFlow.Domain/ServiceOrders/IServiceOrderRepository.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/ServiceOrderRepository.cs`
-- `tests/GarageFlow.Tests/Application/ServiceOrders/ServiceOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs`
-- `docs/specs/V1/aggregates/service-order.md` (somente se necessário registrar a visão operacional)
+- [src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs](../../../../src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs)
+- [src/GarageFlow.Application/ServiceOrders/Queries/ListOperationalServiceOrdersQuery.cs](../../../../src/GarageFlow.Application/ServiceOrders/Queries/ListOperationalServiceOrdersQuery.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/ListOperationalServiceOrdersHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/ListOperationalServiceOrdersHandler.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
+- [src/GarageFlow.Domain/ServiceOrders/IServiceOrderRepository.cs](../../../../src/GarageFlow.Domain/ServiceOrders/IServiceOrderRepository.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/ServiceOrderRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/ServiceOrderRepository.cs)
+- [tests/GarageFlow.Tests/Application/ServiceOrders/ServiceOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/ServiceOrders/ServiceOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md) (somente se necessário registrar a visão operacional)
 
 Contrato de arquivos:
 - Mudanças fora desta lista devem ser justificadas explicitamente na resposta final.

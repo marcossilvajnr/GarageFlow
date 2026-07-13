@@ -5,7 +5,7 @@
 - `slug`: `create-service-order-base`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-000-template.md`, `task-001-create-customer-crud.md`, `task-003-create-vehicle-crud.md`
+- `depends_on`: [task-000-template.md](task-000-template.md), [task-001-create-customer-crud.md](task-001-create-customer-crud.md), [task-003-create-vehicle-crud.md](task-003-create-vehicle-crud.md)
 
 ## 1) Objetivo
 Implementar a base da Ordem de Serviço (`ServiceOrder`) com criação e leitura, estabelecendo o agregado raiz e o contrato inicial da API sem iniciar diagnóstico, orçamento ou execução.
@@ -34,10 +34,10 @@ Implementar a base da Ordem de Serviço (`ServiceOrder`) com criação e leitura
 - Eventos de integração da OS neste momento.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN)
 - [RN-001]: `CustomerId` é imutável após criação da OS.
@@ -139,34 +139,34 @@ Regras mandatórias:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (esperado)
-- `src/GarageFlow.Domain/ServiceOrders/ServiceOrder.cs`
-- `src/GarageFlow.Domain/ServiceOrders/ServiceOrderStatus.cs`
-- `src/GarageFlow.Domain/ServiceOrders/IServiceOrderRepository.cs`
-- `src/GarageFlow.Application/ServiceOrders/Commands/CreateServiceOrderCommand.cs`
-- `src/GarageFlow.Application/ServiceOrders/Queries/GetServiceOrderByIdQuery.cs`
-- `src/GarageFlow.Application/ServiceOrders/Queries/ListServiceOrdersQuery.cs`
-- `src/GarageFlow.Application/ServiceOrders/DTOs/ServiceOrderDto.cs`
-- `src/GarageFlow.Application/ServiceOrders/DTOs/PagedServiceOrderResult.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/CreateServiceOrderHandler.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/GetServiceOrderByIdHandler.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/ListServiceOrdersHandler.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/ServiceOrderMapper.cs`
-- `src/GarageFlow.Application/ServiceOrders/ServiceOrdersPaginationDefaults.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Configurations/ServiceOrders/ServiceOrderConfiguration.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/ServiceOrderRepository.cs`
+- [src/GarageFlow.Domain/ServiceOrders/ServiceOrder.cs](../../../../src/GarageFlow.Domain/ServiceOrders/ServiceOrder.cs)
+- [src/GarageFlow.Domain/ServiceOrders/ServiceOrderStatus.cs](../../../../src/GarageFlow.Domain/ServiceOrders/ServiceOrderStatus.cs)
+- [src/GarageFlow.Domain/ServiceOrders/IServiceOrderRepository.cs](../../../../src/GarageFlow.Domain/ServiceOrders/IServiceOrderRepository.cs)
+- [src/GarageFlow.Application/ServiceOrders/Commands/CreateServiceOrderCommand.cs](../../../../src/GarageFlow.Application/ServiceOrders/Commands/CreateServiceOrderCommand.cs)
+- [src/GarageFlow.Application/ServiceOrders/Queries/GetServiceOrderByIdQuery.cs](../../../../src/GarageFlow.Application/ServiceOrders/Queries/GetServiceOrderByIdQuery.cs)
+- [src/GarageFlow.Application/ServiceOrders/Queries/ListServiceOrdersQuery.cs](../../../../src/GarageFlow.Application/ServiceOrders/Queries/ListServiceOrdersQuery.cs)
+- [src/GarageFlow.Application/ServiceOrders/DTOs/ServiceOrderDto.cs](../../../../src/GarageFlow.Application/ServiceOrders/DTOs/ServiceOrderDto.cs)
+- [src/GarageFlow.Application/ServiceOrders/DTOs/PagedServiceOrderResult.cs](../../../../src/GarageFlow.Application/ServiceOrders/DTOs/PagedServiceOrderResult.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/CreateServiceOrderHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/CreateServiceOrderHandler.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/GetServiceOrderByIdHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/GetServiceOrderByIdHandler.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/ListServiceOrdersHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/ListServiceOrdersHandler.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/ServiceOrderMapper.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/ServiceOrderMapper.cs)
+- [src/GarageFlow.Application/ServiceOrders/ServiceOrdersPaginationDefaults.cs](../../../../src/GarageFlow.Application/ServiceOrders/ServiceOrdersPaginationDefaults.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Configurations/ServiceOrders/ServiceOrderConfiguration.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Configurations/ServiceOrders/ServiceOrderConfiguration.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/ServiceOrderRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/ServiceOrderRepository.cs)
 - `src/GarageFlow.Api/DTOs/ServiceOrders/CreateServiceOrderRequest.cs`
 - `src/GarageFlow.Api/DTOs/ServiceOrders/ServiceOrderResponse.cs`
 - `src/GarageFlow.Api/DTOs/ServiceOrders/PagedServiceOrderResponse.cs`
 - `src/GarageFlow.Api/Endpoints/ServiceOrders/ServiceOrdersEndpoints.cs`
-- `tests/GarageFlow.Tests/Domain/ServiceOrders/ServiceOrderTests.cs`
-- `tests/GarageFlow.Tests/Application/ServiceOrders/ServiceOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Domain/ServiceOrders/ServiceOrderTests.cs](../../../../tests/GarageFlow.Tests/Domain/ServiceOrders/ServiceOrderTests.cs)
+- [tests/GarageFlow.Tests/Application/ServiceOrders/ServiceOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/ServiceOrders/ServiceOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs)
 
 ### Alterar (esperado)
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
-- `src/GarageFlow.Infrastructure/DependencyInjection.cs`
-- `src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs`
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
+- [src/GarageFlow.Infrastructure/DependencyInjection.cs](../../../../src/GarageFlow.Infrastructure/DependencyInjection.cs)
+- [src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs](../../../../src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs)
 - `src/GarageFlow.Infrastructure/Persistence/Migrations/*` (nova migration + snapshot)
 - `src/GarageFlow.Api/Program.cs`
 

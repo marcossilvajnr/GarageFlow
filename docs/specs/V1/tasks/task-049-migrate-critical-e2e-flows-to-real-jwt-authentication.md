@@ -5,7 +5,7 @@
 - `slug`: `migrate-critical-e2e-flows-to-real-jwt-authentication`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-048-apply-role-based-authorization-policies-to-critical-endpoints.md`
+- `depends_on`: [task-048-apply-role-based-authorization-policies-to-critical-endpoints.md](task-048-apply-role-based-authorization-policies-to-critical-endpoints.md)
 
 ## 1) Objetivo
 Migrar os fluxos E2E críticos para autenticação JWT real, removendo dependência de autenticação fake no caminho principal de validação ponta a ponta.
@@ -24,10 +24,10 @@ Migrar os fluxos E2E críticos para autenticação JWT real, removendo dependên
 - Testes de refresh token.
 
 ## 3) Contexto Canônico Obrigatório
-- `docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md`
-- `docs/architecture/testing-and-quality.md`
-- `docs/architecture/ci.md`
-- `docs/specs/V1/tasks/task-047-implement-jwt-authentication-base-and-login-endpoint.md`
+- [docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md](task-039-document-e2e-critical-flow-coverage.md)
+- [docs/architecture/testing-and-quality.md](../../../architecture/testing-and-quality.md)
+- [docs/architecture/ci.md](../../../architecture/ci.md)
+- [docs/specs/V1/tasks/task-047-implement-jwt-authentication-base-and-login-endpoint.md](task-047-implement-jwt-authentication-base-and-login-endpoint.md)
 
 ## 4) Regras de Negócio Aplicáveis
 - Acesso a operações deve respeitar papel operacional do ator.

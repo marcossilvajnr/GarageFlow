@@ -5,7 +5,7 @@
 - `slug`: `remove-double-stock-consumption-in-execution-flow`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-029-consume-stock-on-stockist-withdrawal.md`
+- `depends_on`: [task-029-consume-stock-on-stockist-withdrawal.md](task-029-consume-stock-on-stockist-withdrawal.md)
 
 ## 1) Objetivo
 Remover qualquer baixa duplicada de estoque no fluxo de execução, garantindo que o consumo definitivo ocorra exclusivamente em `ConfirmStockistWithdrawal`.
@@ -22,12 +22,12 @@ Remover qualquer baixa duplicada de estoque no fluxo de execução, garantindo q
 - Introduzir worker/outbox/event bus.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/Domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/Domain/regras-de-negocio.md)
-- [docs/Domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/Domain/agregados.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/specs/V1/aggregates/execution-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/execution-order.md)
-- [docs/specs/V1/tasks/task-029-consume-stock-on-stockist-withdrawal.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/tasks/task-029-consume-stock-on-stockist-withdrawal.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/Domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/Domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
+- [docs/specs/V1/tasks/task-029-consume-stock-on-stockist-withdrawal.md](task-029-consume-stock-on-stockist-withdrawal.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-013` — dupla confirmação de custódia na separação.
@@ -73,7 +73,7 @@ Regra mandatória da task:
 - `src/GarageFlow.Application/Executions/Handlers/*`
 - `src/GarageFlow.Domain/Executions/*`
 - `tests/GarageFlow.Tests/Application/Executions/*`
-- `tests/GarageFlow.Tests/Application/Stock/SeparationExecutionIntegrationTests.cs`
+- [tests/GarageFlow.Tests/Application/Stock/SeparationExecutionIntegrationTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/SeparationExecutionIntegrationTests.cs)
 
 ## 8) Critérios de Pronto
 - [ ] `dotnet build` sem erros.

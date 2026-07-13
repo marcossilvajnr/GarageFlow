@@ -5,7 +5,7 @@
 - `slug`: `create-supply-crud`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-000-template.md`, `task-004-create-supplier-crud.md`
+- `depends_on`: [task-000-template.md](task-000-template.md), [task-004-create-supplier-crud.md](task-004-create-supplier-crud.md)
 
 ## 1) Objetivo
 Implementar CRUD ponta a ponta de `Supply`, estabelecendo o catálogo de insumos para controle de estoque e consumo operacional.
@@ -24,10 +24,10 @@ Implementar CRUD ponta a ponta de `Supply`, estabelecendo o catálogo de insumos
 - Estratégias avançadas de reposição.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN)
 - Insumo deve possuir código único.
@@ -91,8 +91,8 @@ Matriz de erro mandatória:
 ### Criar (esperado)
 - `src/GarageFlow.Domain/Supplies/*`
 - `src/GarageFlow.Application/Supplies/*`
-- `src/GarageFlow.Infrastructure/Persistence/Configurations/SupplyConfiguration.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/SupplyRepository.cs`
+- [src/GarageFlow.Infrastructure/Persistence/Configurations/SupplyConfiguration.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Configurations/SupplyConfiguration.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/SupplyRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/SupplyRepository.cs)
 - `src/GarageFlow.Api/DTOs/Supplies/*`
 - `src/GarageFlow.Api/Endpoints/Supplies/*`
 - `tests/GarageFlow.Tests/Domain/Supplies/*`
@@ -100,9 +100,9 @@ Matriz de erro mandatória:
 - `tests/GarageFlow.Tests/Integration/Supplies/*`
 
 ### Alterar (esperado)
-- `src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs`
+- [src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs](../../../../src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs)
 - `src/GarageFlow.Api/Program.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs` (novas chaves)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs) (novas chaves)
 
 Regra de estrutura mandatória:
 - O agregado e contrato de repositório de insumo devem permanecer em `src/GarageFlow.Domain/Supplies/*`.
@@ -133,7 +133,7 @@ Regra de estrutura mandatória:
 - [ ] Implementar CRUD em aplicação, infraestrutura e API.
 - [ ] Implementar testes por camada.
 - [ ] Executar build e testes.
-- [ ] Validar aderência a `engineering-standards.md`.
+- [ ] Validar aderência a [engineering-standards.md](../../../architecture/engineering-standards.md).
 
 ## 12) Guardrails Não-Negociáveis
 - Proibido parsing de `ex.Message` para decidir status HTTP.

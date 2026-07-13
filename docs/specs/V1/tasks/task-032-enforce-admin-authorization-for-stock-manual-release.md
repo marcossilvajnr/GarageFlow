@@ -5,7 +5,7 @@
 - `slug`: `enforce-admin-authorization-for-stock-manual-release`
 - `owner`: `Domain Team`
 - `status`: `Blocked (JWT/Auth Pending)`
-- `depends_on`: `task-031-add-stock-manual-adjustment-audit-trail.md`, `task-auth-jwt-foundation (to be created)`
+- `depends_on`: [task-031-add-stock-manual-adjustment-audit-trail.md](task-031-add-stock-manual-adjustment-audit-trail.md), `task-auth-jwt-foundation (to be created)`
 
 ## 1) Objetivo
 Aplicar autorização por perfil para garantir que apenas `Administrative` execute ajuste manual em `/stock/releases`.
@@ -21,11 +21,11 @@ Aplicar autorização por perfil para garantir que apenas `Administrative` execu
 - Alterar regras de separação/devolução operacional.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/Domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/Domain/regras-de-negocio.md)
-- [docs/Domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/Domain/agregados.md)
-- [docs/specs/V1/aggregates/stock.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/stock.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/Domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/Domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/stock.md](../aggregates/stock.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-033` — ajuste manual permitido ao Administrativo, com justificativa.
@@ -58,7 +58,7 @@ Aplicar autorização por perfil para garantir que apenas `Administrative` execu
 ### Alterar (esperado)
 - `src/GarageFlow.Api/Endpoints/Stock/StockEndpoints.cs`
 - `src/GarageFlow.Api/Program.cs` (ou wiring equivalente de authz)
-- `tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/StockEndpointsTests.cs)
 
 ## 8) Critérios de Pronto
 - [ ] `dotnet build` sem erros.

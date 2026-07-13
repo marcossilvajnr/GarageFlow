@@ -5,7 +5,7 @@
 - `slug`: `add-service-order-status-read-model-endpoint`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-053-extend-service-order-opening-with-initial-services.md`
+- `depends_on`: [task-053-extend-service-order-opening-with-initial-services.md](task-053-extend-service-order-opening-with-initial-services.md)
 
 ## 1) Objetivo
 Criar uma consulta dedicada de status da OS que retorne o status interno e uma label em português aderente ao enunciado da Fase 2.
@@ -27,14 +27,14 @@ Criar uma consulta dedicada de status da OS que retorne o status interno e uma l
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/domain/agregados.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/tasks/task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md`
-- `docs/specs/V1/tasks/task-046-enforce-service-order-delivery-gate-and-extend-existing-e2e-flows.md`
-- `docs/architecture/architecture-overview.md`
-- `docs/architecture/engineering-standards.md`
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/tasks/task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md](task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md)
+- [docs/specs/V1/tasks/task-046-enforce-service-order-delivery-gate-and-extend-existing-e2e-flows.md](task-046-enforce-service-order-delivery-gate-and-extend-existing-e2e-flows.md)
+- [docs/architecture/architecture-overview.md](../../../architecture/architecture-overview.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Decisões Arquiteturais Já Tomadas
 - A consulta dedicada será adicionada além do `GET /service-orders/{id}`.
@@ -113,14 +113,14 @@ Antes de implementar, ler obrigatoriamente:
 - Atualizar documentação de API se houver seção de contratos de OS.
 
 ## 8) Arquivos a Criar/Alterar
-- `src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs`
-- `src/GarageFlow.Api/ServiceOrders/DTOs/ServiceOrderStatusResponse.cs`
+- [src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs](../../../../src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs)
+- [src/GarageFlow.Api/ServiceOrders/DTOs/ServiceOrderStatusResponse.cs](../../../../src/GarageFlow.Api/ServiceOrders/DTOs/ServiceOrderStatusResponse.cs)
 - `src/GarageFlow.Api/ServiceOrders/Mappers/ServiceOrderStatusLabelMapper.cs` (ou local equivalente com justificativa)
-- `src/GarageFlow.Application/ServiceOrders/Queries/GetServiceOrderStatusQuery.cs` (se handler dedicado for criado)
-- `src/GarageFlow.Application/ServiceOrders/Handlers/GetServiceOrderStatusHandler.cs` (se handler dedicado for criado)
-- `src/GarageFlow.Application/DependencyInjection.cs`
+- [src/GarageFlow.Application/ServiceOrders/Queries/GetServiceOrderStatusQuery.cs](../../../../src/GarageFlow.Application/ServiceOrders/Queries/GetServiceOrderStatusQuery.cs) (se handler dedicado for criado)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/GetServiceOrderStatusHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/GetServiceOrderStatusHandler.cs) (se handler dedicado for criado)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
 - `tests/GarageFlow.Tests/Application/ServiceOrders/**`
-- `tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs)
 
 Contrato de arquivos:
 - Mudanças fora desta lista devem ser justificadas explicitamente na resposta final.

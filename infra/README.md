@@ -12,7 +12,7 @@ Esta pasta usa Terraform para provisionar um cluster Kubernetes local com Kind. 
 - Terraform instalado.
 - Kind instalado.
 - kubectl instalado.
-- Imagem local da aplicação criada a partir do `Dockerfile`.
+- Imagem local da aplicação criada a partir do [Dockerfile](../Dockerfile).
 
 Validação rápida:
 

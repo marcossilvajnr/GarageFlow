@@ -27,13 +27,13 @@ Implementar CRUD ponta a ponta de `Customer` para validar a arquitetura de refer
 
 ## 3) Contexto Canônico Obrigatório
 Leitura obrigatória antes da implementação:
-- `docs/domain/regras-de-negocio.md` (RN-021, RN-023)
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/domain/agregados.md` (fonte canônica de eventos de integração)
-- `docs/domain/value-objects.md`
-- `docs/architecture/architecture-overview.md`
-- `docs/architecture/application-and-integrations.md`
-- `docs/architecture/engineering-standards.md`
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md) (RN-021, RN-023)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md) (fonte canônica de eventos de integração)
+- [docs/domain/value-objects.md](../../../domain/value-objects.md)
+- [docs/architecture/architecture-overview.md](../../../architecture/architecture-overview.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-021` — CPF/CNPJ únicos por cliente.

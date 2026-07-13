@@ -5,7 +5,7 @@
 - `slug`: `extend-service-order-opening-with-initial-services`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-052-link-employee-at-aggregate-creation.md`
+- `depends_on`: [task-052-link-employee-at-aggregate-creation.md](task-052-link-employee-at-aggregate-creation.md)
 
 ## 1) Objetivo
 Evoluir a abertura de Ordem de Serviço para aceitar serviços iniciais no payload, preservando compatibilidade com o contrato atual e mantendo peças como consequência da composição dos serviços.
@@ -27,16 +27,16 @@ Evoluir a abertura de Ordem de Serviço para aceitar serviços iniciais no paylo
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/regras-de-negocio.md`
-- `docs/domain/linguagem-ubiqua.md`
-- `docs/domain/agregados.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/aggregates/service.md`
-- `docs/specs/V1/aggregates/part.md`
-- `docs/specs/V1/tasks/task-011-create-service-order-base.md`
-- `docs/specs/V1/tasks/task-012-create-service-order-service-integration-frontdesk.md`
-- `docs/architecture/architecture-overview.md`
-- `docs/architecture/engineering-standards.md`
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/service.md](../aggregates/service.md)
+- [docs/specs/V1/aggregates/part.md](../aggregates/part.md)
+- [docs/specs/V1/tasks/task-011-create-service-order-base.md](task-011-create-service-order-base.md)
+- [docs/specs/V1/tasks/task-012-create-service-order-service-integration-frontdesk.md](task-012-create-service-order-service-integration-frontdesk.md)
+- [docs/architecture/architecture-overview.md](../../../architecture/architecture-overview.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Decisões Arquiteturais Já Tomadas
 - A rota `POST /service-orders` deve ser estendida, não substituída.
@@ -117,13 +117,13 @@ Antes de implementar, ler obrigatoriamente:
 - Registrar explicitamente que peças entram via composição dos serviços.
 
 ## 8) Arquivos a Criar/Alterar
-- `src/GarageFlow.Api/ServiceOrders/DTOs/CreateServiceOrderRequest.cs`
-- `src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs`
-- `src/GarageFlow.Application/ServiceOrders/Commands/CreateServiceOrderCommand.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/CreateServiceOrderHandler.cs`
-- `tests/GarageFlow.Tests/Application/ServiceOrders/ServiceOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs`
-- `docs/specs/V1/aggregates/service-order.md` (somente se for necessário registrar a decisão sobre serviços iniciais)
+- [src/GarageFlow.Api/ServiceOrders/DTOs/CreateServiceOrderRequest.cs](../../../../src/GarageFlow.Api/ServiceOrders/DTOs/CreateServiceOrderRequest.cs)
+- [src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs](../../../../src/GarageFlow.Api/ServiceOrders/Endpoints/ServiceOrdersEndpoints.cs)
+- [src/GarageFlow.Application/ServiceOrders/Commands/CreateServiceOrderCommand.cs](../../../../src/GarageFlow.Application/ServiceOrders/Commands/CreateServiceOrderCommand.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/CreateServiceOrderHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/CreateServiceOrderHandler.cs)
+- [tests/GarageFlow.Tests/Application/ServiceOrders/ServiceOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/ServiceOrders/ServiceOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md) (somente se for necessário registrar a decisão sobre serviços iniciais)
 
 Contrato de arquivos:
 - Mudanças fora desta lista devem ser justificadas explicitamente na resposta final.

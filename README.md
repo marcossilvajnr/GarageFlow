@@ -44,8 +44,8 @@ O serviço Docker Compose continua chamado `api` para manter compatibilidade com
 
 ## Demo operacional (recomendado para apresentação)
 Arquivos REST Client:
-- `tools/rest-client/maintenance-requests.http`
-- `tools/rest-client/demo-service-order-with-purchase-requests.http`
+- [tools/rest-client/maintenance-requests.http](tools/rest-client/maintenance-requests.http)
+- [tools/rest-client/demo-service-order-with-purchase-requests.http](tools/rest-client/demo-service-order-with-purchase-requests.http)
 
 Configuração:
 - Variáveis de execução ficam em `tools/rest-client/.env`.
@@ -82,7 +82,7 @@ kubectl apply -f k8s/
 kubectl port-forward service/garageflow-webhost 8080:8080 -n garageflow
 ```
 
-Detalhes de recursos criados, validação e limpeza estão em `k8s/README.md`. A visão canônica de infraestrutura e deploy está em `docs/architecture/deployment-and-infrastructure.md`.
+Detalhes de recursos criados, validação e limpeza estão em [k8s/README.md](k8s/README.md). A visão canônica de infraestrutura e deploy está em [docs/architecture/deployment-and-infrastructure.md](docs/architecture/deployment-and-infrastructure.md).
 
 ## Terraform
 A infraestrutura como código local fica em `infra/`.
@@ -94,7 +94,7 @@ terraform plan
 terraform apply
 ```
 
-O Terraform provisiona um cluster Kubernetes local com Kind. Depois disso, a imagem Docker e os manifests Kubernetes continuam sendo aplicados conforme o runbook em `infra/README.md`.
+O Terraform provisiona um cluster Kubernetes local com Kind. Depois disso, a imagem Docker e os manifests Kubernetes continuam sendo aplicados conforme o runbook em [infra/README.md](infra/README.md).
 
 ## Testes automatizados
 Somente E2E:
@@ -123,7 +123,7 @@ Ele valida:
 - deploy do `GarageFlow.WebHost`;
 - validação de HPA e `/health`.
 
-Detalhes estão em `docs/architecture/ci.md` e em `docs/architecture/deployment-and-infrastructure.md`.
+Detalhes estão em [docs/architecture/ci.md](docs/architecture/ci.md) e em [docs/architecture/deployment-and-infrastructure.md](docs/architecture/deployment-and-infrastructure.md).
 
 ## Comandos úteis
 Logs da aplicação:

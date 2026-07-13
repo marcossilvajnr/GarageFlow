@@ -5,7 +5,7 @@
 - `slug`: `create-terraform-local-infrastructure`
 - `owner`: `Platform Team`
 - `status`: `Ready`
-- `depends_on`: `task-057-create-kubernetes-manifests.md`
+- `depends_on`: [task-057-create-kubernetes-manifests.md](task-057-create-kubernetes-manifests.md)
 
 ## 1) Objetivo
 Criar a camada de Infraestrutura como Código em `/infra` usando Terraform, conforme requisito obrigatório da Fase 2, para provisionar de forma reproduzível a infraestrutura local do GarageFlow: cluster Kubernetes local e banco de dados de demonstração.
@@ -35,19 +35,19 @@ O objetivo desta task é entregar um caminho 80/20 aderente ao enunciado: simple
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `Dockerfile`
-- `docker-compose.yml`
-- `README.md`
-- `k8s/README.md`
-- `k8s/namespace.yaml`
-- `k8s/configmap.yaml`
-- `k8s/secret.yaml`
-- `k8s/postgres.yaml`
-- `k8s/webhost.yaml`
-- `k8s/hpa.yaml`
-- `docs/specs/V1/tasks/task-013-setup-docker-infrastructure-and-local-runbook.md`
-- `docs/specs/V1/tasks/task-014-create-manual-quality-and-security-pipeline.md`
-- `docs/specs/V1/tasks/task-057-create-kubernetes-manifests.md`
+- [Dockerfile](../../../../Dockerfile)
+- [docker-compose.yml](../../../../docker-compose.yml)
+- [README.md](../../../../README.md)
+- [k8s/README.md](../../../../k8s/README.md)
+- [k8s/namespace.yaml](../../../../k8s/namespace.yaml)
+- [k8s/configmap.yaml](../../../../k8s/configmap.yaml)
+- [k8s/secret.yaml](../../../../k8s/secret.yaml)
+- [k8s/postgres.yaml](../../../../k8s/postgres.yaml)
+- [k8s/webhost.yaml](../../../../k8s/webhost.yaml)
+- [k8s/hpa.yaml](../../../../k8s/hpa.yaml)
+- [docs/specs/V1/tasks/task-013-setup-docker-infrastructure-and-local-runbook.md](task-013-setup-docker-infrastructure-and-local-runbook.md)
+- [docs/specs/V1/tasks/task-014-create-manual-quality-and-security-pipeline.md](task-014-create-manual-quality-and-security-pipeline.md)
+- [docs/specs/V1/tasks/task-057-create-kubernetes-manifests.md](task-057-create-kubernetes-manifests.md)
 
 ## 4) Decisões Arquiteturais Já Tomadas
 - A aplicação executável principal é `GarageFlow.WebHost`.
@@ -145,13 +145,13 @@ O Terraform deve expor outputs úteis para validação:
   - HPA.
 
 ### Docker
-- Reusar o `Dockerfile` atual.
+- Reusar o [Dockerfile](../../../../Dockerfile) atual.
 - Documentar build da imagem antes do deploy.
 - Se usar Kind, documentar carga da imagem no cluster.
 
 ### Banco de Dados
 - Banco esperado: PostgreSQL de demonstração local.
-- Pode ser provisionado pelos manifests de `/k8s/postgres.yaml` ou por recursos Terraform equivalentes.
+- Pode ser provisionado pelos manifests de [k8s/postgres.yaml](../../../../k8s/postgres.yaml) ou por recursos Terraform equivalentes.
 - Não criar banco cloud nesta task.
 
 ### Application/API
@@ -159,7 +159,7 @@ O Terraform deve expor outputs úteis para validação:
 - Não mudar rotas, autenticação, migrations, Swagger ou composition root nesta task.
 
 ### Docs
-- Criar `infra/README.md` com:
+- Criar [infra/README.md](../../../../infra/README.md) com:
   - visão geral;
   - pré-requisitos;
   - comandos de execução;
@@ -167,7 +167,7 @@ O Terraform deve expor outputs úteis para validação:
   - comandos de limpeza;
   - explicação do que Terraform provisiona;
   - limites do ambiente local.
-- Atualizar `README.md` raiz com ponte para `/infra`, se necessário.
+- Atualizar [README.md](../../../../README.md) raiz com ponte para `/infra`, se necessário.
 
 ### Tests
 - Validar Terraform com:
@@ -178,15 +178,15 @@ O Terraform deve expor outputs úteis para validação:
 - Validar infraestrutura aplicada quando o ambiente permitir.
 
 ## 8) Arquivos a Criar/Alterar
-- `infra/README.md`
-- `infra/main.tf`
-- `infra/variables.tf`
-- `infra/outputs.tf`
-- `infra/versions.tf`
-- `infra/terraform.tfvars.example` (opcional, recomendado)
-- `infra/kind-cluster.yaml` (opcional, se usar Kind)
+- [infra/README.md](../../../../infra/README.md)
+- [infra/main.tf](../../../../infra/main.tf)
+- [infra/variables.tf](../../../../infra/variables.tf)
+- [infra/outputs.tf](../../../../infra/outputs.tf)
+- [infra/versions.tf](../../../../infra/versions.tf)
+- [infra/terraform.tfvars.example](../../../../infra/terraform.tfvars.example) (opcional, recomendado)
+- [infra/kind-cluster.yaml](../../../../infra/kind-cluster.yaml) (opcional, se usar Kind)
 - `.gitignore` (se necessário para ignorar estado Terraform)
-- `README.md` (somente ponte para documentação Terraform, se necessário)
+- [README.md](../../../../README.md) (somente ponte para documentação Terraform, se necessário)
 
 Contrato de arquivos:
 - Mudanças fora desta lista devem ser justificadas explicitamente na resposta final.
@@ -202,7 +202,7 @@ Contrato de arquivos:
 - [ ] Cluster Kubernetes local é provisionado via Terraform ou a alternativa local é justificada.
 - [ ] Banco PostgreSQL de demonstração é provisionado/aplicado como parte do fluxo documentado.
 - [ ] Aplicação pode ser publicada no Kubernetes usando a infraestrutura provisionada.
-- [ ] `infra/README.md` explica `init`, `plan`, `apply`, validação e `destroy`.
+- [ ] [infra/README.md](../../../../infra/README.md) explica `init`, `plan`, `apply`, validação e `destroy`.
 - [ ] README raiz aponta para `/infra` se ainda não houver ponte.
 
 ## 10) Estratégia de Testes
@@ -252,7 +252,7 @@ Contrato de arquivos:
 - [ ] Definir abordagem final: Kind preferencial ou provider Kubernetes local justificado.
 - [ ] Criar `/infra`.
 - [ ] Criar arquivos Terraform mínimos.
-- [ ] Criar `infra/README.md`.
+- [ ] Criar [infra/README.md](../../../../infra/README.md).
 - [ ] Atualizar `.gitignore` se necessário.
 - [ ] Atualizar README raiz se necessário.
 - [ ] Rodar `terraform fmt`.

@@ -5,7 +5,7 @@
 - `slug`: `apply-end-to-end-observability-and-state-transition-logging`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-040-fix-execution-serviceorder-state-sync-gap.md`
+- `depends_on`: [task-040-fix-execution-serviceorder-state-sync-gap.md](task-040-fix-execution-serviceorder-state-sync-gap.md)
 
 ## 1) Objetivo
 Aplicar observabilidade em todo o sistema com logs estruturados de nível `Info` para criação de entidades, fluxos operacionais e todas as mudanças de estado das máquinas de estado canônicas.
@@ -24,14 +24,14 @@ Aplicar observabilidade em todo o sistema com logs estruturados de nível `Info`
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/agregados.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/architecture/engineering-standards.md`
-- `docs/architecture/operations-and-quality.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/aggregates/separation-order.md`
-- `docs/specs/V1/aggregates/purchase-order.md`
-- `docs/specs/V1/aggregates/execution-order.md`
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/purchase-order.md](../aggregates/purchase-order.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-003`, `RN-007`, `RN-009`, `RN-011`, `RN-012`, `RN-017`, `RN-020`.
@@ -74,7 +74,7 @@ Antes de implementar, ler obrigatoriamente:
 - `src/GarageFlow.Api/**`
 - `tests/GarageFlow.Tests/Application/**`
 - `tests/GarageFlow.Tests/Integration/**`
-- `docs/architecture/operations-and-quality.md` (se necessário para guia operacional)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md) (se necessário para guia operacional)
 
 ## 8) Critérios de Pronto
 - [x] Logs `Info` estruturados implementados para criação de entidades em todo o sistema.

@@ -7,8 +7,8 @@ Este documento descreve a infraestrutura provisionada e o fluxo de deploy do Gar
 O GarageFlow usa um caminho de infraestrutura local composto por Docker, Terraform, Kind e Kubernetes.
 
 Componentes:
-- `Dockerfile`: empacota o executável `GarageFlow.WebHost` em uma imagem da aplicação.
-- `docker-compose.yml`: executa a aplicação, PostgreSQL e serviços auxiliares em ambiente local.
+- [Dockerfile](../../Dockerfile): empacota o executável `GarageFlow.WebHost` em uma imagem da aplicação.
+- [docker-compose.yml](../../docker-compose.yml): executa a aplicação, PostgreSQL e serviços auxiliares em ambiente local.
 - `infra/`: provisiona e destrói um cluster Kubernetes local com Kind via Terraform.
 - `k8s/`: declara os workloads e recursos Kubernetes da aplicação.
 - `.github/workflows`: executa qualidade, E2E, build da imagem e deploy em Kind na CI/CD.
@@ -41,7 +41,7 @@ Sequência operacional:
 1. Gerar a imagem da aplicação com `docker build`.
 2. Provisionar o cluster local com Terraform em `/infra`.
 3. Carregar a imagem local no cluster Kind.
-4. Aplicar `k8s/namespace.yaml`.
+4. Aplicar [k8s/namespace.yaml](../../k8s/namespace.yaml).
 5. Aplicar os demais manifests de `/k8s`.
 6. Aguardar rollout de PostgreSQL e WebHost.
 7. Validar HPA e métricas quando o metrics-server estiver instalado.
@@ -60,8 +60,8 @@ Stages:
 O deploy cloud não faz parte do caminho padrão. Uma estratégia cloud pode ser adicionada sem substituir o caminho local reproduzível.
 
 ## Referências
-- Diagramas de arquitetura: `docs/architecture/architecture-diagrams.md`
-- Kubernetes: `k8s/README.md`
-- Terraform local: `infra/README.md`
-- CI/CD: `docs/architecture/ci.md`
-- Operação e qualidade: `docs/architecture/operations-and-quality.md`
+- Diagramas de arquitetura: [docs/architecture/architecture-diagrams.md](architecture-diagrams.md)
+- Kubernetes: [k8s/README.md](../../k8s/README.md)
+- Terraform local: [infra/README.md](../../infra/README.md)
+- CI/CD: [docs/architecture/ci.md](ci.md)
+- Operação e qualidade: [docs/architecture/operations-and-quality.md](operations-and-quality.md)

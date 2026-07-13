@@ -5,7 +5,7 @@
 - `slug`: `fix-execution-serviceorder-state-sync-gap`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-039-document-e2e-critical-flow-coverage.md`
+- `depends_on`: [task-039-document-e2e-critical-flow-coverage.md](task-039-document-e2e-critical-flow-coverage.md)
 
 ## 1) Objetivo
 Eliminar a brecha de consistência entre `ExecutionOrder` e `ServiceOrder` no início da execução, garantindo falha explícita quando a OS vinculada não existir.
@@ -23,11 +23,11 @@ Eliminar a brecha de consistência entre `ExecutionOrder` e `ServiceOrder` no in
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `docs/domain/agregados.md`
-- `docs/domain/regras-de-negocio.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/aggregates/execution-order.md`
-- `docs/specs/V1/tasks/task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md`
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
+- [docs/specs/V1/tasks/task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md](task-037-canonical-state-machine-conformance-gate-pre-jwt-e2e.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-003` — progressão de status da OS.
@@ -66,11 +66,11 @@ Antes de implementar, ler obrigatoriamente:
 - Manter teste específico de `ServiceOrder` inexistente cobrindo erro.
 
 ## 7) Arquivos a Criar/Alterar
-- `src/GarageFlow.Application/Executions/Handlers/StartExecutionOrderHandler.cs`
-- `tests/GarageFlow.Tests/Application/Executions/ExecutionOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Application/Executions/ExecutionServiceOrderCompletionIntegrationTests.cs`
-- `tests/GarageFlow.Tests/Integration/Executions/ExecutionOrdersEndpointsTests.cs`
-- `tests/GarageFlow.Tests/Integration/Purchasing/PurchaseOrderSeparationIntegrationEndpointsTests.cs`
+- [src/GarageFlow.Application/Executions/Handlers/StartExecutionOrderHandler.cs](../../../../src/GarageFlow.Application/Executions/Handlers/StartExecutionOrderHandler.cs)
+- [tests/GarageFlow.Tests/Application/Executions/ExecutionOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Executions/ExecutionOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Application/Executions/ExecutionServiceOrderCompletionIntegrationTests.cs](../../../../tests/GarageFlow.Tests/Application/Executions/ExecutionServiceOrderCompletionIntegrationTests.cs)
+- [tests/GarageFlow.Tests/Integration/Executions/ExecutionOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Executions/ExecutionOrdersEndpointsTests.cs)
+- [tests/GarageFlow.Tests/Integration/Purchasing/PurchaseOrderSeparationIntegrationEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Purchasing/PurchaseOrderSeparationIntegrationEndpointsTests.cs)
 
 ## 8) Critérios de Pronto
 - [x] Brecha removida (sem null-safe silencioso).

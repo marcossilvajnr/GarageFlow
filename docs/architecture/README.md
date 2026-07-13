@@ -13,15 +13,15 @@ Esta trilha descreve a arquitetura de referência de implementação do GarageFl
 Arquitetura não substitui regras de domínio; ela define como essas regras são implementadas.
 
 ## Ordem de Leitura Recomendada
-1. `architecture-overview.md`
-2. `clean-architecture.md`
-3. `architecture-diagrams.md`
-4. `application-and-integrations.md`
-5. `deployment-and-infrastructure.md`
-6. `engineering-standards.md`
-7. `operations-and-quality.md`
-8. `testing-and-quality.md`
-9. `ci.md`
+1. [architecture-overview.md](architecture-overview.md)
+2. [clean-architecture.md](clean-architecture.md)
+3. [architecture-diagrams.md](architecture-diagrams.md)
+4. [application-and-integrations.md](application-and-integrations.md)
+5. [deployment-and-infrastructure.md](deployment-and-infrastructure.md)
+6. [engineering-standards.md](engineering-standards.md)
+7. [operations-and-quality.md](operations-and-quality.md)
+8. [testing-and-quality.md](testing-and-quality.md)
+9. [ci.md](ci.md)
 
 ## Resultado esperado após leitura
 Um novo desenvolvedor deve conseguir:

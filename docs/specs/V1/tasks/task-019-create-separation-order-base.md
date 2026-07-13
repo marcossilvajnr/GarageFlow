@@ -5,7 +5,7 @@
 - `slug`: `create-separation-order-base`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-018-create-service-order-quote-decision-status-gate.md`
+- `depends_on`: [task-018-create-service-order-quote-decision-status-gate.md](task-018-create-service-order-quote-decision-status-gate.md)
 
 ## 1) Objetivo
 Implementar a base funcional da `SeparationOrder` com fluxo de estados próprio, confirmação de custódia e contratos HTTP, preparando o terreno para integração com `ExecutionOrder` em task posterior.
@@ -30,13 +30,13 @@ Implementar a base funcional da `SeparationOrder` com fluxo de estados próprio,
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/linguagem-ubiqua.md](/Users/marcos/Projects/GarageFlow/docs/domain/linguagem-ubiqua.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/specs/V1/aggregates/separation-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/separation-order.md)
-- [docs/specs/V1/aggregates/service-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/service-order.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/linguagem-ubiqua.md](../../../domain/linguagem-ubiqua.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - `RN-011` — separação é criada para suportar a execução.
@@ -117,34 +117,34 @@ Regras mandatórias:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (esperado)
-- `src/GarageFlow.Domain/Stock/SeparationOrder.cs`
-- `src/GarageFlow.Domain/Stock/SeparationOrderStatus.cs`
-- `src/GarageFlow.Domain/Stock/SeparationPartItem.cs`
-- `src/GarageFlow.Domain/Stock/SeparationSupplyItem.cs`
-- `src/GarageFlow.Domain/Stock/ISeparationOrderRepository.cs`
-- `src/GarageFlow.Application/Stock/Commands/CreateSeparationOrderCommand.cs`
-- `src/GarageFlow.Application/Stock/Commands/ReserveSeparationOrderCommand.cs`
-- `src/GarageFlow.Application/Stock/Commands/WaitSeparationOrderPurchaseCommand.cs`
-- `src/GarageFlow.Application/Stock/Commands/ResumeSeparationOrderAfterPurchaseCommand.cs`
-- `src/GarageFlow.Application/Stock/Commands/ConfirmSeparationStockistWithdrawalCommand.cs`
-- `src/GarageFlow.Application/Stock/Commands/ConfirmSeparationMechanicReceiptCommand.cs`
-- `src/GarageFlow.Application/Stock/Queries/GetSeparationOrderByIdQuery.cs`
-- `src/GarageFlow.Application/Stock/Queries/ListSeparationOrdersQuery.cs`
+- [src/GarageFlow.Domain/Stock/SeparationOrder.cs](../../../../src/GarageFlow.Domain/Stock/SeparationOrder.cs)
+- [src/GarageFlow.Domain/Stock/SeparationOrderStatus.cs](../../../../src/GarageFlow.Domain/Stock/SeparationOrderStatus.cs)
+- [src/GarageFlow.Domain/Stock/SeparationPartItem.cs](../../../../src/GarageFlow.Domain/Stock/SeparationPartItem.cs)
+- [src/GarageFlow.Domain/Stock/SeparationSupplyItem.cs](../../../../src/GarageFlow.Domain/Stock/SeparationSupplyItem.cs)
+- [src/GarageFlow.Domain/Stock/ISeparationOrderRepository.cs](../../../../src/GarageFlow.Domain/Stock/ISeparationOrderRepository.cs)
+- [src/GarageFlow.Application/Stock/Commands/CreateSeparationOrderCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/CreateSeparationOrderCommand.cs)
+- [src/GarageFlow.Application/Stock/Commands/ReserveSeparationOrderCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/ReserveSeparationOrderCommand.cs)
+- [src/GarageFlow.Application/Stock/Commands/WaitSeparationOrderPurchaseCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/WaitSeparationOrderPurchaseCommand.cs)
+- [src/GarageFlow.Application/Stock/Commands/ResumeSeparationOrderAfterPurchaseCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/ResumeSeparationOrderAfterPurchaseCommand.cs)
+- [src/GarageFlow.Application/Stock/Commands/ConfirmSeparationStockistWithdrawalCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/ConfirmSeparationStockistWithdrawalCommand.cs)
+- [src/GarageFlow.Application/Stock/Commands/ConfirmSeparationMechanicReceiptCommand.cs](../../../../src/GarageFlow.Application/Stock/Commands/ConfirmSeparationMechanicReceiptCommand.cs)
+- [src/GarageFlow.Application/Stock/Queries/GetSeparationOrderByIdQuery.cs](../../../../src/GarageFlow.Application/Stock/Queries/GetSeparationOrderByIdQuery.cs)
+- [src/GarageFlow.Application/Stock/Queries/ListSeparationOrdersQuery.cs](../../../../src/GarageFlow.Application/Stock/Queries/ListSeparationOrdersQuery.cs)
 - `src/GarageFlow.Application/Stock/Handlers/*`
 - `src/GarageFlow.Application/Stock/DTOs/*`
-- `src/GarageFlow.Infrastructure/Persistence/Configurations/Stock/SeparationOrderConfiguration.cs`
-- `src/GarageFlow.Infrastructure/Persistence/Repositories/SeparationOrderRepository.cs`
+- [src/GarageFlow.Infrastructure/Persistence/Configurations/Stock/SeparationOrderConfiguration.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Configurations/Stock/SeparationOrderConfiguration.cs)
+- [src/GarageFlow.Infrastructure/Persistence/Repositories/SeparationOrderRepository.cs](../../../../src/GarageFlow.Infrastructure/Persistence/Repositories/SeparationOrderRepository.cs)
 - `src/GarageFlow.Api/DTOs/Stock/*`
 - `src/GarageFlow.Api/Endpoints/Stock/SeparationOrdersEndpoints.cs`
-- `tests/GarageFlow.Tests/Domain/Stock/SeparationOrderTests.cs`
-- `tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs`
+- [tests/GarageFlow.Tests/Domain/Stock/SeparationOrderTests.cs](../../../../tests/GarageFlow.Tests/Domain/Stock/SeparationOrderTests.cs)
+- [tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/Stock/SeparationOrderHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/Stock/SeparationOrdersEndpointsTests.cs)
 
 ### Alterar (esperado)
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
-- `src/GarageFlow.Infrastructure/DependencyInjection.cs`
-- `src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs`
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
+- [src/GarageFlow.Infrastructure/DependencyInjection.cs](../../../../src/GarageFlow.Infrastructure/DependencyInjection.cs)
+- [src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs](../../../../src/GarageFlow.Infrastructure/Persistence/GarageFlowDbContext.cs)
 - `src/GarageFlow.Infrastructure/Persistence/Migrations/*`
 - `src/GarageFlow.Api/Program.cs`
 

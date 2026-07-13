@@ -5,7 +5,7 @@
 - `slug`: `create-manual-quality-and-security-pipeline`
 - `owner`: `Platform Team`
 - `status`: `Ready`
-- `depends_on`: `task-000-template.md`, `task-013-setup-docker-infrastructure-and-local-runbook.md`
+- `depends_on`: [task-000-template.md](task-000-template.md), [task-013-setup-docker-infrastructure-and-local-runbook.md](task-013-setup-docker-infrastructure-and-local-runbook.md)
 
 ## 1) Objetivo
 Implementar uma pipeline manual no GitHub Actions para gerar evidências apresentáveis de qualidade e segurança, com baixo consumo de minutos, sem gatilhos automáticos de `push`/`pull_request`.
@@ -32,10 +32,10 @@ Implementar uma pipeline manual no GitHub Actions para gerar evidências apresen
 - SAST avançado (CodeQL) nesta task.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
-- [docs/architecture/operations-and-quality.md](/Users/marcos/Projects/GarageFlow/docs/architecture/operations-and-quality.md)
-- [docs/specs/V1/tasks/task-013-setup-docker-infrastructure-and-local-runbook.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/tasks/task-013-setup-docker-infrastructure-and-local-runbook.md)
-- [README.md](/Users/marcos/Projects/GarageFlow/README.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md)
+- [docs/specs/V1/tasks/task-013-setup-docker-infrastructure-and-local-runbook.md](task-013-setup-docker-infrastructure-and-local-runbook.md)
+- [README.md](../../../../README.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - Não há alteração de regras de negócio.
@@ -50,7 +50,7 @@ Implementar uma pipeline manual no GitHub Actions para gerar evidências apresen
 
 ### 5.4 Contrato documental da task
 - Documento dedicado obrigatório em arquitetura:
-  - `docs/architecture/operations-and-quality.md`
+  - [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md)
 - O documento deve cobrir exclusivamente estado vigente:
   - execução Docker local;
   - pipeline manual de qualidade/segurança;
@@ -59,7 +59,7 @@ Implementar uma pipeline manual no GitHub Actions para gerar evidências apresen
 ### 5.2 Relatórios obrigatórios
 - Vulnerabilidades:
   - comando base: `dotnet list package --vulnerable --include-transitive --format json`.
-  - saídas: `security-report.json` + `security-report.md`.
+  - saídas: `security-report.json` + [security-report.md](../../../../artifacts/security/security-report.md).
 - Cobertura:
   - coleta com `XPlat Code Coverage`.
   - saídas: relatório consolidado (Markdown) + HTML (artifact compactado).
@@ -68,7 +68,7 @@ Implementar uma pipeline manual no GitHub Actions para gerar evidências apresen
     - `Domain`
     - `Application`
     - `Integration`
-  - saídas: `test-breakdown.json` + `test-breakdown.md`.
+  - saídas: `test-breakdown.json` + [test-breakdown.md](../../../../artifacts/test-breakdown/test-breakdown.md).
 - Test report visual:
   - publicar resultado de testes no formato visual do GitHub Actions (aba de checks/report).
   - manter arquivo de resultado (`.trx`) como evidência técnica.
@@ -123,9 +123,9 @@ Implementar uma pipeline manual no GitHub Actions para gerar evidências apresen
 - `.github/scripts/generate-executive-summary.sh`
 
 ### Alterar (esperado, se necessário)
-- `README.md` (seção de execução manual da pipeline e leitura dos relatórios)
-- `docs/architecture/operations-and-quality.md` (detalhes operacionais e de qualidade)
-- `docs/architecture/README.md` (incluir nova seção na ordem de leitura)
+- [README.md](../../../../README.md) (seção de execução manual da pipeline e leitura dos relatórios)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md) (detalhes operacionais e de qualidade)
+- [docs/architecture/README.md](../../../architecture/README.md) (incluir nova seção na ordem de leitura)
 
 ## 8) Critérios de Pronto
 - [ ] Workflow aparece no GitHub Actions com execução manual disponível.
@@ -137,7 +137,7 @@ Implementar uma pipeline manual no GitHub Actions para gerar evidências apresen
 - [ ] Job Summary contém dashboard visual com KPIs consolidados.
 - [ ] Resultado de testes é exibido visualmente no GitHub Actions.
 - [ ] Vulnerabilidades high/critical aparecem como warnings no run.
-- [ ] Documento `docs/architecture/operations-and-quality.md` atualizado e aderente ao estado atual da esteira.
+- [ ] Documento [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md) atualizado e aderente ao estado atual da esteira.
 
 ## 9) Estratégia de Testes
 ### Pipeline validation

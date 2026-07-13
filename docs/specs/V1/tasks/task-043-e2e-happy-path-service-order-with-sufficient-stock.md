@@ -5,7 +5,7 @@
 - `slug`: `e2e-happy-path-service-order-with-sufficient-stock`
 - `owner`: `Domain Team`
 - `status`: `Done`
-- `depends_on`: `task-042-setup-e2e-real-db-infrastructure.md`
+- `depends_on`: [task-042-setup-e2e-real-db-infrastructure.md](task-042-setup-e2e-real-db-infrastructure.md)
 
 ## 1) Objetivo
 Implementar teste E2E do fluxo completo de OS com estoque suficiente, do atendimento ao fechamento.
@@ -26,11 +26,11 @@ Implementar teste E2E do fluxo completo de OS com estoque suficiente, do atendim
 - Cenário de cancelamento.
 
 ## 3) Contexto Canônico Obrigatório
-- `docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md`
-- `docs/domain/agregados.md`
-- `docs/specs/V1/aggregates/service-order.md`
-- `docs/specs/V1/aggregates/separation-order.md`
-- `docs/specs/V1/aggregates/execution-order.md`
+- [docs/specs/V1/tasks/task-039-document-e2e-critical-flow-coverage.md](task-039-document-e2e-critical-flow-coverage.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/separation-order.md](../aggregates/separation-order.md)
+- [docs/specs/V1/aggregates/execution-order.md](../aggregates/execution-order.md)
 
 ## 4) Regras de Negócio Aplicáveis
 - `RN-003`, `RN-007`, `RN-009`, `RN-011`, `RN-012`, `RN-013`.
@@ -56,7 +56,7 @@ Implementar teste E2E do fluxo completo de OS com estoque suficiente, do atendim
 
 ## 10) Evidência de Execução
 - Teste E2E implementado em:
-  - `tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderSufficientStockE2ETests.cs`
+  - [tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderSufficientStockE2ETests.cs](../../../../tests/GarageFlow.Tests/E2E/ServiceOrders/ServiceOrderSufficientStockE2ETests.cs)
 - Cobertura validada no cenário:
   - fluxo completo `ServiceOrder -> Diagnostic -> Quote (accept) -> SeparationOrder -> ExecutionOrder -> fechamento da OS`;
   - asserts de HTTP por etapa crítica;

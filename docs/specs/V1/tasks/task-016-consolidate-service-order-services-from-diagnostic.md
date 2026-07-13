@@ -5,7 +5,7 @@
 - `slug`: `consolidate-service-order-services-from-diagnostic`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-000-template.md`, `task-012-create-service-order-service-integration-frontdesk.md`, `task-015-create-diagnostic-base-and-service-selection.md`
+- `depends_on`: [task-000-template.md](task-000-template.md), [task-012-create-service-order-service-integration-frontdesk.md](task-012-create-service-order-service-integration-frontdesk.md), [task-015-create-diagnostic-base-and-service-selection.md](task-015-create-diagnostic-base-and-service-selection.md)
 
 ## 1) Objetivo
 Consolidar na `ServiceOrder` os serviços selecionados no diagnóstico, preservando rastreabilidade de origem (`FrontDesk` vs `Diagnostic`) e histórico de alterações para suportar as próximas etapas de orçamento.
@@ -33,12 +33,12 @@ Consolidar na `ServiceOrder` os serviços selecionados no diagnóstico, preserva
 - Eventos assíncronos/outbox.
 
 ## 3) Contexto Canônico Obrigatório
-- [docs/domain/regras-de-negocio.md](/Users/marcos/Projects/GarageFlow/docs/domain/regras-de-negocio.md)
-- [docs/domain/agregados.md](/Users/marcos/Projects/GarageFlow/docs/domain/agregados.md)
-- [docs/specs/V1/aggregates/service-order.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/service-order.md)
-- [docs/specs/V1/aggregates/diagnostic.md](/Users/marcos/Projects/GarageFlow/docs/specs/V1/aggregates/diagnostic.md)
-- [docs/architecture/application-and-integrations.md](/Users/marcos/Projects/GarageFlow/docs/architecture/application-and-integrations.md)
-- [docs/architecture/engineering-standards.md](/Users/marcos/Projects/GarageFlow/docs/architecture/engineering-standards.md)
+- [docs/domain/regras-de-negocio.md](../../../domain/regras-de-negocio.md)
+- [docs/domain/agregados.md](../../../domain/agregados.md)
+- [docs/specs/V1/aggregates/service-order.md](../aggregates/service-order.md)
+- [docs/specs/V1/aggregates/diagnostic.md](../aggregates/diagnostic.md)
+- [docs/architecture/application-and-integrations.md](../../../architecture/application-and-integrations.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
 
 ## 4) Regras de Negócio Aplicáveis (RN-xxx)
 - RN-026: alterações no diagnóstico só enquanto `InProgress`.
@@ -116,19 +116,19 @@ Regras mandatórias:
 
 ## 7) Arquivos a Criar/Alterar
 ### Criar (esperado)
-- `src/GarageFlow.Application/ServiceOrders/Commands/ConsolidateDiagnosticServicesCommand.cs`
-- `src/GarageFlow.Application/ServiceOrders/Handlers/ConsolidateDiagnosticServicesHandler.cs`
-- `tests/GarageFlow.Tests/Domain/ServiceOrders/ServiceOrderDiagnosticConsolidationTests.cs`
+- [src/GarageFlow.Application/ServiceOrders/Commands/ConsolidateDiagnosticServicesCommand.cs](../../../../src/GarageFlow.Application/ServiceOrders/Commands/ConsolidateDiagnosticServicesCommand.cs)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/ConsolidateDiagnosticServicesHandler.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/ConsolidateDiagnosticServicesHandler.cs)
+- [tests/GarageFlow.Tests/Domain/ServiceOrders/ServiceOrderDiagnosticConsolidationTests.cs](../../../../tests/GarageFlow.Tests/Domain/ServiceOrders/ServiceOrderDiagnosticConsolidationTests.cs)
 
 ### Alterar (esperado)
-- `src/GarageFlow.Domain/ServiceOrders/ServiceOrder.cs`
-- `src/GarageFlow.Domain/Shared/DomainErrorMessages.cs`
-- `src/GarageFlow.Application/DependencyInjection.cs`
+- [src/GarageFlow.Domain/ServiceOrders/ServiceOrder.cs](../../../../src/GarageFlow.Domain/ServiceOrders/ServiceOrder.cs)
+- [src/GarageFlow.Domain/Shared/DomainErrorMessages.cs](../../../../src/GarageFlow.Domain/Shared/DomainErrorMessages.cs)
+- [src/GarageFlow.Application/DependencyInjection.cs](../../../../src/GarageFlow.Application/DependencyInjection.cs)
 - `src/GarageFlow.Api/Endpoints/ServiceOrders/ServiceOrdersEndpoints.cs`
-- `src/GarageFlow.Application/ServiceOrders/DTOs/ServiceOrderDto.cs` (se necessário)
-- `src/GarageFlow.Application/ServiceOrders/Handlers/ServiceOrderMapper.cs` (se necessário)
-- `tests/GarageFlow.Tests/Application/ServiceOrders/DiagnosticHandlersTests.cs`
-- `tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs`
+- [src/GarageFlow.Application/ServiceOrders/DTOs/ServiceOrderDto.cs](../../../../src/GarageFlow.Application/ServiceOrders/DTOs/ServiceOrderDto.cs) (se necessário)
+- [src/GarageFlow.Application/ServiceOrders/Handlers/ServiceOrderMapper.cs](../../../../src/GarageFlow.Application/ServiceOrders/Handlers/ServiceOrderMapper.cs) (se necessário)
+- [tests/GarageFlow.Tests/Application/ServiceOrders/DiagnosticHandlersTests.cs](../../../../tests/GarageFlow.Tests/Application/ServiceOrders/DiagnosticHandlersTests.cs)
+- [tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs](../../../../tests/GarageFlow.Tests/Integration/ServiceOrders/ServiceOrdersEndpointsTests.cs)
 
 ## 8) Critérios de Pronto
 - [ ] `dotnet build` sem erros.

@@ -13,12 +13,12 @@ Cada trilha tem propósito próprio e complementar.
 Representa as regras de negócio e a linguagem ubíqua.
 
 Arquivos-base:
-- `linguagem-ubiqua.md`
-- `regras-de-negocio.md`
-- `bounded-contexts.md`
-- `glossario-siglas.md`
-- `agregados.md`
-- `value-objects.md`
+- [linguagem-ubiqua.md](domain/linguagem-ubiqua.md)
+- [regras-de-negocio.md](domain/regras-de-negocio.md)
+- [bounded-contexts.md](domain/bounded-contexts.md)
+- [glossario-siglas.md](domain/glossario-siglas.md)
+- [agregados.md](domain/agregados.md)
+- [value-objects.md](domain/value-objects.md)
 
 Política:
 - Sempre que o domínio mudar, atualizar primeiro `docs/domain`.
@@ -36,16 +36,16 @@ Conteúdo:
 - padrões de persistência, segurança, observabilidade e testes.
 
 Leitura inicial recomendada:
-1. `docs/architecture/README.md`
-2. `docs/architecture/architecture-overview.md`
-3. `docs/architecture/clean-architecture.md`
-4. `docs/architecture/architecture-diagrams.md`
-5. `docs/architecture/application-and-integrations.md`
-6. `docs/architecture/deployment-and-infrastructure.md`
-7. `docs/architecture/engineering-standards.md`
-8. `docs/architecture/operations-and-quality.md`
-9. `docs/architecture/testing-and-quality.md`
-10. `docs/architecture/ci.md`
+1. [docs/architecture/README.md](architecture/README.md)
+2. [docs/architecture/architecture-overview.md](architecture/architecture-overview.md)
+3. [docs/architecture/clean-architecture.md](architecture/clean-architecture.md)
+4. [docs/architecture/architecture-diagrams.md](architecture/architecture-diagrams.md)
+5. [docs/architecture/application-and-integrations.md](architecture/application-and-integrations.md)
+6. [docs/architecture/deployment-and-infrastructure.md](architecture/deployment-and-infrastructure.md)
+7. [docs/architecture/engineering-standards.md](architecture/engineering-standards.md)
+8. [docs/architecture/operations-and-quality.md](architecture/operations-and-quality.md)
+9. [docs/architecture/testing-and-quality.md](architecture/testing-and-quality.md)
+10. [docs/architecture/ci.md](architecture/ci.md)
 
 ## 3) Trilha Evolutiva (`docs/specs`)
 Registra instruções e snapshots versionados por pasta.

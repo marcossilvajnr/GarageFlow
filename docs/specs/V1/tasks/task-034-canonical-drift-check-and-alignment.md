@@ -5,7 +5,7 @@
 - `slug`: `canonical-drift-check-and-alignment`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-033-govern-post-custody-stock-exception-adjustments.md`
+- `depends_on`: [task-033-govern-post-custody-stock-exception-adjustments.md](task-033-govern-post-custody-stock-exception-adjustments.md)
 
 ## 1) Objetivo
 Executar varredura de drift entre documentação canônica e implementação, corrigindo divergências de regra/nomenclatura/status/eventos sem alterar escopo funcional.

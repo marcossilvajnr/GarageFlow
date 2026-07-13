@@ -5,7 +5,7 @@
 - `slug`: `create-kubernetes-manifests`
 - `owner`: `Domain Team`
 - `status`: `Ready`
-- `depends_on`: `task-056-add-operational-service-order-listing.md`
+- `depends_on`: [task-056-add-operational-service-order-listing.md](task-056-add-operational-service-order-listing.md)
 
 ## 1) Objetivo
 Criar os manifestos Kubernetes em `/k8s` para executar o GarageFlow em cluster local ou compatível, contemplando aplicação, banco de dados, configuração, segredo e escalabilidade horizontal conforme o enunciado da Fase 2.
@@ -30,14 +30,14 @@ Criar os manifestos Kubernetes em `/k8s` para executar o GarageFlow em cluster l
 
 ## 3) Contexto Canônico Obrigatório
 Antes de implementar, ler obrigatoriamente:
-- `Dockerfile`
-- `docker-compose.yml`
-- `README.md`
-- `docs/architecture/architecture-overview.md`
-- `docs/architecture/operations-and-quality.md`
-- `docs/architecture/engineering-standards.md`
-- `docs/specs/V1/tasks/task-013-setup-docker-infrastructure-and-local-runbook.md`
-- `docs/specs/V1/tasks/task-050-finalize-jwt-delivery-docs-and-evidence-package.md`
+- [Dockerfile](../../../../Dockerfile)
+- [docker-compose.yml](../../../../docker-compose.yml)
+- [README.md](../../../../README.md)
+- [docs/architecture/architecture-overview.md](../../../architecture/architecture-overview.md)
+- [docs/architecture/operations-and-quality.md](../../../architecture/operations-and-quality.md)
+- [docs/architecture/engineering-standards.md](../../../architecture/engineering-standards.md)
+- [docs/specs/V1/tasks/task-013-setup-docker-infrastructure-and-local-runbook.md](task-013-setup-docker-infrastructure-and-local-runbook.md)
+- [docs/specs/V1/tasks/task-050-finalize-jwt-delivery-docs-and-evidence-package.md](task-050-finalize-jwt-delivery-docs-and-evidence-package.md)
 
 ## 4) Decisões Arquiteturais Já Tomadas
 - O executável principal é `GarageFlow.WebHost`, composition root da aplicação.
@@ -81,7 +81,7 @@ Antes de implementar, ler obrigatoriamente:
 
 ## 7) Plano Técnico por Camada
 ### Docker
-- Reusar a imagem gerada pelo `Dockerfile` atual.
+- Reusar a imagem gerada pelo [Dockerfile](../../../../Dockerfile) atual.
 - Documentar tag esperada, por exemplo `garageflow-api:latest`, salvo decisão diferente durante a execução.
 
 ### Kubernetes
@@ -96,22 +96,22 @@ Antes de implementar, ler obrigatoriamente:
 - Não mudar rotas, autenticação ou Swagger nesta task.
 
 ### Docs
-- Criar `k8s/README.md` com comandos de build da imagem, apply, port-forward, health, swagger e cleanup.
-- Atualizar `README.md` raiz somente se necessário para apontar para `/k8s`.
+- Criar [k8s/README.md](../../../../k8s/README.md) com comandos de build da imagem, apply, port-forward, health, swagger e cleanup.
+- Atualizar [README.md](../../../../README.md) raiz somente se necessário para apontar para `/k8s`.
 
 ### Tests
 - Validar YAML e comandos `kubectl` quando ambiente local existir.
 - Se cluster local não estiver disponível, executar validações estáticas e registrar limitação objetivamente.
 
 ## 8) Arquivos a Criar/Alterar
-- `k8s/namespace.yaml`
-- `k8s/configmap.yaml`
-- `k8s/secret.yaml`
-- `k8s/postgres.yaml`
-- `k8s/webhost.yaml`
-- `k8s/hpa.yaml`
-- `k8s/README.md`
-- `README.md` (somente ponte para documentação Kubernetes, se necessário)
+- [k8s/namespace.yaml](../../../../k8s/namespace.yaml)
+- [k8s/configmap.yaml](../../../../k8s/configmap.yaml)
+- [k8s/secret.yaml](../../../../k8s/secret.yaml)
+- [k8s/postgres.yaml](../../../../k8s/postgres.yaml)
+- [k8s/webhost.yaml](../../../../k8s/webhost.yaml)
+- [k8s/hpa.yaml](../../../../k8s/hpa.yaml)
+- [k8s/README.md](../../../../k8s/README.md)
+- [README.md](../../../../README.md) (somente ponte para documentação Kubernetes, se necessário)
 
 Contrato de arquivos:
 - Mudanças fora desta lista devem ser justificadas explicitamente na resposta final.
@@ -127,7 +127,7 @@ Contrato de arquivos:
 - [ ] Metrics-server está documentado como pré-requisito para métricas reais do HPA.
 - [ ] `kubectl apply -f k8s/` documentado.
 - [ ] `kubectl delete -f k8s/` documentado.
-- [ ] `k8s/README.md` explica recursos criados.
+- [ ] [k8s/README.md](../../../../k8s/README.md) explica recursos criados.
 
 ## 10) Estratégia de Testes
 ### Estática
@@ -172,7 +172,7 @@ Contrato de arquivos:
 - [ ] Criar recurso PostgreSQL.
 - [ ] Criar deployment/service do WebHost.
 - [ ] Criar HPA com requests/limits compatíveis.
-- [ ] Criar `k8s/README.md`.
+- [ ] Criar [k8s/README.md](../../../../k8s/README.md).
 - [ ] Validar YAML com `kubectl` se disponível.
 - [ ] Registrar limitações de ambiente, se houver.
 
