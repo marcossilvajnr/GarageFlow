@@ -1,6 +1,6 @@
 # GarageFlow Terraform
 
-Infraestrutura como Código local para a Fase 2 do GarageFlow.
+Infraestrutura como Código local do GarageFlow.
 
 Esta pasta usa Terraform para provisionar um cluster Kubernetes local com Kind. Os workloads da aplicação e do banco continuam descritos nos manifests oficiais em `../k8s`, mantendo uma divisão simples:
 
@@ -121,3 +121,5 @@ terraform destroy
 - O banco PostgreSQL é local e didático, adequado para demonstração.
 - O estado Terraform local não deve ser commitado.
 - O arquivo `.terraform.lock.hcl`, quando gerado, deve ser versionado para travar versões de providers. Esta implementação usa apenas o recurso built-in `terraform_data`.
+- Os workloads continuam em `/k8s`; o Terraform provisiona o cluster local. Essa divisão mantém os manifests Kubernetes legíveis e reutilizáveis pela CI/CD.
+- AWS/EKS pode ser adicionado sem remover este caminho local reproduzível.

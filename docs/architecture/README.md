@@ -8,7 +8,7 @@ Esta trilha descreve a arquitetura de referência de implementação do GarageFl
 
 ## Relação com outras trilhas
 - `docs/domain`: fonte canônica de regras de negócio, invariantes e linguagem.
-- `docs/Specs`: histórico versionado de evolução.
+- `docs/specs`: histórico versionado de evolução.
 
 Arquitetura não substitui regras de domínio; ela define como essas regras são implementadas.
 
@@ -26,4 +26,4 @@ Um novo desenvolvedor deve conseguir:
 - localizar cada bounded context no código;
 - implementar fluxos críticos sem quebrar invariantes de domínio;
 - seguir padrões mínimos de persistência, segurança e testes;
-- operar o ambiente local com Docker e executar a esteira de CI manual.
+- operar o ambiente local com Docker, Kubernetes, Terraform local e executar a esteira de CI/CD manual.

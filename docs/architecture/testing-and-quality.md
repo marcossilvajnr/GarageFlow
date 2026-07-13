@@ -76,5 +76,13 @@ Meios válidos de observação:
 - exceções temporárias devem ter justificativa e prazo de revisão.
 
 ## Integração com Operação
-- execução operacional da esteira manual e publicação de artefatos estão em:
+- execução operacional da esteira de CI/CD e publicação de artefatos estão em:
   - `docs/architecture/operations-and-quality.md`.
+- detalhes dos stages `Quality`, `E2E`, `Build` e `Deploy Kind` estão em:
+  - `docs/architecture/ci.md`.
+
+## Execução Na CI/CD
+- O stage `Quality` executa testes unitários e de integração, excluindo E2E por filtro.
+- O stage `E2E` executa os fluxos ponta a ponta com PostgreSQL service dedicado.
+- O stage `Build` gera a imagem Docker que será usada pelo deploy.
+- O stage `Deploy Kind` valida a publicação da aplicação no Kubernetes local efêmero.

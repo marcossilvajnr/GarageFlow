@@ -1,6 +1,6 @@
 # GarageFlow Kubernetes
 
-Manifestos Kubernetes para demonstração local da Fase 2.
+Manifestos Kubernetes para demonstração local do GarageFlow.
 
 ## Recursos Criados
 - Namespace `garageflow`.
@@ -93,3 +93,4 @@ kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/lat
 - O `Secret` contém valores didáticos versionados para facilitar execução local. Em ambiente real, substitua por secrets gerenciados fora do Git.
 - O HPA depende do metrics-server instalado no cluster para reportar métricas e escalar efetivamente.
 - O workload Kubernetes executa a imagem `garageflow-api:latest`, que contém o `GarageFlow.WebHost` como composition root.
+- A pipeline `GarageFlow CI/CD` também aplica estes manifests em um cluster Kind efêmero para evidência de deploy.

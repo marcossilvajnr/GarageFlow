@@ -40,6 +40,7 @@ Princípios operacionais:
 ## SonarQube Local (Instalação e Execução)
 Objetivo:
 - executar análise estática e cobertura localmente, sem depender da pipeline remota.
+- manter SonarQube fora da CI padrão para evitar dependência de serviço remoto e custo operacional recorrente.
 
 Pré-requisitos:
 - Docker Desktop em execução;
@@ -104,7 +105,13 @@ Troubleshooting rápido:
 - cobertura não refletida: confirmar se houve geração de `coverage.opencover.xml` em `TestResults/`.
 
 ## Pipeline Manual (Operação)
-A pipeline de qualidade, segurança e deploy Kubernetes é executada sob demanda (`workflow_dispatch`) para reduzir custo e manter evidências auditáveis.
+A pipeline de CI/CD é executada sob demanda (`workflow_dispatch`) para reduzir custo e manter evidências auditáveis.
+
+Stages atuais:
+- `Quality`: build, testes sem E2E, cobertura, segurança e breakdown.
+- `E2E`: fluxos críticos ponta a ponta com PostgreSQL service dedicado.
+- `Build`: imagem Docker e artifact.
+- `Deploy Kind`: cluster Kind efêmero, manifests Kubernetes, HPA e `/health`.
 
 Evidências mínimas esperadas por execução:
 - build da solução;
@@ -130,9 +137,10 @@ Saídas obrigatórias:
 
 ## Governança e Evolução da Esteira
 A evolução deve ser incremental e orientada a custo-benefício:
-1. manual on-demand (estado atual);
+1. manual on-demand;
 2. automação seletiva por branch/release;
-3. controles adicionais quando houver necessidade operacional.
+3. deploy cloud opcional, se houver decisão do grupo;
+4. controles adicionais quando houver necessidade operacional.
 
 Regras:
 - não introduzir custo recorrente sem evidência de ganho;
@@ -141,3 +149,4 @@ Regras:
 
 ## Referências Relacionadas
 - Estratégia de testes e qualidade: `docs/architecture/testing-and-quality.md`
+- CI/CD: `docs/architecture/ci.md`

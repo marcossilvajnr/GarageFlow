@@ -24,7 +24,7 @@ Definir a esteira manual de CI/CD do GarageFlow para geração de evidências t�
 - `Quality`: build, testes unitários/integração sem E2E, cobertura, segurança, breakdown e relatório executivo.
 - `E2E`: fluxos críticos ponta a ponta com PostgreSQL service dedicado.
 - `Build`: build da imagem Docker e publicação da imagem como artifact do workflow.
-- `Deploy`: cluster Kind, carga da imagem Docker, deploy Kubernetes, banco, HPA e health check.
+- `Deploy Kind`: cluster Kind, carga da imagem Docker, deploy Kubernetes, banco, HPA e health check.
 
 ## Arquivos
 - `.github/workflows/garageflow.yml`: orquestrador manual com `workflow_dispatch`.
@@ -56,7 +56,7 @@ Definir a esteira manual de CI/CD do GarageFlow para geração de evidências t�
   - `artifacts/kubernetes/kubernetes-deploy-summary.md`
 
 ## Evidência Kubernetes na CI/CD
-O stage `Deploy` valida:
+O stage `Deploy Kind` valida:
 - carga da imagem Docker `garageflow-api` produzida no stage `Build`;
 - criação de cluster Kind efêmero;
 - carga da imagem no cluster;
@@ -66,6 +66,12 @@ O stage `Deploy` valida:
 - HPA aplicado;
 - health check via port-forward.
 
+## Escopo Da Esteira
+- A pipeline não cria recursos AWS, EKS, ECR, RDS ou IAM.
+- O deploy cloud pode ser adicionado sem substituir o caminho reproduzível em Kind.
+- SonarQube remoto não faz parte da CI atual; a análise Sonar está documentada como fluxo local opcional em `operations-and-quality.md`.
+- O relatório de vulnerabilidades da CI emite warnings para pacotes high/critical; upgrades de dependências devem ser tratados separadamente.
+
 ## Evidência JWT e RBAC na CI
 Itens mínimos para trilha de autenticação/autorização:
 - suíte de testes verde com cenários de autenticação;
@@ -74,5 +80,5 @@ Itens mínimos para trilha de autenticação/autorização:
 - rastreabilidade em resumo executivo da execução.
 
 ## Critério de Uso
-- A esteira manual é o baseline atual por custo-benefício e rastreabilidade para a banca.
-- Automações adicionais (ex.: `push`/`pull_request`) podem ser adotadas em fase posterior.
+- A esteira manual é o padrão operacional por custo-benefício e rastreabilidade.
+- Automações adicionais (ex.: `push`/`pull_request`) podem ser adotadas conforme necessidade operacional.

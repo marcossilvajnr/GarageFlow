@@ -103,7 +103,7 @@ Cobertura:
 - Mudanças de regra sempre começam em `docs/domain` e depois refletem nesta trilha.
 
 ## Governança de Tasks
-- Toda nova task em `docs/Specs/V1/tasks` deve declarar explicitamente onde ficam:
+- Toda nova task em `docs/specs/V1/tasks` deve declarar explicitamente onde ficam:
   - catálogo central de mensagens de domínio;
   - constantes e defaults aplicáveis ao contexto.
 - Toda nova task deve declarar conformidade com a regra de nomenclatura em inglês para identificadores de código.

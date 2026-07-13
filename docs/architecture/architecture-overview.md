@@ -17,6 +17,24 @@ O GarageFlow adota monolito modular em camadas:
 
 Objetivo: garantir que regra de negócio não dependa de tecnologia.
 
+```mermaid
+flowchart LR
+  External["Atores externos<br/>Swagger, REST Client, Postman, CI/CD"] --> WebHost["GarageFlow.WebHost<br/>composition root"]
+  WebHost --> Api["GarageFlow.Api<br/>HTTP, DTOs, filtros, Swagger"]
+  Api --> Application["GarageFlow.Application<br/>use cases, handlers, ports"]
+  Application --> Domain["GarageFlow.Domain<br/>regras e agregados"]
+  WebHost --> Infrastructure["GarageFlow.Infrastructure<br/>EF Core, JWT, seed, adapters"]
+  Infrastructure --> Application
+  Infrastructure --> Domain
+```
+
+## Deploy E Operação
+- Docker Compose executa o `GarageFlow.WebHost`.
+- Kubernetes local usa os manifests em `/k8s`.
+- Terraform em `/infra` provisiona o cluster Kind local.
+- GitHub Actions executa CI/CD manual com `Quality`, `E2E`, `Build` e `Deploy Kind`.
+- AWS/EKS não faz parte do caminho local padrão; pode ser adicionado como estratégia de deploy cloud.
+
 ## Mapeamento DDD para Módulos
 Cada bounded context do domínio é implementado como módulo lógico em `Domain` e `Application`:
 - `Customers`

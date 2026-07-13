@@ -34,6 +34,7 @@
 - Entrada:
   - HTTP (Minimal API / REST endpoints)
   - endpoint de autenticação para emissão de token (`/auth/login`)
+  - endpoints externos/webhooks para simular integrações de terceiros
 - Saída:
   - EF Core (persistência)
   - Identity/JWT (autenticação e autorização)
@@ -45,6 +46,11 @@ Convenções de segurança na borda HTTP:
 - validação de credenciais e emissão de JWT ocorrem na camada de aplicação com adapters de infraestrutura.
 - autorização é aplicada na API por políticas/roles e nunca por parsing textual de mensagens.
 - handlers de aplicação recebem identidade já autenticada (claims) e aplicam regras de autorização por caso de uso quando necessário.
+
+## Integrações Externas
+- A aprovação ou recusa externa de orçamento entra por webhook HTTP e delega para os handlers de aceite/recusa já existentes.
+- A atualização de status por ferramenta externa é demonstrável por chamadas HTTP externas, como Swagger ou Postman, sem SMTP ou parser de e-mail.
+- Nenhum adapter externo deve gravar status arbitrário diretamente no banco; toda transição passa pelos use cases da Application e pelas invariantes do domínio.
 
 ## Contrato de Autenticação
 - `POST /auth/login`

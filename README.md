@@ -8,6 +8,18 @@ Modelagem de domínio canônica: `docs/domain`.
 - Arquitetura e qualidade: `docs/architecture`
 - Especificações por task: `docs/specs`
 
+## Operação E Infraestrutura
+O projeto está organizado para execução local, validação por repositório e demonstração dos fluxos operacionais:
+
+- APIs de Ordem de Serviço disponíveis no contrato HTTP.
+- `GarageFlow.WebHost` extraído como composition root.
+- Docker Compose executando o WebHost.
+- Kubernetes local com aplicação, PostgreSQL, HPA, ConfigMap e Secret.
+- Terraform local provisionando cluster Kind.
+- CI/CD manual no GitHub Actions com stages `Quality`, `E2E`, `Build` e `Deploy Kind`.
+
+AWS/EKS e SonarQube remoto não fazem parte do caminho local padrão. SonarQube existe como fluxo local opcional.
+
 ## Pré-requisitos
 - Docker Desktop em execução
 - VS Code com extensão REST Client (para a demo guiada)
@@ -37,7 +49,7 @@ Arquivos REST Client:
 
 Configuração:
 - Variáveis de execução ficam em `tools/rest-client/.env`.
-- O fluxo já consome `API_HTTP_PORT`, `API_USERNAME` e `API_PASSWORD` via `{{$dotenv ...}}`.
+- O fluxo consome `API_HTTP_PORT`, `API_USERNAME`, `API_PASSWORD`, `EXTERNAL_USERNAME` e `EXTERNAL_PASSWORD` via `{{$dotenv ...}}`.
 
 Sequência sugerida:
 1. Abra `maintenance-requests.http` e execute `POST /dev/database/reset` (`confirm: true`).
@@ -61,7 +73,7 @@ curl http://localhost:8080/health
 ```
 
 ## Kubernetes
-Os manifestos Kubernetes da Fase 2 ficam em `k8s/`.
+Os manifestos Kubernetes ficam em `k8s/`.
 
 ```bash
 docker build -t garageflow-api:latest .
@@ -73,7 +85,7 @@ kubectl port-forward service/garageflow-webhost 8080:8080 -n garageflow
 Detalhes de recursos criados, validação e limpeza estão em `k8s/README.md`.
 
 ## Terraform
-A infraestrutura como código local da Fase 2 fica em `infra/`.
+A infraestrutura como código local fica em `infra/`.
 
 ```bash
 cd infra
@@ -98,7 +110,7 @@ dotnet test
 ```
 
 ## CI/CD
-O workflow oficial da Fase 2 é `GarageFlow CI/CD`, executado manualmente no GitHub Actions.
+O workflow oficial é `GarageFlow CI/CD`, executado manualmente no GitHub Actions.
 
 Ele valida:
 - build da solução;

@@ -208,7 +208,7 @@ Gerar no Job Summary:
 - Fazer o job `build` depender do job `e2e`.
 - Fazer o job `deploy` depender do job `build`.
 - Publicar a imagem Docker do stage `Build` como artifact.
-- Fazer o stage `Deploy` baixar a imagem Docker, executar `docker load` e carregá-la no Kind.
+- Fazer o stage `Deploy Kind` baixar a imagem Docker, executar `docker load` e carregá-la no Kind.
 - Usar `needs` para garantir a ordem `Quality -> E2E -> Build -> Deploy Kind`.
 - Manter `workflow_dispatch` apenas no orquestrador `garageflow.yml`.
 - Usar `workflow_call` nos workflows de stage.
@@ -245,7 +245,7 @@ Contrato de arquivos:
 - [ ] Relatórios atuais continuam sendo gerados.
 - [ ] Imagem Docker é buildada no stage `Build`.
 - [ ] Imagem Docker é publicada como artifact do workflow.
-- [ ] Imagem Docker é carregada no stage `Deploy`.
+- [ ] Imagem Docker é carregada no stage `Deploy Kind`.
 - [ ] Cluster Kind é criado na pipeline.
 - [ ] Imagem Docker é carregada no cluster Kind.
 - [ ] Banco PostgreSQL é aplicado no Kubernetes pela pipeline.

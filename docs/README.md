@@ -4,8 +4,8 @@
 Este guia organiza a documentação em 3 trilhas oficiais:
 
 1. `docs/domain`: fonte canônica do domínio.
-2. `docs/architecture`: arquitetura de referência e padrões de engenharia.
-3. `docs/Specs`: histórico evolutivo versionado por pasta (`V1`, `V2`, ...).
+2. `docs/architecture`: arquitetura de referência, operação e qualidade.
+3. `docs/specs`: histórico evolutivo versionado por pasta (`V1`, `V2`, ...).
 
 Cada trilha tem propósito próprio e complementar.
 
@@ -41,8 +41,9 @@ Leitura inicial recomendada:
 4. `docs/architecture/engineering-standards.md`
 5. `docs/architecture/operations-and-quality.md`
 6. `docs/architecture/testing-and-quality.md`
+7. `docs/architecture/ci.md`
 
-## 3) Trilha Evolutiva (`docs/Specs`)
+## 3) Trilha Evolutiva (`docs/specs`)
 Registra instruções e snapshots versionados por pasta.
 
 Convenções:
@@ -53,9 +54,9 @@ Convenções:
 ## Fluxo Recomendado de Uso
 1. Ler `docs/domain` para entender contratos de negócio vigentes.
 2. Ler `docs/architecture` para entender implementação e integração.
-3. Consultar `docs/Specs` quando necessário para histórico evolutivo.
+3. Consultar `docs/specs` quando necessário para histórico evolutivo.
 
 ## Regras de Governança
 - `docs/domain` permanece a referência canônica das regras de negócio.
 - `docs/architecture` não redefine regra de domínio; apenas operacionaliza implementação.
-- `docs/Specs` é secundário em relação ao estado canônico e arquitetural vigente.
+- `docs/specs` é secundário em relação ao estado canônico e arquitetural vigente.
