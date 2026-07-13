@@ -12,7 +12,7 @@ Referências de sintaxe:
 architecture-beta
   group local(server)[Local Development]
   group cluster(cloud)[Kubernetes Cluster]
-  group cicd(cloud)[CI/CD]
+  group cicd(cloud)[CI CD]
 
   service source(disk)[Source Code] in local
   service docker(server)[Docker Image] in local
@@ -23,8 +23,8 @@ architecture-beta
   service webhost(server)[GarageFlow WebHost] in cluster
   service postgres(database)[PostgreSQL] in cluster
   service hpa(server)[HPA] in cluster
-  service metrics(server)[metrics-server] in cluster
-  service health(internet)[Health and Swagger] in cluster
+  service metrics(server)[Metrics Server] in cluster
+  service health(internet)[Health Swagger] in cluster
 
   source:R --> L:docker
   docker:R --> L:kind
