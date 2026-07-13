@@ -26,9 +26,11 @@ architecture-beta
   service metrics(server)[Metrics Server] in cluster
   service health(internet)[Health Swagger] in cluster
 
+  align column docker terraform
+
   source:R --> L:docker
+  terraform:T --> B:docker
   docker:R --> L:kind
-  terraform:R --> L:kind
   github:B --> T:docker
   kind:R --> L:manifests
   manifests:R --> L:webhost
