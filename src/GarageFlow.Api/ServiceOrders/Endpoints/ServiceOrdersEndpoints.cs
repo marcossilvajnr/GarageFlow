@@ -57,7 +57,7 @@ public static class ServiceOrdersEndpoints
             .WithName("ListOperationalServiceOrders")
             .WithSummary("Lista Ordens de Serviço operacionais (fila de execução) com paginação.")
             .RequireRoles(ApiRoles.FrontDesk, ApiRoles.Mechanic, ApiRoles.Administrative)
-            .Produces<PagedServiceOrderResponse>(StatusCodes.Status200OK)
+            .Produces<PagedOperationalServiceOrderResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
@@ -260,8 +260,13 @@ public static class ServiceOrdersEndpoints
         }
 
         var result = await handler.HandleAsync(new ListOperationalServiceOrdersQuery(page, pageSize), cancellationToken);
-        var response = new PagedServiceOrderResponse(
-            result.Items.Select(MapToResponse).ToList(),
+        var response = new PagedOperationalServiceOrderResponse(
+            result.Items
+                .Select(item => new OperationalServiceOrderResponse(
+                    item.ServiceOrderId,
+                    item.Status,
+                    item.Label))
+                .ToList(),
             result.Page,
             result.PageSize,
             result.TotalCount);

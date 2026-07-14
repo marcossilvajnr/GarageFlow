@@ -443,7 +443,9 @@ public sealed class ServiceOrderHandlersTests
         var result = await handler.HandleAsync(new ListOperationalServiceOrdersQuery(1, 10));
 
         result.TotalCount.Should().Be(1);
-        result.Items.Should().ContainSingle(dto => dto.Status == AppServiceOrderStatus.Approved);
+        result.Items.Should().ContainSingle(dto =>
+            dto.Status == AppServiceOrderStatus.Approved &&
+            dto.Label == "Orçamento aprovado");
     }
 
     [Fact]
@@ -470,7 +472,7 @@ public sealed class ServiceOrderHandlersTests
         var handler = new ListOperationalServiceOrdersHandler(repo);
         var result = await handler.HandleAsync(new ListOperationalServiceOrdersQuery(1, 10));
 
-        result.Items.Select(dto => dto.Id).Should().ContainInOrder(
+        result.Items.Select(dto => dto.ServiceOrderId).Should().ContainInOrder(
             inExecution.Id,
             approved.Id,
             waitingApproval.Id,

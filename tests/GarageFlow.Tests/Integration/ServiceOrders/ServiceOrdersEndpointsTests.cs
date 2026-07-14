@@ -1665,9 +1665,9 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
 
     // Task-056: Operational service order listing integration tests
 
-    private async Task<List<ServiceOrderResponse>> FetchAllOperationalServiceOrders()
+    private async Task<List<OperationalServiceOrderResponse>> FetchAllOperationalServiceOrders()
     {
-        var items = new List<ServiceOrderResponse>();
+        var items = new List<OperationalServiceOrderResponse>();
         var page = 1;
         const int pageSize = ApiPagination.MaxPageSize;
 
@@ -1675,7 +1675,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         {
             var response = await _client.GetAsync($"/service-orders/operational?page={page}&pageSize={pageSize}");
             response.EnsureSuccessStatusCode();
-            var body = (await response.Content.ReadFromJsonAsync<PagedServiceOrderResponse>(JsonOptions))!;
+            var body = (await response.Content.ReadFromJsonAsync<PagedOperationalServiceOrderResponse>(JsonOptions))!;
             items.AddRange(body.Items);
 
             if (items.Count >= body.TotalCount)
@@ -1699,10 +1699,11 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         var response = await _client.GetAsync("/service-orders/operational?page=1&pageSize=10");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await response.Content.ReadFromJsonAsync<PagedServiceOrderResponse>(JsonOptions);
+        var body = await response.Content.ReadFromJsonAsync<PagedOperationalServiceOrderResponse>(JsonOptions);
         body!.Items.Should().NotBeEmpty();
         body.Page.Should().Be(1);
         body.PageSize.Should().Be(10);
+        body.Items.Should().OnlyContain(item => item.ServiceOrderId != Guid.Empty && !string.IsNullOrWhiteSpace(item.Label));
     }
 
     [Fact]
@@ -1780,7 +1781,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         deliverResponse.EnsureSuccessStatusCode();
 
         var items = await FetchAllOperationalServiceOrders();
-        var ids = items.Select(i => i.Id).ToList();
+        var ids = items.Select(i => i.ServiceOrderId).ToList();
 
         ids.Should().Contain(approvedSo.Id);
         ids.Should().NotContain(rejected.Id);
@@ -1808,7 +1809,7 @@ public sealed class ServiceOrdersEndpointsTests(GarageFlowWebApplicationFactory 
         await StartExecutionOrder(inExecutionOrder.Id);
 
         var items = await FetchAllOperationalServiceOrders();
-        var ids = items.Select(i => i.Id).ToList();
+        var ids = items.Select(i => i.ServiceOrderId).ToList();
 
         var inExecutionIndex = ids.IndexOf(inExecutionSo.Id);
         var approvedIndex = ids.IndexOf(approvedSo.Id);
