@@ -46,6 +46,7 @@ O serviço Docker Compose continua chamado `api` para manter compatibilidade com
 Arquivos REST Client:
 - [tools/rest-client/maintenance-requests.http](tools/rest-client/maintenance-requests.http)
 - [tools/rest-client/demo-service-order-with-purchase-requests.http](tools/rest-client/demo-service-order-with-purchase-requests.http)
+- [tools/rest-client/demo-phase-2-service-orders.http](tools/rest-client/demo-phase-2-service-orders.http)
 
 Configuração:
 - Variáveis de execução ficam em `tools/rest-client/.env`.
@@ -56,7 +57,7 @@ Sequência sugerida:
 2. Abra `demo-service-order-with-purchase-requests.http`.
 3. Execute as requests de cima para baixo.
 
-Esse fluxo cobre:
+O fluxo ponta a ponta cobre:
 - cadastro base
 - abertura da OS
 - diagnóstico com serviço adicional do mecânico
@@ -64,6 +65,13 @@ Esse fluxo cobre:
 - geração e conclusão de compra
 - retomada da separação
 - execução e entrega final
+
+Para demonstrar especificamente as APIs de OS adicionadas, use `demo-phase-2-service-orders.http`. Ele separa o setup pré-gravação dos blocos de demonstração e evidencia:
+- abertura de OS com serviços iniciais
+- consulta dedicada de status com label pública
+- aprovação externa de orçamento
+- listagem operacional ordenada por prioridade
+- exclusão lógica de OS entregue da fila operacional
 
 ## Validação rápida
 Health:

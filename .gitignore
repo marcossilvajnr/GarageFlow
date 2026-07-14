@@ -48,6 +48,8 @@ appsettings.Local.json
 .env
 .env.*
 !.env.example
+tools/rest-client/*.generated.http
+tools/rest-client/.phase2-demo-state.json
 
 ## Terraform
 .terraform/

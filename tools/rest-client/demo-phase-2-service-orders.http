@@ -1,0 +1,968 @@
+# GarageFlow - Service Order API Additions Demo (REST Client)
+# Focused demo for the API additions: initial services, status read model,
+# external quote decision webhook, operational queue ordering, and external
+# status updates represented by HTTP calls from REST Client, Swagger or Postman.
+#
+# Suggested flow:
+# 1. Before recording, run SETUP sections 00 to 09 from top to bottom.
+# 2. Start recording.
+# 3. During the video, run only DEMO sections 10 to 14 from top to bottom.
+# 4. In the video, explain that REST Client is the external tool invoking the API.
+
+@baseUrl = http://localhost:{{$dotenv API_HTTP_PORT}}
+@username = {{$dotenv API_USERNAME}}
+@password = {{$dotenv API_PASSWORD}}
+@externalUsername = {{$dotenv EXTERNAL_USERNAME}}
+@externalPassword = {{$dotenv EXTERNAL_PASSWORD}}
+@token = {{login.response.body.$.accessToken}}
+@externalToken = {{externalLogin.response.body.$.accessToken}}
+
+# Runtime IDs
+@supplierId = {{createSupplier.response.body.$.id}}
+@partId = {{createPart.response.body.$.id}}
+@supplyId = {{createSupply.response.body.$.id}}
+@primaryServiceId = {{createPrimaryService.response.body.$.id}}
+@secondaryServiceId = {{createSecondaryService.response.body.$.id}}
+@customerId = {{createCustomer.response.body.$.id}}
+@vehicleReceivedId = {{createVehicleReceived.response.body.$.id}}
+@vehicleDiagnosticId = {{createVehicleDiagnostic.response.body.$.id}}
+@vehicleWaitingApprovalId = {{createVehicleWaitingApproval.response.body.$.id}}
+@vehicleApprovedId = {{createVehicleApproved.response.body.$.id}}
+@vehicleInExecutionId = {{createVehicleInExecution.response.body.$.id}}
+@vehicleDeliveredId = {{createVehicleDelivered.response.body.$.id}}
+@vehicleDemoCreatedId = {{createVehicleDemoCreated.response.body.$.id}}
+@frontDeskEmployeeId = {{createFrontDesk.response.body.$.id}}
+@mechanicEmployeeId = {{createMechanic.response.body.$.id}}
+@stockistEmployeeId = {{createStockist.response.body.$.id}}
+
+@receivedOrderId = {{createReceivedOrder.response.body.$.id}}
+@diagnosticOrderId = {{createDiagnosticOrder.response.body.$.id}}
+@waitingApprovalOrderId = {{createWaitingApprovalOrder.response.body.$.id}}
+@approvedOrderId = {{createApprovedOrder.response.body.$.id}}
+@inExecutionOrderId = {{createInExecutionOrder.response.body.$.id}}
+@deliveredOrderId = {{createDeliveredOrder.response.body.$.id}}
+@demoCreatedOrderId = {{demoCreateServiceOrder.response.body.$.id}}
+@inExecutionExecutionOrderId = {{createInExecutionExecutionOrder.response.body.$.id}}
+@deliveredExecutionOrderId = {{createDeliveredExecutionOrder.response.body.$.id}}
+@deliveredSeparationOrderId = {{createDeliveredSeparationOrder.response.body.$.id}}
+
+###
+### SETUP - Run Before Recording
+###
+### This section prepares deterministic data and service orders in the statuses
+### needed for the video. It is intentionally verbose so the demo section can
+### stay short and focused on the API requirements.
+###
+
+###
+### 00) Auth
+###
+
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
+
+# @name externalLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{externalUsername}}",
+  "password": "{{externalPassword}}"
+}
+
+###
+### 01) Reset + Health
+###
+
+POST {{baseUrl}}/dev/database/reset
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "confirm": true
+}
+
+###
+
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+### 02) Base Data
+###
+
+# @name createSupplier
+POST {{baseUrl}}/suppliers/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Fornecedor Fase Dois LTDA",
+  "cnpj": "11222333000181",
+  "email": "fase2.fornecedor@garageflow.com",
+  "phoneNumber": "11940020002",
+  "street": "Avenida das Integracoes",
+  "number": "200",
+  "complement": null,
+  "neighborhood": "Centro",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "01010000"
+}
+
+###
+
+# @name createPart
+POST {{baseUrl}}/parts/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Filtro Fase Dois",
+  "code": "F2-PART-FILTER",
+  "sku": "F2-SKU-FILTER",
+  "unitOfMeasure": "UN",
+  "unitPrice": 49.90
+}
+
+###
+
+# @name createSupply
+POST {{baseUrl}}/supplies/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Oleo Fase Dois",
+  "code": "F2-SUP-OIL",
+  "unitOfMeasure": "L",
+  "baseCost": 35.00,
+  "preferredSupplierId": "{{supplierId}}"
+}
+
+###
+
+# @name createPrimaryService
+POST {{baseUrl}}/services/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "F2-SRV-OIL",
+  "name": "Troca de Oleo Fase Dois",
+  "description": "Servico base usado na demonstracao da entrega",
+  "basePrice": 250.00,
+  "estimatedDurationMinutes": 60
+}
+
+###
+
+POST {{baseUrl}}/services/{{primaryServiceId}}/parts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "partId": "{{partId}}",
+  "quantity": 1
+}
+
+###
+
+POST {{baseUrl}}/services/{{primaryServiceId}}/supplies
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "supplyId": "{{supplyId}}",
+  "quantity": 4
+}
+
+###
+
+# @name createSecondaryService
+POST {{baseUrl}}/services/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "F2-SRV-ALIGN",
+  "name": "Alinhamento Fase Dois",
+  "description": "Servico adicional para demonstrar OS com multiplos servicos",
+  "basePrice": 180.00,
+  "estimatedDurationMinutes": 45
+}
+
+###
+
+# @name createCustomer
+POST {{baseUrl}}/customers/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Cliente Fase Dois",
+  "documentType": 0,
+  "document": "12345678909",
+  "email": "cliente.fase2@email.com",
+  "phoneNumber": "11987654321",
+  "street": "Rua da Demo",
+  "number": "42",
+  "complement": null,
+  "neighborhood": "Centro",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "01010000"
+}
+
+###
+
+# @name createFrontDesk
+POST {{baseUrl}}/employees/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Atendente Fase Dois",
+  "documentType": 0,
+  "document": "31415926590",
+  "email": "atendente.fase2@garageflow.com",
+  "phoneNumber": "11911112222",
+  "street": "Rua A",
+  "number": "10",
+  "complement": null,
+  "neighborhood": "Centro",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "01111000",
+  "role": 1
+}
+
+###
+
+# @name createMechanic
+POST {{baseUrl}}/employees/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Mecanico Fase Dois",
+  "documentType": 0,
+  "document": "27182818205",
+  "email": "mecanico.fase2@garageflow.com",
+  "phoneNumber": "11933334444",
+  "street": "Rua B",
+  "number": "20",
+  "complement": null,
+  "neighborhood": "Vila Nova",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "02222000",
+  "role": 2
+}
+
+###
+
+# @name createStockist
+POST {{baseUrl}}/employees/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Estoquista Fase Dois",
+  "documentType": 0,
+  "document": "13579246828",
+  "email": "estoquista.fase2@garageflow.com",
+  "phoneNumber": "11955556666",
+  "street": "Rua C",
+  "number": "30",
+  "complement": null,
+  "neighborhood": "Industrial",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "zipCode": "03333000",
+  "role": 3
+}
+
+###
+
+POST {{baseUrl}}/stock/entries
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "itemId": "{{partId}}",
+  "itemType": 1,
+  "quantity": 20,
+  "minimumQuantity": 5,
+  "reason": "Carga inicial para separacao da demonstracao de entrega",
+  "referenceId": null
+}
+
+###
+### 03) Create Vehicles And Service Orders For Each Scenario
+###
+### Each vehicle is created immediately before the service order that uses it.
+### This avoids stale REST Client response variables during the setup run.
+###
+
+###
+### 03.1) Received Scenario
+###
+
+# @name createVehicleReceived
+POST {{baseUrl}}/vehicles/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "licensePlate": "FAA1A01",
+  "renavam": "11144477731",
+  "make": "Toyota",
+  "model": "Corolla",
+  "year": 2020,
+  "color": "Prata"
+}
+
+###
+
+# @name createReceivedOrder
+POST {{baseUrl}}/service-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleReceivedId}}",
+  "frontDeskEmployeeId": "{{frontDeskEmployeeId}}",
+  "serviceIds": [
+    "{{primaryServiceId}}",
+    "{{secondaryServiceId}}"
+  ]
+}
+
+###
+### 03.2) InDiagnostic Scenario
+###
+
+# @name createVehicleDiagnostic
+POST {{baseUrl}}/vehicles/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "licensePlate": "FBB2B02",
+  "renavam": "22244477734",
+  "make": "Honda",
+  "model": "Civic",
+  "year": 2021,
+  "color": "Preto"
+}
+
+###
+
+# @name createDiagnosticOrder
+POST {{baseUrl}}/service-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleDiagnosticId}}",
+  "frontDeskEmployeeId": "{{frontDeskEmployeeId}}",
+  "serviceIds": [
+    "{{primaryServiceId}}"
+  ]
+}
+
+###
+### 03.3) WaitingApproval Scenario
+###
+
+# @name createVehicleWaitingApproval
+POST {{baseUrl}}/vehicles/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "licensePlate": "FCC3C03",
+  "renavam": "33344477737",
+  "make": "Volkswagen",
+  "model": "Jetta",
+  "year": 2019,
+  "color": "Branco"
+}
+
+###
+
+# @name createWaitingApprovalOrder
+POST {{baseUrl}}/service-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleWaitingApprovalId}}",
+  "frontDeskEmployeeId": "{{frontDeskEmployeeId}}",
+  "serviceIds": [
+    "{{primaryServiceId}}"
+  ]
+}
+
+###
+### 03.4) External Approval Scenario
+###
+
+# @name createVehicleApproved
+POST {{baseUrl}}/vehicles/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "licensePlate": "FDD4D04",
+  "renavam": "44444477730",
+  "make": "Chevrolet",
+  "model": "Onix",
+  "year": 2022,
+  "color": "Azul"
+}
+
+###
+
+# @name createApprovedOrder
+POST {{baseUrl}}/service-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleApprovedId}}",
+  "frontDeskEmployeeId": "{{frontDeskEmployeeId}}",
+  "serviceIds": [
+    "{{primaryServiceId}}"
+  ]
+}
+
+###
+### 03.5) InExecution Scenario
+###
+
+# @name createVehicleInExecution
+POST {{baseUrl}}/vehicles/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "licensePlate": "FEE5E05",
+  "renavam": "55544477732",
+  "make": "Fiat",
+  "model": "Pulse",
+  "year": 2023,
+  "color": "Cinza"
+}
+
+###
+
+# @name createInExecutionOrder
+POST {{baseUrl}}/service-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleInExecutionId}}",
+  "frontDeskEmployeeId": "{{frontDeskEmployeeId}}",
+  "serviceIds": [
+    "{{primaryServiceId}}"
+  ]
+}
+
+###
+### 03.6) Delivered Scenario
+###
+
+# @name createVehicleDelivered
+POST {{baseUrl}}/vehicles/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "licensePlate": "FFF6F06",
+  "renavam": "66644477735",
+  "make": "Renault",
+  "model": "Duster",
+  "year": 2020,
+  "color": "Vermelho"
+}
+
+###
+
+# @name createDeliveredOrder
+POST {{baseUrl}}/service-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleDeliveredId}}",
+  "frontDeskEmployeeId": "{{frontDeskEmployeeId}}",
+  "serviceIds": [
+    "{{primaryServiceId}}"
+  ]
+}
+
+###
+### 03.7) Live Opening Demo Scenario
+###
+
+# @name createVehicleDemoCreated
+POST {{baseUrl}}/vehicles/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "licensePlate": "FGG7G07",
+  "renavam": "77744477738",
+  "make": "Hyundai",
+  "model": "HB20",
+  "year": 2024,
+  "color": "Grafite"
+}
+
+###
+### 05) Move Diagnostic Order To InDiagnostic
+###
+
+POST {{baseUrl}}/service-orders/{{diagnosticOrderId}}/diagnostic/start
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+### 06) Move Waiting Approval Order To WaitingApproval
+###
+
+POST {{baseUrl}}/service-orders/{{waitingApprovalOrderId}}/diagnostic/start
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{waitingApprovalOrderId}}/diagnostic/services
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceId": "{{secondaryServiceId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{waitingApprovalOrderId}}/diagnostic/complete
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Diagnostico concluido para demonstracao de status aguardando aprovacao."
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{waitingApprovalOrderId}}/diagnostic/consolidate-services
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/service-orders/{{waitingApprovalOrderId}}/quote/generate
+Authorization: Bearer {{token}}
+
+###
+
+### 07) Prepare External Approval Order To WaitingApproval
+### The actual external approval is intentionally left for DEMO 11.
+###
+
+POST {{baseUrl}}/service-orders/{{approvedOrderId}}/diagnostic/start
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{approvedOrderId}}/diagnostic/services
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceId": "{{secondaryServiceId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{approvedOrderId}}/diagnostic/complete
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Diagnostico concluido para demonstracao de aprovacao externa."
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{approvedOrderId}}/diagnostic/consolidate-services
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/service-orders/{{approvedOrderId}}/quote/generate
+Authorization: Bearer {{token}}
+
+###
+
+### 08) Move In Execution Order To InExecution
+###
+
+POST {{baseUrl}}/service-orders/{{inExecutionOrderId}}/diagnostic/start
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{inExecutionOrderId}}/diagnostic/services
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceId": "{{secondaryServiceId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{inExecutionOrderId}}/diagnostic/complete
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Diagnostico concluido para demonstracao de fila em execucao."
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{inExecutionOrderId}}/diagnostic/consolidate-services
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/service-orders/{{inExecutionOrderId}}/quote/generate
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/service-orders/{{inExecutionOrderId}}/quote/accept
+Authorization: Bearer {{token}}
+
+###
+
+# @name createInExecutionExecutionOrder
+POST {{baseUrl}}/execution-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceOrderId": "{{inExecutionOrderId}}",
+  "serviceId": "{{secondaryServiceId}}",
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/execution-orders/{{inExecutionExecutionOrderId}}/mark-ready
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/execution-orders/{{inExecutionExecutionOrderId}}/start
+Authorization: Bearer {{token}}
+
+###
+
+### 09) Move Delivered Order To Delivered
+###
+
+POST {{baseUrl}}/service-orders/{{deliveredOrderId}}/diagnostic/start
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{deliveredOrderId}}/diagnostic/services
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceId": "{{secondaryServiceId}}"
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{deliveredOrderId}}/diagnostic/complete
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Diagnostico concluido para demonstracao de exclusao da fila operacional."
+}
+
+###
+
+POST {{baseUrl}}/service-orders/{{deliveredOrderId}}/diagnostic/consolidate-services
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/service-orders/{{deliveredOrderId}}/quote/generate
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/service-orders/{{deliveredOrderId}}/quote/accept
+Authorization: Bearer {{token}}
+
+###
+
+# @name createDeliveredExecutionOrder
+POST {{baseUrl}}/execution-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "serviceOrderId": "{{deliveredOrderId}}",
+  "serviceId": "{{secondaryServiceId}}",
+  "mechanicId": "{{mechanicEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/execution-orders/{{deliveredExecutionOrderId}}/mark-ready
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/execution-orders/{{deliveredExecutionOrderId}}/start
+Authorization: Bearer {{token}}
+
+###
+
+# @name createDeliveredSeparationOrder
+POST {{baseUrl}}/separation-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "executionOrderId": "{{deliveredExecutionOrderId}}",
+  "parts": [
+    {
+      "partId": "{{partId}}",
+      "partName": "Filtro Fase Dois",
+      "quantity": 1
+    }
+  ],
+  "supplies": []
+}
+
+###
+
+POST {{baseUrl}}/separation-orders/{{deliveredSeparationOrderId}}/reserve
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/separation-orders/{{deliveredSeparationOrderId}}/confirm-stockist-withdrawal
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stockistId": "{{stockistEmployeeId}}"
+}
+
+###
+
+POST {{baseUrl}}/separation-orders/{{deliveredSeparationOrderId}}/confirm-mechanic-receipt
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/execution-orders/{{deliveredExecutionOrderId}}/complete
+Authorization: Bearer {{token}}
+
+###
+
+POST {{baseUrl}}/service-orders/{{deliveredOrderId}}/deliver
+Authorization: Bearer {{token}}
+
+###
+### DEMO - Start Recording Here
+###
+### Run only the blocks below during the video.
+###
+
+###
+### 10) Demo Opening Service Order With Initial Services
+###
+### Demonstrates:
+### - POST /service-orders returning 201 with the unique OS id.
+### - Optional serviceIds in the opening payload.
+### - Parts/supplies remain derived from the service composition.
+###
+
+# @name demoCreateServiceOrder
+POST {{baseUrl}}/service-orders/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleDemoCreatedId}}",
+  "frontDeskEmployeeId": "{{frontDeskEmployeeId}}",
+  "serviceIds": [
+    "{{primaryServiceId}}",
+    "{{secondaryServiceId}}"
+  ]
+}
+
+###
+
+# Expected: Received / Recebida
+GET {{baseUrl}}/service-orders/{{demoCreatedOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+### 11) Demo External Quote Approval Notification
+###
+### Demonstrates:
+### - External actor calling the webhook.
+### - Webhook delegates to the same approval use case.
+### - Status moves from WaitingApproval to Approved.
+###
+
+POST {{baseUrl}}/external/service-order-quote-notifications
+Authorization: Bearer {{externalToken}}
+Content-Type: application/json
+
+{
+  "serviceOrderId": "{{approvedOrderId}}",
+  "decision": "Approved",
+  "reason": null,
+  "externalNotificationId": "demo-approved-{{$timestamp}}",
+  "source": "rest-client-demo"
+}
+
+###
+
+# Expected: Approved / Orçamento aprovado
+GET {{baseUrl}}/service-orders/{{approvedOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+### 12) Demo Status Read Model Labels
+###
+
+# Expected: Received / Recebida
+GET {{baseUrl}}/service-orders/{{receivedOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# Expected: InDiagnostic / Diagnóstico
+GET {{baseUrl}}/service-orders/{{diagnosticOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# Expected: WaitingApproval / Aguardando Aprovação
+GET {{baseUrl}}/service-orders/{{waitingApprovalOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# Expected: Approved / Orçamento aprovado
+GET {{baseUrl}}/service-orders/{{approvedOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# Expected: InExecution / Execução
+GET {{baseUrl}}/service-orders/{{inExecutionOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+# Expected: Delivered / Entregue
+GET {{baseUrl}}/service-orders/{{deliveredOrderId}}/status
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+### 13) Demo Operational Queue Ordering
+###
+
+# Expected order by operational priority:
+# 1. InExecution / Execução
+# 2. Approved / Orçamento aprovado
+# 3. WaitingApproval / Aguardando Aprovação
+# 4. InDiagnostic / Diagnóstico
+# 5. Received / Recebida
+#
+# Delivered / Entregue should not appear in this queue.
+GET {{baseUrl}}/service-orders/operational?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+### 14) Full List For Comparison
+###
+
+# Full list keeps the generic listing behavior and includes delivered orders.
+GET {{baseUrl}}/service-orders?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
