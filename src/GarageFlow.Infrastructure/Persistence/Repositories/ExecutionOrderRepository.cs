@@ -15,6 +15,13 @@ internal sealed class ExecutionOrderRepository(GarageFlowDbContext dbContext) : 
             .Where(eo => eo.ServiceOrderId == serviceOrderId)
             .ToListAsync(cancellationToken);
 
+    public async Task<bool> ExistsForServiceOrderServiceAsync(
+        Guid serviceOrderId,
+        Guid serviceId,
+        CancellationToken cancellationToken = default)
+        => await dbContext.ExecutionOrders
+            .AnyAsync(eo => eo.ServiceOrderId == serviceOrderId && eo.ServiceId == serviceId, cancellationToken);
+
     public async Task<(IReadOnlyList<ExecutionOrder> Items, int TotalCount)> ListAsync(
         int page, int pageSize, CancellationToken cancellationToken = default)
     {

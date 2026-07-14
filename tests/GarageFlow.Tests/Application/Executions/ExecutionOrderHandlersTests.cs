@@ -87,6 +87,20 @@ public sealed class ExecutionOrderHandlersTests
         await act.Should().ThrowAsync<DomainException>().WithMessage("Mecânico é obrigatório");
     }
 
+    [Fact]
+    public async Task CreateExecutionOrder_WithDuplicateServiceForServiceOrder_ThrowsDuplicateExecutionOrderException()
+    {
+        var repo = new FakeExecutionOrderRepository();
+        var handler = new CreateExecutionOrderHandler(repo);
+        var command = ValidCreateCommand();
+        await handler.HandleAsync(command);
+
+        var act = async () => await handler.HandleAsync(command);
+
+        await act.Should().ThrowAsync<DuplicateExecutionOrderException>()
+            .WithMessage("Execução já existe para este serviço nesta OS");
+    }
+
     // --- GetExecutionOrderByIdHandler ---
 
     [Fact]

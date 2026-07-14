@@ -138,6 +138,10 @@ namespace GarageFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("ServiceOrderId")
                         .HasDatabaseName("ix_execution_orders_service_order_id");
 
+                    b.HasIndex("ServiceOrderId", "ServiceId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_execution_orders_service_order_service");
+
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_execution_orders_status");
 

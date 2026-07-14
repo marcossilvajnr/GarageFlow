@@ -16,6 +16,14 @@ public sealed class CreateExecutionOrderHandler(IExecutionOrderRepository execut
         if (command.ServiceId == Guid.Empty)
             throw new DomainException(DomainErrorMessages.InvalidExecutionOrderServiceId);
 
+        if (await executionOrderRepository.ExistsForServiceOrderServiceAsync(
+                command.ServiceOrderId,
+                command.ServiceId,
+                cancellationToken))
+        {
+            throw new DuplicateExecutionOrderException(DomainErrorMessages.DuplicateExecutionOrderService);
+        }
+
         var executionOrder = ExecutionOrder.Create(command.ServiceOrderId, command.ServiceId, command.MechanicId);
 
         await executionOrderRepository.AddAsync(executionOrder, cancellationToken);

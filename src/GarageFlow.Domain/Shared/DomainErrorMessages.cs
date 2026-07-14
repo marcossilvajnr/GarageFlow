@@ -252,6 +252,7 @@ public static class DomainErrorMessages
     public const string InvalidExecutionOrderServiceOrderId = "OS é obrigatória";
     public const string InvalidExecutionOrderServiceId = "Serviço é obrigatório";
     public const string InvalidExecutionOrderMechanicId = "Mecânico é obrigatório";
+    public const string DuplicateExecutionOrderService = "Execução já existe para este serviço nesta OS";
     public const string ExecutionOrderNotReady = "Ordem de Execução não está Pronta para Início";
     public const string ExecutionOrderNotInExecution = "Ordem de Execução não está Em Execução";
 

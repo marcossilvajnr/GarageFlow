@@ -23,6 +23,9 @@ internal sealed class ExecutionOrderConfiguration : IEntityTypeConfiguration<Exe
         builder.Property(eo => eo.CreatedAt).HasColumnName("created_at").IsRequired();
 
         builder.HasIndex(eo => eo.ServiceOrderId).HasDatabaseName("ix_execution_orders_service_order_id");
+        builder.HasIndex(eo => new { eo.ServiceOrderId, eo.ServiceId })
+            .IsUnique()
+            .HasDatabaseName("ux_execution_orders_service_order_service");
         builder.HasIndex(eo => eo.Status).HasDatabaseName("ix_execution_orders_status");
     }
 }

@@ -143,6 +143,18 @@ public sealed class ExecutionOrdersEndpointsTests(GarageFlowWebApplicationFactor
     }
 
     [Fact]
+    public async Task CreateExecutionOrder_WithDuplicateServiceForServiceOrder_Returns409()
+    {
+        var request = ValidCreateRequest();
+        var firstResponse = await _client.PostAsJsonAsync("/execution-orders", request);
+
+        var duplicateResponse = await _client.PostAsJsonAsync("/execution-orders", request);
+
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        duplicateResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
     public async Task CreateExecutionOrder_WithEmptyServiceOrderId_Returns400()
     {
         var request = ValidCreateRequest(serviceOrderId: Guid.Empty);

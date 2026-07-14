@@ -19,6 +19,7 @@ public static class ApplicationExceptionMapper
             DuplicateSupplyDataException or
             DuplicateVehicleDataException or
             DuplicateStockDataException or
+            DuplicateExecutionOrderException or
             DuplicateServiceOrderServiceException or
             DuplicateDiagnosticServiceException or
             DuplicateServicePartException or

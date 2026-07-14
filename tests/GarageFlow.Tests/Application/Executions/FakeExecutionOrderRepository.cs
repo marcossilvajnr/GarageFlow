@@ -16,6 +16,12 @@ internal sealed class FakeExecutionOrderRepository : IExecutionOrderRepository
         return Task.FromResult(result);
     }
 
+    public Task<bool> ExistsForServiceOrderServiceAsync(
+        Guid serviceOrderId,
+        Guid serviceId,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(_store.Any(eo => eo.ServiceOrderId == serviceOrderId && eo.ServiceId == serviceId));
+
     public Task<(IReadOnlyList<ExecutionOrder> Items, int TotalCount)> ListAsync(
         int page, int pageSize, CancellationToken cancellationToken = default)
     {
