@@ -23,7 +23,7 @@ docker build -t garageflow-api:latest .
 Se usar Kind:
 
 ```bash
-kind load docker-image garageflow-api:latest
+kind load docker-image garageflow-api:latest --name garageflow
 ```
 
 ## Aplicar
@@ -80,6 +80,12 @@ kubectl get hpa -n garageflow
 ## Limpeza
 ```bash
 kubectl delete -f k8s/
+```
+
+Na raiz do repositório, para remover também cluster Kind, imagens locais da aplicação e volumes do Docker Compose, use o script de limpeza local:
+
+```bash
+./scripts/teardown-local-infra.sh
 ```
 
 O metrics-server é um add-on do cluster, não um recurso da aplicação GarageFlow. Se quiser removê-lo do cluster local:

@@ -103,7 +103,13 @@ kubectl get hpa -n garageflow
 ```
 
 ## Destruir Infraestrutura
-Remova primeiro os workloads da aplicação:
+Na raiz do repositório, para limpar o ambiente local completo, incluindo namespace da aplicação, volumes do Docker Compose, imagens locais `garageflow-api` e cluster Kind:
+
+```bash
+./scripts/teardown-local-infra.sh
+```
+
+Para executar os passos manualmente, remova primeiro os workloads da aplicação:
 
 ```bash
 kubectl delete -f k8s/

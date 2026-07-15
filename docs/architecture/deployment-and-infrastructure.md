@@ -48,6 +48,83 @@ Sequência operacional:
 8. Expor a aplicação localmente com `kubectl port-forward`.
 9. Validar `/health` e Swagger.
 
+## Runbook Local
+Este runbook sobe a infraestrutura local a partir de um ambiente limpo, sem executar carga de dados de demonstração.
+
+### Limpeza
+Para remover recursos locais da aplicação e do cluster Kind provisionado pelo Terraform:
+
+```bash
+./scripts/teardown-local-infra.sh
+```
+
+### Subida Do Ambiente
+Na raiz do repositório, gere a imagem Docker:
+
+```bash
+docker build --no-cache -t garageflow-api:latest .
+```
+
+Provisione o cluster Kubernetes local:
+
+```bash
+cd infra
+terraform apply -auto-approve
+cd ..
+```
+
+Carregue a imagem no cluster Kind:
+
+```bash
+kind load docker-image garageflow-api:latest --name garageflow
+```
+
+Aplique os manifests Kubernetes:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+```
+
+Aguarde os rollouts e confira os recursos:
+
+```bash
+kubectl rollout status deployment/garageflow-postgres -n garageflow
+kubectl rollout status deployment/garageflow-webhost -n garageflow
+kubectl get all -n garageflow
+kubectl get pvc,configmap,secret,hpa -n garageflow
+```
+
+### Metrics Server Para HPA
+O metrics-server é necessário para o HPA exibir métricas reais e tomar decisões de escala por CPU/memória.
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+kubectl rollout status deployment/metrics-server -n kube-system --timeout=120s
+kubectl top pods -n garageflow
+kubectl get hpa -n garageflow
+```
+
+### Acesso Local
+Em um terminal dedicado:
+
+```bash
+kubectl port-forward -n garageflow service/garageflow-webhost 8080:8080
+```
+
+Em outro terminal:
+
+```bash
+curl http://localhost:8080/health
+```
+
+Swagger:
+
+```text
+http://localhost:8080/swagger
+```
+
 ## Deploy Na CI/CD
 A esteira `GarageFlow CI/CD` reproduz o deploy Kubernetes em um cluster Kind efêmero.
 

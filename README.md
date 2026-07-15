@@ -81,16 +81,20 @@ curl http://localhost:8080/health
 ```
 
 ## Kubernetes
-Os manifestos Kubernetes ficam em `k8s/`.
+Os manifestos Kubernetes ficam em `k8s/`. O caminho local completo usa Docker, Terraform, Kind e Kubernetes.
 
 ```bash
-docker build -t garageflow-api:latest .
+docker build --no-cache -t garageflow-api:latest .
+cd infra
+terraform apply -auto-approve
+cd ..
+kind load docker-image garageflow-api:latest --name garageflow
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/
 kubectl port-forward service/garageflow-webhost 8080:8080 -n garageflow
 ```
 
-Detalhes de recursos criados, validação e limpeza estão em [k8s/README.md](k8s/README.md). A visão canônica de infraestrutura e deploy está em [docs/architecture/deployment-and-infrastructure.md](docs/architecture/deployment-and-infrastructure.md).
+Detalhes de recursos criados, validação, HPA, limpeza e sequência completa de deploy estão em [docs/architecture/deployment-and-infrastructure.md](docs/architecture/deployment-and-infrastructure.md), [infra/README.md](infra/README.md) e [k8s/README.md](k8s/README.md).
 
 ## Terraform
 A infraestrutura como código local fica em `infra/`.
@@ -102,7 +106,7 @@ terraform plan
 terraform apply
 ```
 
-O Terraform provisiona um cluster Kubernetes local com Kind. Depois disso, a imagem Docker e os manifests Kubernetes continuam sendo aplicados conforme o runbook em [infra/README.md](infra/README.md).
+O Terraform provisiona um cluster Kubernetes local com Kind. Depois disso, a imagem Docker e os manifests Kubernetes continuam sendo aplicados conforme o runbook em [docs/architecture/deployment-and-infrastructure.md](docs/architecture/deployment-and-infrastructure.md).
 
 ## Testes automatizados
 Somente E2E:
