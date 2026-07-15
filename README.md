@@ -20,6 +20,53 @@ O projeto está organizado para execução local, validação por repositório e
 
 AWS/EKS e SonarQube remoto não fazem parte do caminho local padrão. SonarQube existe como fluxo local opcional.
 
+## Runbook Rápido Da Infraestrutura Local
+Este é o caminho recomendado para subir a infraestrutura local com Docker, Terraform, Kind e Kubernetes.
+
+Para limpar o ambiente local antes de uma nova execução:
+
+```bash
+./scripts/teardown-local-infra.sh
+```
+
+Para subir o ambiente:
+
+```bash
+docker build --no-cache -t garageflow-api:latest .
+cd infra
+terraform apply -auto-approve
+cd ..
+kind load docker-image garageflow-api:latest --name garageflow
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+kubectl rollout status deployment/garageflow-postgres -n garageflow
+kubectl rollout status deployment/garageflow-webhost -n garageflow
+kubectl get all -n garageflow
+```
+
+Para habilitar métricas reais do HPA em cluster local:
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+kubectl rollout status deployment/metrics-server -n kube-system --timeout=120s
+kubectl get hpa -n garageflow
+```
+
+Para acessar localmente:
+
+```bash
+kubectl port-forward service/garageflow-webhost 8080:8080 -n garageflow
+```
+
+Em outro terminal:
+
+```bash
+curl http://localhost:8080/health
+```
+
+Detalhes de recursos criados, validação, HPA, limpeza e sequência completa de deploy estão em [docs/architecture/deployment-and-infrastructure.md](docs/architecture/deployment-and-infrastructure.md), [infra/README.md](infra/README.md) e [k8s/README.md](k8s/README.md).
+
 ## Pré-requisitos
 - Docker Desktop em execução
 - VS Code com extensão REST Client (para a demo guiada)
@@ -81,20 +128,15 @@ curl http://localhost:8080/health
 ```
 
 ## Kubernetes
-Os manifestos Kubernetes ficam em `k8s/`. O caminho local completo usa Docker, Terraform, Kind e Kubernetes.
+Os manifestos Kubernetes ficam em `k8s/`. Use o [Runbook Rápido Da Infraestrutura Local](#runbook-rápido-da-infraestrutura-local) para subir o ambiente completo.
 
 ```bash
-docker build --no-cache -t garageflow-api:latest .
-cd infra
-terraform apply -auto-approve
-cd ..
-kind load docker-image garageflow-api:latest --name garageflow
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/
 kubectl port-forward service/garageflow-webhost 8080:8080 -n garageflow
 ```
 
-Detalhes de recursos criados, validação, HPA, limpeza e sequência completa de deploy estão em [docs/architecture/deployment-and-infrastructure.md](docs/architecture/deployment-and-infrastructure.md), [infra/README.md](infra/README.md) e [k8s/README.md](k8s/README.md).
+Detalhes de recursos criados, validação, HPA e limpeza estão em [docs/architecture/deployment-and-infrastructure.md](docs/architecture/deployment-and-infrastructure.md), [infra/README.md](infra/README.md) e [k8s/README.md](k8s/README.md).
 
 ## Terraform
 A infraestrutura como código local fica em `infra/`.
